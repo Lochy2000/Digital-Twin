@@ -3,13 +3,14 @@ from datetime import datetime, timezone
 import paho.mqtt.client as mqtt
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
+import os
 
 # --- Config ---
-BROKER_HOST = "localhost"
+BROKER_HOST = os.getenv("BROKER_HOST", "localhost")
 BROKER_PORT = 1883
 TOPIC = "asset/hvac_01/telemetry"
 
-INFLUX_URL    = "http://localhost:8086"
+INFLUX_URL = os.getenv("INFLUX_URL", "http://localhost:8086")
 INFLUX_TOKEN  = "my-super-secret-token"
 INFLUX_ORG    = "dt-org"
 INFLUX_BUCKET = "hvac"

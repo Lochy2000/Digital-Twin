@@ -4,9 +4,10 @@ import random
 import math
 from datetime import datetime, timezone
 import paho.mqtt.client as mqtt
+import os
 
 # --- Config ---
-BROKER_HOST = "localhost"
+BROKER_HOST = os.getenv("BROKER_HOST", "localhost")
 BROKER_PORT = 1883
 TOPIC = "asset/hvac_01/telemetry"
 PUBLISH_INTERVAL = 3  # seconds

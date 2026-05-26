@@ -37,6 +37,26 @@ services:
       - influxdb
     restart: unless-stopped
 
+  publisher:
+    build: ./mqtt-pipeline
+    container_name: publisher
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+    environment:
+      - BROKER_HOST=mosquitto
+
+  storage-subscriber:
+    build: ./storage
+    container_name: storage-subscriber
+    depends_on:
+      - mosquitto
+      - influxdb
+    restart: unless-stopped
+    environment:
+      - BROKER_HOST=mosquitto
+      - INFLUX_URL=http://influxdb:8086
+
 volumes:
   influxdb-data:
   grafana-data:
