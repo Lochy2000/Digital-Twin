@@ -8,6 +8,25 @@ services:
       - ./mqtt-pipeline/mosquitto.conf:/mosquitto/config/mosquitto.conf
     restart: unless-stopped
 
+  acme-publisher:
+    build: ./testing/adapter
+    container_name: acme-publisher
+    command: python vendor_acme_publisher.py
+    profiles: ["ex01"]
+    depends_on: [mosquitto]
+    environment:
+      - BROKER_HOST=mosquitto
+    restart: unless-stopped
+
+  borealis-publisher:
+    # build: ./testing/adapter
+    container_name: borealis-publisher
+    command: python vendor_borealis_publisher.py
+    profiles: ["ex01"]
+    depends_on: [mosquitto]
+    environment:
+      - BROKER_HOST=mosquitto
+    restart: unless-stopped
   influxdb:
     image: influxdb:2.7
     container_name: influxdb

@@ -9,14 +9,24 @@ import os
 # --- Config ---
 BROKER_HOST = os.getenv("BROKER_HOST", "localhost")
 BROKER_PORT = 1883
-TOPIC = "asset/hvac_01/telemetry"
-PUBLISH_INTERVAL = 3  # seconds
+TOPIC = "vendor/borealis/site4/data"
+PUBLISH_INTERVAL = 5  # seconds
 
 # --- Simulate realistic HVAC thermal behaviour ---
 # Uses a sine wave as a base cycle (simulates heating/cooling cycle)
 # with small random noise on top
-# looks something like {"asset_id": "hvac_01", "timestamp": "...", "temperature_c": 19.4, "humidity_pct": 55.45, "mode": "heating"}
 
+def to_borealis_payload(temperature_c, humidity_pct):
+    now = datetime.now(timezone.utc).isoformat()
+    return {
+        "site": "site4",
+        "unit": "hvac_01",
+        "readings": [
+            {"metric": "temperature", "value": temperature_c, "unit": "C", "time": now},
+            {"metric": "humidity", "value": humidity_pct, "unit": "%", "time": now},
+        ],
+        "status": {"mode": "COOLING" if temperature_c >= 21 else "HEATING"},
+    }
 
 def get_simulated_readings(t):
     # Base temperature oscillates between 18°C and 24°C over a slow cycle
@@ -37,8 +47,8 @@ def on_connect(client, userdata, flags, rc, properties=None):
         print(f"[broker] connection failed with code {rc}")
 
 def main():
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2) # create the clent
-    client.on_connect = on_connect # a successful register callback just a log
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.on_connect = on_connect
 
     client.connect(BROKER_HOST, BROKER_PORT)
     client.loop_start()
@@ -59,7 +69,7 @@ def main():
                 "mode": "heating" if temperature < 21 else "cooling"
             }
 
-            client.publish(TOPIC, json.dumps(payload)) # any componenetn that wants to be a 'publisher' will always follow this shape
+            client.publish(TOPIC, json.dumps(payload))
             print(f"[published] {payload}")
 
             t += PUBLISH_INTERVAL
