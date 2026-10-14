@@ -28,9 +28,17 @@ Sources:
 · AsyncAPI https://asyncapi.com/docs/concepts/asyncapi-document
 · Unified Namespace https://tractian.com/en/glossary/unified-namespace
 
+## Architecture 
+· https://wz-it.com/en/knowledge/
 · OpenTwins (arXiv 2301.05560)  https://arxiv.org/pdf/2301.05560
 · Open-source IoT/DT platforms compared  https://wz-it.com/en/knowledge/iot/open-source-iot-platforms-compared/
+· https://wz-it.com/en/knowledge/iot/iot-architecture-layers/
 · ISO 23247-2 https://www.iso.org/standard/78743.html
 
+![alt text](architecture.png)
+
+## Semantic layer
 · Ontologies in Digital Twins SLR  https://dare.uva.nl/id/1fd181f2-a16b-4e49-ae77-2e85a7789877
 · Operational DTs: semantic infrastructure review (ITcon 2026) https://itcon.org/paper/2026/43 
+
+
