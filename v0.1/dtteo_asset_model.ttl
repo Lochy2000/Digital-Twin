@@ -1,0 +1,132 @@
+# DT-TEO asset model, starting point (v0.1)
+# ------------------------------------------------------------------
+# One placeholder heat/cool unit serving one HVAC zone.
+# Vocabulary: Brick 1.5 (brick:), RealEstateCore (rec:) for spaces,
+# Brick ref schema (ref:) for links to stored time series,
+# QUDT (unit:) for units.
+#
+# How to extend:
+#   - New sensor on the unit: add a point node and list it under
+#     :unit1 brick:hasPoint, then give it a ref:hasExternalReference
+#     whose ref:hasTimeseriesId matches the point_id the ingestion
+#     gateway publishes.
+#   - Real equipment: replace brick:Packaged_Heat_Pump with the class
+#     that matches Botanic's unit once it is specified.
+#   - Validate after every change:
+#       python -c "import brickschema as b; g=b.Graph(load_brick=True); \
+#         g.load_file('dtteo_asset_model.ttl'); print(g.validate()[2])"
+# ------------------------------------------------------------------
+
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix rec:   <https://w3id.org/rec#> .
+@prefix ref:   <https://brickschema.org/schema/Brick/ref#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix unit:  <http://qudt.org/vocab/unit/> .
+@prefix :      <urn:dtteo:site1#> .
+
+# --- Spaces -------------------------------------------------------
+
+:site1 a rec:Site ;
+    rdfs:label "Test site" ;
+    brick:hasPart :building1 .
+
+:building1 a rec:Building ;
+    rdfs:label "Test building" ;
+    brick:hasPart :room1 .
+
+:room1 a rec:Room ;
+    rdfs:label "Room 1" .
+
+:zone1 a rec:HVACZone ;
+    rdfs:label "Zone 1" ;
+    brick:hasPart :room1 ;
+    brick:hasPoint :zone_temp, :zone_setpoint .
+
+# --- Equipment ----------------------------------------------------
+
+:unit1 a brick:Packaged_Heat_Pump ;      # placeholder class
+    rdfs:label "Heat/cool unit 1" ;
+    brick:feeds :zone1 ;
+    brick:hasLocation :room1 ;
+    brick:hasPoint :supply_temp, :power, :mode_cmd, :heat_cmd, :cool_cmd .
+
+:weather1 a brick:Weather_Station ;
+    rdfs:label "Weather source (simulated in v0.1)" ;
+    brick:hasPoint :outside_temp .
+
+# --- Points: zone ---------------------------------------------------
+
+:zone_temp a brick:Zone_Air_Temperature_Sensor ;
+    rdfs:label "Zone air temperature" ;
+    brick:hasUnit unit:DEG_C ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "unit1.zone_air_temp" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:zone_setpoint a brick:Target_Zone_Air_Temperature_Setpoint ;
+    rdfs:label "Zone temperature setpoint" ;
+    brick:hasUnit unit:DEG_C ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "unit1.zone_setpoint" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+# --- Points: unit ---------------------------------------------------
+
+:supply_temp a brick:Supply_Air_Temperature_Sensor ;
+    rdfs:label "Supply air temperature" ;
+    brick:hasUnit unit:DEG_C ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "unit1.supply_air_temp" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:power a brick:Active_Power_Sensor ;
+    rdfs:label "Electrical power" ;
+    brick:hasUnit unit:KiloW ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "unit1.power" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:mode_cmd a brick:Mode_Command ;
+    rdfs:label "Operating mode (heat / cool / off)" ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "unit1.mode_cmd" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:heat_cmd a brick:Heating_Command ;
+    rdfs:label "Heating output (0-100 %)" ;
+    brick:hasUnit unit:PERCENT ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "unit1.heat_cmd" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:cool_cmd a brick:Cooling_Command ;
+    rdfs:label "Cooling output (0-100 %)" ;
+    brick:hasUnit unit:PERCENT ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "unit1.cool_cmd" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+# --- Points: weather ------------------------------------------------
+
+:outside_temp a brick:Outside_Air_Temperature_Sensor ;
+    rdfs:label "Outside air temperature" ;
+    brick:hasUnit unit:DEG_C ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "site1.outside_air_temp" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
