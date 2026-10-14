@@ -1,0 +1,9 @@
+{
+  "v": 1,
+  "point": "unit1.zone_air_temp",
+  "vaule": 21.52,
+  "unit": "DEG_C",
+  "sensor_time": "2026-10-14T12:00:00Z",
+  "ingest_time": "2026-10-14T12:00:00.400Z",
+  "quality": "GOOD"
+}

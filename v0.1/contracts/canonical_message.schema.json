@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dtteo:schema:canonical-message:1",
+  "title": "DT-TEO canonical message",
+  "description": "The one message shape every service after the ingestion gateway receives. One message = one reading of one point. Meaning (what the point is, what it belongs to) lives in the asset model, linked by `point`.",
+  "type": "object",
+  "required": ["v", "point", "value", "unit", "sensor_time", "ingest_time", "quality"],
+  "additionalProperties": false,
+  "properties": {
+    "v": {
+      "description": "Schema version. Bump when the shape changes so old and new messages can be told apart.",
+      "const": 1
+    },
+    "point": {
+      "description": "Point ID. Must match a ref:hasTimeseriesId in the asset model (dtteo_asset_model.ttl). Lowercase, dot-separated: <equipment>.<point>.",
+      "type": "string",
+      "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$",
+      "examples": ["unit1.zone_air_temp", "site1.outside_air_temp"]
+    },
+    "value": {
+      "description": "The reading after normalisation. Numbers for measurements and percentages, strings for modes/states, booleans for on/off.",
+      "type": ["number", "string", "boolean"]
+    },
+    "unit": {
+      "description": "QUDT unit ID, the same one used by brick:hasUnit in the asset model (e.g. DEG_C, KiloW, PERCENT). null for values with no unit, such as a mode.",
+      "type": ["string", "null"],
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "examples": ["DEG_C", "KiloW", "PERCENT", null]
+    },
+    "sensor_time": {
+      "description": "When the reading was measured (event time), in UTC. If the source gives no time, the adapter uses the time it read the value.",
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "ingest_time": {
+      "description": "When the ingestion gateway received the reading (processing time), in UTC. Always set by the gateway, never by the device.",
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "quality": {
+      "description": "Set by the validator. GOOD = passed all checks. SUSPECT = usable but flagged (e.g. outside the usual range). BAD = failed a check; stored for the record but not used by the twin.",
+      "enum": ["GOOD", "SUSPECT", "BAD"]
+    },
+    "source": {
+      "description": "Optional. Where the reading came from, as <adapter>:<device id>. Used for tracing problems back to a device.",
+      "type": "string",
+      "examples": ["mqtt-acme:ACME-HVAC-0001", "csv:bms_export_2026-03.csv"]
+    }
+  }
+}
