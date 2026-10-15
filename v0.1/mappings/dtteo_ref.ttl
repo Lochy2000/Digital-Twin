@@ -1,0 +1,44 @@
+# DT-TEO extension to Brick's reference schema.
+# ------------------------------------------------------------------
+# Brick links a point to outside systems with ref:hasExternalReference.
+# It ships reference types for BACnet, IFC and time-series databases.
+# Following the same pattern, this file adds ONE more type:
+#
+#   dtteo:RawFieldReference  "in vendor X's raw message from device Y,
+#                             this point is the field called Z"
+#
+# The ingestion gateway's mapper reads these to turn vendor field
+# names into our point IDs.
+# ------------------------------------------------------------------
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix ref:   <https://brickschema.org/schema/Brick/ref#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+dtteo:RawFieldReference a owl:Class ;
+    rdfs:subClassOf ref:ExternalReference ;
+    rdfs:label "Raw field reference" ;
+    rdfs:comment "Where a point appears in a device's own (raw) message format." ;
+    skos:definition "A reference to the field in a device's raw message that carries the value of this entity." .
+
+dtteo:source a owl:DatatypeProperty ;
+    rdfs:comment "Which adapter / vendor the raw message comes from, e.g. 'acme'. Matches the 2nd level of raw/{source}/{device}/..." ;
+    rdfs:range xsd:string .
+
+dtteo:device a owl:DatatypeProperty ;
+    rdfs:comment "Device slug, as used in the raw topic, e.g. 'acme_hvac_0001'." ;
+    rdfs:range xsd:string .
+
+dtteo:field a owl:DatatypeProperty ;
+    rdfs:comment "The vendor's name for this value inside its message, e.g. 'tempF' or 'status.mode'." ;
+    rdfs:range xsd:string .
+
+dtteo:rawUnit a owl:ObjectProperty ;
+    rdfs:comment "Optional. QUDT unit the vendor sends in, if different from the point's unit, e.g. unit:DEG_F. Used by the normaliser." .
+
+dtteo:scale a owl:DatatypeProperty ;
+    rdfs:comment "Optional. Multiply the raw number by this before unit conversion, e.g. 0.01 for a device that sends 2152 meaning 21.52." ;
+    rdfs:range xsd:decimal .

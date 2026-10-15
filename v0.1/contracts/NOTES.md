@@ -1,6 +1,6 @@
 # contracts/: developer notes
 
-Working notes for the message contract. Everything for this build lives in `v0.1/`; the root folders (`mqtt-pipeline`, `storage`, `testing`) are the earlier prototype and are left untouched. Each entry records what changed, why, and what's still open. Newest entry at the bottom.
+Working notes for the message contract. Everything for this build lives in `v0.1/`; the root folders (`mqtt-pipeline`, `storage`, `testing`) are the earlier prototype. Each entry records what changed, why, and what's still open. Newest entry at the bottom.
 
 ---
 
@@ -104,3 +104,46 @@ Decide the MQTT topic structure: where raw device data arrives, where canonical 
 ## 2026-10-14 · Moved into v0.1
 
 This folder was first created at the repo root by mistake. It now lives at `v0.1/contracts/`, so the design docs and the build sit together and the earlier prototype in the root stays as it was. Paths in these notes were updated to match. Nothing in the schema or examples changed.
+
+---
+
+## 2026-10-14 · Step 1b: topic names
+
+### What I added
+
+`topics.md`: the full topic map, naming rules, QoS/retain choices, online/offline status, and a draft of the broker access rules.
+
+### Decisions (and the alternatives I didn't take)
+
+**1. Two separate zones: `raw/...` and `dt/v1/...`.**
+- Devices write native data to `raw/{source}/{device}/...`. Only the ingestion gateway reads it, and only the gateway writes canonical messages to `dt/v1/telemetry/...`.
+- *Why:* it makes the "front door" rule visible in the topic names, and later enforceable with broker access rules.
+- *Alternative:* devices publish straight to canonical topics. That's simpler, but any device could then send badly formed "canonical" data.
+
+**2. Message class comes before site and equipment (`dt/v1/telemetry/site1/...`, not `dt/v1/site1/unit1/telemetry`).**
+- *Why:* most services want one *class* of message (all telemetry, all alerts). Class-first means one wildcard covers it, e.g. `dt/v1/telemetry/#`.
+- *Alternative:* the Unified Namespace / ISA-95 style puts the site hierarchy first. It's better when people browse topics by location; worth revisiting if a UNS is ever needed at pilot.
+
+**3. The canonical topic is derived from the point ID (`.` becomes `/`).**
+- *Why:* there's one source of truth for names (the asset model) and no separate lookup table for topics.
+
+**4. `v1` is in the topic as well as in the message.**
+- *Why:* the message's `v` says which *schema* a message uses. The topic's `v1` lets a future topic layout run alongside this one during a switch-over. They usually change together, but don't have to.
+
+**5. QoS 1 for canonical data, with nothing retained except status and twin state.**
+- *Why:* a dropped reading matters more than a rare duplicate, and duplicates can be ignored at storage time (same `point` + `sensor_time`). Retaining readings would hand new subscribers an old value as if it were current.
+
+### Knock-on changes to make
+
+- **D-07 (what-if diagram) and the README** use `dt/scn/req` and `dt/scn/res/r42`. These should become `dt/v1/scenario/req` and `dt/v1/scenario/res/r42`. They'll be updated together with the `degC` → `DEG_C` change from step 1a.
+- The root prototype publishes to `asset/hvac_01/telemetry` and `vendor/.../...`. The fixed copies in `v0.1/testing/vendors/` will publish to `raw/acme/...` and `raw/borealis/...`.
+
+### Still open
+
+- **The quarantine message needs its own small schema.** It should carry at least the original topic, the raw payload, the reason and when it was received. That will be written in step 2, alongside the gateway that produces it.
+- Should **commands** (later phase) get their own class, e.g. `dt/v1/cmd/...`? Yes, most likely, but it stays out of v0.1 until the command path is designed.
+
+### Next: step 2, ingestion gateway v0
+
+1. Copy the acme and borealis publishers into `v0.1/testing/vendors/` and fix them so they really send different formats, on `raw/...` topics.
+2. Build the first gateway pieces: the MQTT adapter and the mapper (reading the asset model).

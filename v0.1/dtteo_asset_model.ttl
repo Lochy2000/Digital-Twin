@@ -48,7 +48,7 @@
     rdfs:label "Heat/cool unit 1" ;
     brick:feeds :zone1 ;
     brick:hasLocation :room1 ;
-    brick:hasPoint :supply_temp, :power, :mode_cmd, :heat_cmd, :cool_cmd .
+    brick:hasPoint :supply_temp, :power, :mode_cmd, :mode_status, :heat_cmd, :cool_cmd .
 
 :weather1 a brick:Weather_Station ;
     rdfs:label "Weather source (simulated in v0.1)" ;
@@ -95,10 +95,18 @@
     ] .
 
 :mode_cmd a brick:Mode_Command ;
-    rdfs:label "Operating mode (heat / cool / off)" ;
+    rdfs:label "Requested operating mode (heat / cool / off)" ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
         ref:hasTimeseriesId "unit1.mode_cmd" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:mode_status a brick:Mode_Status ;
+    rdfs:label "Reported operating mode (heat / cool / off)" ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "unit1.mode_status" ;
         ref:storedAt "postgresql://dtteo/telemetry"
     ] .
 

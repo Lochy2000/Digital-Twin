@@ -1,0 +1,39 @@
+# DT-TEO v0.1 stack. Separate from the root prototype's docker-compose.yml.
+# Stop the root stack first (it also uses port 1883):  cd .. && docker compose down
+#
+# Run the broker + ONE vendor at a time (they pretend to be the same unit):
+#   docker compose --profile acme up --build
+#   docker compose --profile borealis up --build
+#
+# Watch what's on the broker:
+#   docker compose exec mosquitto mosquitto_sub -v -t "raw/#" -t "dt/v1/#"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: v01-mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  acme:
+    build: ./testing/vendors
+    container_name: v01-acme
+    command: python -u acme_publisher.py
+    profiles: ["acme"]
+    depends_on: [mosquitto]
+    environment:
+      - BROKER_HOST=mosquitto
+    restart: unless-stopped
+
+  borealis:
+    build: ./testing/vendors
+    container_name: v01-borealis
+    command: python -u borealis_publisher.py
+    profiles: ["borealis"]
+    depends_on: [mosquitto]
+    environment:
+      - BROKER_HOST=mosquitto
+    restart: unless-stopped

@@ -1,0 +1,23 @@
+# Raw field mappings for the fake vendor "Acme" (testing/vendors/acme_publisher.py).
+# Each block says: in Acme's message from device acme_hvac_0001, field X is point Y.
+# Fields NOT listed here (e.g. "rh" humidity) are unknown, so the gateway quarantines them.
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix ref:   <https://brickschema.org/schema/Brick/ref#> .
+@prefix unit:  <http://qudt.org/vocab/unit/> .
+@prefix :      <urn:dtteo:site1#> .
+
+:zone_temp ref:hasExternalReference [
+    a dtteo:RawFieldReference ;
+    dtteo:source "acme" ;
+    dtteo:device "acme_hvac_0001" ;
+    dtteo:field "tempF" ;
+    dtteo:rawUnit unit:DEG_F        # Acme sends Fahrenheit
+] .
+
+:mode_status ref:hasExternalReference [
+    a dtteo:RawFieldReference ;
+    dtteo:source "acme" ;
+    dtteo:device "acme_hvac_0001" ;
+    dtteo:field "op_state"          # 1/2/3, translated to heat/cool/off by the normaliser
+] .
