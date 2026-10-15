@@ -1,0 +1,24 @@
+{
+  "topic": "raw/borealis/site4_hvac_01/data",
+  "payload": {
+    "site": "site4",
+    "unit": "site4-hvac_01",
+    "readings": [
+      {
+        "metric": "temperature",
+        "value": 21.29,
+        "unit": "C",
+        "time": "2026-10-14T20:33:38+01:00"
+      },
+      {
+        "metric": "humidity",
+        "value": 55.6,
+        "unit": "%",
+        "time": "2026-10-14T20:33:38+01:00"
+      }
+    ],
+    "status": {
+      "mode": "COOLING"
+    }
+  }
+}

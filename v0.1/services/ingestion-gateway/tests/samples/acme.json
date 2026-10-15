@@ -1,0 +1,10 @@
+{
+  "topic": "raw/acme/acme_hvac_0001/telemetry",
+  "payload": {
+    "deviceId": "ACME-HVAC-0001",
+    "ts": 1792006418428,
+    "tempF": 70.4,
+    "rh": 54.0,
+    "op_state": 2
+  }
+}

@@ -3,8 +3,8 @@
 The gateway is the system's front door: raw device data comes in, canonical messages go out (see `../../contracts/`). It is being built one piece at a time, in the order of the D-03 diagram. Newest entry at the bottom.
 
 ```
-adapter (decode) → MAPPER → normaliser → validator → publisher
-                     ▲ built in this step
+transport (MQTT, file, ...) → DECODER → MAPPER → normaliser → validator → publisher
+                                  2c       2b
 ```
 
 ---
@@ -39,7 +39,7 @@ It doesn't convert values, check ranges or publish anything. Those jobs belong t
 I had two options:
 
 - **A. A separate config file per adapter**, e.g. YAML: `tempF: unit1.zone_air_temp`. This is simple, but it's a second list of point names that can drift away from the asset model.
-- **B. The semantic model itself.** ✅ Chosen.
+- **B. The semantic model itself.**  Chosen.
 
 Brick already has a pattern for "how does an outside system refer to this point?", called **external references**. A point can carry several, one per system:
 
@@ -134,3 +134,96 @@ The tests themselves were fine, but running them depended on *where* you ran the
 - **`python -m gateway.mapper`** now needs no arguments. It finds the asset model and the `mappings` folder itself, and searches for `.ttl` files in Python, so it behaves the same on every system.
 - Added **`v0.1/.gitignore`** so virtual environments and cache folders aren't committed.
 - Rewrote "Try it" above with Windows commands and the VS Code interpreter fix.
+
+---
+
+## 2026-10-15 · Step 2c: decoders
+
+### Transport and format are two different jobs
+
+The D-03 diagram has one box per "protocol adapter", but that box does two separate things:
+
+| Job | Question it answers | Examples | Built in |
+|---|---|---|---|
+| **Transport** | *How* do the bytes arrive? | subscribe over MQTT, read a CSV file, poll Modbus | a later step (wiring the service) |
+| **Format** | *What* do the bytes mean? | Acme's flat object, Borealis's list of readings | **this step (decoders)** |
+
+They're independent: Acme could send the same format over MQTT today and in a CSV export tomorrow. Keeping them apart means a new vendor never needs new connection code, and a new connection type never needs new vendor code.
+
+### What I added
+
+| File | What |
+|---|---|
+| `gateway/decoders/__init__.py` | `RawRecord`, `DecodeError`, topic parsing, and the registry that picks a decoder from the topic |
+| `gateway/decoders/acme.py` | Acme decoder |
+| `gateway/decoders/borealis.py` | Borealis decoder |
+| `gateway/demo.py` | `python -m gateway.demo` prints decode + map for the sample messages |
+| `tests/samples/*.json` | One real message from each vendor, captured from the scripts in `testing/vendors/` |
+| `tests/test_decoders.py` | 16 tests, including decode + map together |
+
+### What a decoder produces
+
+Every decoder turns its vendor's message into a list of the same simple thing, a **RawRecord**:
+
+```python
+RawRecord(source="acme", device="acme_hvac_0001", field="tempF", value=70.4, time=<19:33:38 UTC>)
+```
+
+The mapper then only ever sees RawRecords, whatever vendor they came from. In the *Normalizer* pattern from Enterprise Integration Patterns, the decoders are the "one translator per format" boxes.
+
+### Rules every decoder follows (and why)
+
+1. **Understand syntax only.** A decoder knows where the values *are* in the message and how to read its time format, nothing more.
+2. **Don't convert anything.** `70.4` stays Fahrenheit and `2` stays Acme's code. Conversion is the normaliser's job (next step), done once for every vendor, driven by the mapping files (`rawUnit`). If each decoder did its own conversion, the same F→C maths would be copied into every vendor.
+3. **Emit every field and filter nothing.** If Acme adds a new field next year, it reaches the mapper, isn't found, and lands in quarantine where someone can see it. If decoders only picked out the fields they "knew", new data would silently vanish.
+4. **If the whole message can't be read, raise `DecodeError`.** Examples: not JSON, a time with no timezone, an unknown vendor. The gateway will quarantine the whole message, with the reason.
+
+### Time handling
+
+- **Acme:** `ts` is milliseconds since 1970 in UTC. The decoder turns it into a proper time (`19:33:38.428 UTC`).
+- **Borealis:** each reading has an ISO time with its offset (`20:33:38+01:00`). The decoder keeps the offset; converting to UTC is the normaliser's job.
+- A Borealis time **without** an offset is rejected. `20:33:38` alone is ambiguous: UK time or UTC? Guessing would silently shift data by an hour for half the year.
+- Borealis's `status` block has no time of its own, so it uses the newest reading time in the same message.
+- The test `test_both_samples_are_the_same_instant` checks that Acme's `1792006418428` ms and Borealis's `20:33:38+01:00` are the same moment, so neither decoder is an hour out.
+
+### Decisions
+
+**1. The device comes from the topic, not the payload.** This matches the mapper (step 2b).
+
+**2. Nested fields are flattened with a dot** (`status.mode`). This matches how the mapping files name them.
+
+**3. Borealis's own `"unit": "C"` label is currently ignored.** The mapping file is the authority on units. *Possible later check:* if a vendor's declared unit disagrees with the mapping, mark the reading SUSPECT.
+
+**4. Decoders are looked up by the `source` level of the topic** (`raw/acme/...` → Acme decoder). Adding a vendor means one decoder module, one line in `DECODERS`, and one `mappings/<vendor>.ttl`.
+
+### Try it
+
+```bat
+cd v0.1\services\ingestion-gateway
+venv\Scripts\activate
+python -m pytest              :: 24 passed
+python -m gateway.demo        :: see both vendors decoded and mapped
+```
+
+Demo output:
+
+```
+raw/acme/acme_hvac_0001/telemetry
+  tempF        = 70.4      @ 2026-10-14T19:33:38.428000+00:00  -> unit1.zone_air_temp
+  rh           = 54.0      @ 2026-10-14T19:33:38.428000+00:00  -> QUARANTINE (unknown point)
+  op_state     = 2         @ 2026-10-14T19:33:38.428000+00:00  -> unit1.mode_status
+
+raw/borealis/site4_hvac_01/data
+  temperature  = 21.29     @ 2026-10-14T20:33:38+01:00         -> unit1.zone_air_temp
+  humidity     = 55.6      @ 2026-10-14T20:33:38+01:00         -> QUARANTINE (unknown point)
+  status.mode  = COOLING   @ 2026-10-14T20:33:38+01:00         -> unit1.mode_status
+```
+
+Both vendors now reach the **same points**. The values and times are still in each vendor's own form (°F vs °C, `2` vs `COOLING`, UTC vs +01:00).
+
+### Next: step 2d, normaliser
+
+Make the values identical as well:
+- °F → °C, using `dtteo:rawUnit` from the mapping files;
+- every time → UTC ending in `Z`;
+- vendor mode words and codes (`2`, `COOLING`) → `heat` / `cool` / `off`. These value maps will go in the mapping files, so vendor knowledge stays in data, not code.
