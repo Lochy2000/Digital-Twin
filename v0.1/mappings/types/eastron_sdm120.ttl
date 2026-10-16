@@ -1,0 +1,53 @@
+# Device type: Eastron SDM120 single-phase electricity meter, Modbus.
+# REAL product, commonly fitted to meter one appliance such as a heat pump.
+# Register list cross-checked in two places:
+#   - aggsoft.com Eastron SDM120 register table (voltage 0x0000, power 0x000C, frequency 0x0046)
+#   - sdm-modbus 0.4.3 (Python library): all INPUT registers, 2 registers each,
+#     FLOAT32, decoded big-endian byte AND word order.
+# Still to confirm against Eastron's own protocol PDF before using a real meter.
+#
+# Addresses are the ones sent on the wire (0-based), as the W3C Modbus binding
+# requires. A manual's "30001"-style number = 30001 + address.
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix unit:  <http://qudt.org/vocab/unit/> .
+@prefix modv:  <https://www.w3.org/2019/wot/modbus#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix types: <urn:dtteo:types#> .
+
+types:eastron_sdm120 a dtteo:DeviceType ;
+    dtteo:version "1.0.0" ;
+    dtteo:decoder "modbus" ;
+    dtteo:manufacturerDoc "https://pypi.org/project/sdm-modbus/0.4.3/ ; https://www.aggsoft.com/serial-data-logger/tutorials/modbus-data-logging/eastron-sdm120.htm" ;
+
+    # The value the meter is installed for: the appliance's electrical power.
+    dtteo:hasValue [
+        modv:entity "InputRegister" ; modv:address 12 ; modv:quantity 2 ;
+        modv:type xsd:float ; modv:mostSignificantByte true ; modv:mostSignificantWord true ;
+        dtteo:pointClass brick:Active_Power_Sensor ;
+        dtteo:rawUnit unit:W                          # meter sends W, our point is kW
+    ] ,
+
+    # Also available; our asset model has no points for them yet, so optional.
+    [
+        modv:entity "InputRegister" ; modv:address 0 ; modv:quantity 2 ;
+        modv:type xsd:float ; modv:mostSignificantByte true ; modv:mostSignificantWord true ;
+        dtteo:pointClass brick:Voltage_Sensor ; dtteo:rawUnit unit:V ;
+        dtteo:optional true
+    ] , [
+        modv:entity "InputRegister" ; modv:address 6 ; modv:quantity 2 ;
+        modv:type xsd:float ; modv:mostSignificantByte true ; modv:mostSignificantWord true ;
+        dtteo:pointClass brick:Current_Sensor ; dtteo:rawUnit unit:A ;
+        dtteo:optional true
+    ] , [
+        modv:entity "InputRegister" ; modv:address 70 ; modv:quantity 2 ;
+        modv:type xsd:float ; modv:mostSignificantByte true ; modv:mostSignificantWord true ;
+        dtteo:pointClass brick:Frequency_Sensor ; dtteo:rawUnit unit:HZ ;
+        dtteo:optional true
+    ] , [
+        modv:entity "InputRegister" ; modv:address 72 ; modv:quantity 2 ;
+        modv:type xsd:float ; modv:mostSignificantByte true ; modv:mostSignificantWord true ;
+        dtteo:pointClass brick:Electric_Energy_Sensor ; dtteo:rawUnit unit:KiloW-HR ;   # imported energy
+        dtteo:optional true
+    ] .

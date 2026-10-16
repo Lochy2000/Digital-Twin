@@ -42,3 +42,19 @@ dtteo:rawUnit a owl:ObjectProperty ;
 dtteo:scale a owl:DatatypeProperty ;
     rdfs:comment "Optional. Multiply the raw number by this before unit conversion, e.g. 0.01 for a device that sends 2152 meaning 21.52." ;
     rdfs:range xsd:decimal .
+
+# --- Value maps (added in step 2d) ----------------------------------------------
+# Some vendors send codes or their own words instead of our values, e.g. Acme's
+# mode "2" or Borealis's "COOLING", where we use "cool". A value map lists the
+# translations. Values not in the map are treated as unknown -> quarantine.
+
+dtteo:valueMap a owl:ObjectProperty ;
+    rdfs:comment "One translation from a vendor value to our value. Repeat once per value." .
+
+dtteo:from a owl:DatatypeProperty ;
+    rdfs:comment "The vendor's value, written as text, e.g. '2' or 'COOLING'." ;
+    rdfs:range xsd:string .
+
+dtteo:to a owl:DatatypeProperty ;
+    rdfs:comment "Our value, e.g. 'cool'." ;
+    rdfs:range xsd:string .

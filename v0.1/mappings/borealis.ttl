@@ -1,22 +1,3 @@
-# Raw field mappings for the fake vendor "Borealis" (testing/vendors/borealis_publisher.py).
-# Borealis sends a list of readings; each reading's "metric" name is used as the field.
-# The mode sits in a separate "status" block, so its field is written "status.mode".
-# "humidity" is NOT listed, so the gateway quarantines it.
-
-@prefix dtteo: <urn:dtteo:schema#> .
-@prefix ref:   <https://brickschema.org/schema/Brick/ref#> .
-@prefix :      <urn:dtteo:site1#> .
-
-:zone_temp ref:hasExternalReference [
-    a dtteo:RawFieldReference ;
-    dtteo:source "borealis" ;
-    dtteo:device "site4_hvac_01" ;
-    dtteo:field "temperature"       # already Celsius, so no rawUnit needed
-] .
-
-:mode_status ref:hasExternalReference [
-    a dtteo:RawFieldReference ;
-    dtteo:source "borealis" ;
-    dtteo:device "site4_hvac_01" ;
-    dtteo:field "status.mode"       # HEATING/COOLING, translated by the normaliser
-] .
+# MOVED in step 2e: this vendor is now described once in types/borealis_hvac.ttl
+# and its device is listed in bindings/site1.ttl.
+# This file is intentionally empty and can be deleted.

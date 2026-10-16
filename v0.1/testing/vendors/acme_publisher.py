@@ -56,6 +56,7 @@ def to_acme_payload(temp_c, humidity, mode):
 def main():
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID)
     # Last Will: if this client vanishes, the broker publishes "offline" for it.
+    # qos 1 means it requires at a response. change to 0 if this doesnt matter
     client.will_set(STATUS_TOPIC, "offline", qos=1, retain=True)
     client.connect(BROKER_HOST, BROKER_PORT)
     client.loop_start()

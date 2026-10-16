@@ -1,0 +1,26 @@
+# Device type: "Borealis" HVAC unit  (FAKE test vendor, see testing/vendors/borealis_publisher.py)
+# Kept as a test case: list of readings, Celsius, local time with offset, mode words.
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix types: <urn:dtteo:types#> .
+
+types:borealis_hvac a dtteo:DeviceType ;
+    dtteo:version "1.0.0" ;
+    dtteo:decoder "borealis" ;
+    dtteo:manufacturerDoc "testing/vendors/borealis_publisher.py (made-up vendor)" ;
+
+    dtteo:hasValue [
+        dtteo:field "temperature" ;          # already Celsius
+        dtteo:pointClass brick:Zone_Air_Temperature_Sensor
+    ] , [
+        dtteo:field "status.mode" ;
+        dtteo:pointClass brick:Mode_Status ;
+        dtteo:valueMap [ dtteo:from "HEATING" ; dtteo:to "heat" ] ,
+                       [ dtteo:from "COOLING" ; dtteo:to "cool" ]
+        # No "off": the script never sends one. An unknown word goes to quarantine.
+    ] , [
+        dtteo:field "humidity" ;
+        dtteo:pointClass brick:Zone_Air_Humidity_Sensor ;
+        dtteo:optional true
+    ] .

@@ -1,0 +1,28 @@
+# Device type: "Acme" HVAC unit  (FAKE test vendor, see testing/vendors/acme_publisher.py)
+# Kept as a test case: flat JSON, Fahrenheit, epoch-ms time, numeric mode codes.
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix unit:  <http://qudt.org/vocab/unit/> .
+@prefix types: <urn:dtteo:types#> .
+
+types:acme_hvac a dtteo:DeviceType ;
+    dtteo:version "1.0.0" ;
+    dtteo:decoder "acme" ;
+    dtteo:manufacturerDoc "testing/vendors/acme_publisher.py (made-up vendor)" ;
+
+    dtteo:hasValue [
+        dtteo:field "tempF" ;
+        dtteo:pointClass brick:Zone_Air_Temperature_Sensor ;
+        dtteo:rawUnit unit:DEG_F
+    ] , [
+        dtteo:field "op_state" ;
+        dtteo:pointClass brick:Mode_Status ;
+        dtteo:valueMap [ dtteo:from "1" ; dtteo:to "heat" ] ,
+                       [ dtteo:from "2" ; dtteo:to "cool" ] ,
+                       [ dtteo:from "3" ; dtteo:to "off"  ]
+    ] , [
+        dtteo:field "rh" ;
+        dtteo:pointClass brick:Zone_Air_Humidity_Sensor ;
+        dtteo:optional true          # our asset model has no humidity point -> reported, then quarantined
+    ] .

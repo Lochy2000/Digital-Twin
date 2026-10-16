@@ -1,0 +1,101 @@
+# DT-TEO onboarding vocabulary: device types and device bindings (step 2e)
+# ------------------------------------------------------------------
+# Design and sources: mappings/DESIGN.md
+#
+#   DEVICE TYPE     what a model of device sends, written once per model
+#                   (like a W3C WoT Thing Model, a ThingsBoard device profile,
+#                   an AWS SiteWise asset model)
+#
+#   DEVICE BINDING  "this installed device is of that type, and serves that
+#                   equipment / zone"; one short entry per installed device
+#                   (like the instance-specific part of a WoT Thing Description)
+#
+# The mapper combines them: binding -> type -> each value's Brick class ->
+# the point of that class on the bound equipment -> point ID.
+#
+# Register details for Modbus devices use the W3C WoT Modbus binding terms
+# (modv:entity, modv:address, ...). The spec's JSON-LD context declares
+# modv as https://www.w3.org/2019/wot/modbus ; in Turtle we add '#'.
+# ------------------------------------------------------------------
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# --- Device type ----------------------------------------------------
+
+dtteo:DeviceType a owl:Class ;
+    rdfs:label "Device type" ;
+    skos:definition "What every device of one model sends: its values, where each sits in the message, and how to read it. Holds nothing about any one installed device." .
+
+dtteo:version a owl:DatatypeProperty ;
+    rdfs:comment "Version of the type, semantic versioning (e.g. '1.0.0'). WoT recommends this for Thing Models (TD 1.1, 9.3.1)." ;
+    rdfs:range xsd:string .
+
+dtteo:decoder a owl:DatatypeProperty ;
+    rdfs:comment "Which decoder reads this type's messages. Matches the 2nd level of the raw topic: raw/{decoder}/{device}/..." ;
+    rdfs:range xsd:string .
+
+dtteo:manufacturerDoc a owl:DatatypeProperty ;
+    rdfs:comment "Where the field / register list was taken from (manual, datasheet, firmware docs)." .
+
+dtteo:hasValue a owl:ObjectProperty ;
+    rdfs:comment "One value the device sends. Repeat once per value." .
+
+# Properties of one value (inside dtteo:hasValue [ ... ]):
+#   dtteo:field       its name in the decoded message, e.g. "tempF".
+#                     For Modbus, leave it out: the field is built from the
+#                     register, e.g. "InputRegister:12".
+#   dtteo:pointClass  the Brick class of point it feeds, e.g. brick:Mode_Status
+#   dtteo:rawUnit     unit as sent (QUDT), if different from the point's unit
+#   dtteo:scale       multiply the raw number by this first
+#   dtteo:valueMap    code translations, as in step 2d (see dtteo_ref.ttl)
+#   dtteo:optional    true = an installed unit may not have this value; a missing
+#                     point is reported, not an error (WoT tm:optional, TD 1.1 9.3.4)
+#   modv:entity, modv:address, modv:quantity, modv:type,
+#   modv:mostSignificantByte, modv:mostSignificantWord   (Modbus only)
+
+dtteo:pointClass a owl:ObjectProperty ;
+    rdfs:comment "Brick class of the point this value feeds. Matched exactly (no subclass reasoning in v0.1)." .
+
+dtteo:optional a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean .
+
+# --- Device binding -------------------------------------------------
+
+dtteo:DeviceBinding a owl:Class ;
+    rdfs:label "Device binding" ;
+    skos:definition "Links one installed device to exactly one device type and to the equipment or zone it serves, with any details needed to reach it." .
+
+# dtteo:device (the device slug) is already defined in dtteo_ref.ttl.
+
+dtteo:deviceType a owl:ObjectProperty ;
+    rdfs:comment "Exactly one. A TD 'can only be an instance of one TM at a time' (WoT TD 1.1, 9.4)." ;
+    rdfs:range dtteo:DeviceType .
+
+dtteo:serves a owl:ObjectProperty ;
+    rdfs:comment "The equipment, zone or weather station in the asset model this device reports on. Points are found on it (brick:hasPoint) or on what it feeds (brick:feeds / brick:hasPoint)." .
+
+dtteo:place a owl:ObjectProperty ;
+    rdfs:comment "For generic sensors whose meaning depends on where they are installed: put this field on this exact point. Written [ dtteo:field ... ; dtteo:point ... ]." .
+
+dtteo:point a owl:ObjectProperty ;
+    rdfs:comment "The asset-model point a placed field feeds." .
+
+dtteo:enabled a owl:DatatypeProperty ;
+    rdfs:comment "Default true. false = binding is kept and checked, but its device's data is not accepted (like disassociating a data stream in AWS SiteWise). Used to swap which device feeds a point." ;
+    rdfs:range xsd:boolean .
+
+dtteo:timezone a owl:DatatypeProperty ;
+    rdfs:comment "IANA timezone, e.g. 'Europe/London', for devices that send local time with no offset. Used by the decoder (step 2f)." ;
+    rdfs:range xsd:string .
+
+dtteo:base a owl:DatatypeProperty ;
+    rdfs:comment "Address used to reach a polled device, in WoT form, e.g. 'modbus+tcp://192.168.1.50:502/1' (host, port, unit ID). Used by the poller (later step)." ;
+    rdfs:range xsd:string .
+
+dtteo:pollingTime a owl:DatatypeProperty ;
+    rdfs:comment "Seconds between polls for polled devices." ;
+    rdfs:range xsd:decimal .

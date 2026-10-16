@@ -1,0 +1,45 @@
+# Device bindings for site1: which installed device is which type, and what it serves.
+# One block per device. To add a device of a known type, add one block.
+#
+# Rule: only ONE enabled device may feed a point. Acme and Borealis pretend to be
+# the same unit, and the Tasmota probe would also measure zone 1, so only one of
+# those three is enabled at a time. To swap, flip the two "enabled" lines.
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix types: <urn:dtteo:types#> .
+@prefix :      <urn:dtteo:site1#> .
+@prefix b:     <urn:dtteo:site1:bindings#> .
+
+# --- Fake test vendors (testing/vendors/) -----------------------------
+
+b:acme_hvac_0001 a dtteo:DeviceBinding ;
+    dtteo:device "acme_hvac_0001" ;
+    dtteo:deviceType types:acme_hvac ;
+    dtteo:serves :unit1 .                      # enabled (default)
+
+b:site4_hvac_01 a dtteo:DeviceBinding ;
+    dtteo:device "site4_hvac_01" ;
+    dtteo:deviceType types:borealis_hvac ;
+    dtteo:serves :unit1 ;
+    dtteo:enabled false .                      # swap with Acme to test Borealis
+
+# --- Real formats -------------------------------------------------------
+
+# ESP8266 + Tasmota + one DS18B20 probe, placed in zone 1. Not set up yet.
+b:tasmota_zone1 a dtteo:DeviceBinding ;
+    dtteo:device "tasmota_zone1" ;
+    dtteo:deviceType types:tasmota_ds18b20 ;
+    dtteo:serves :zone1 ;
+    dtteo:place [ dtteo:field "DS18B20.Temperature" ; dtteo:point :zone_temp ] ;
+    dtteo:timezone "Europe/London" ;           # Tasmota sends local time, no offset
+    dtteo:enabled false .
+
+# Eastron SDM120 metering unit 1's electrical supply (simulated until a real one exists).
+# The SDM120 itself speaks Modbus RTU over an RS-485 cable; it is reached over the
+# network through an RS-485-to-Ethernet gateway, hence modbus+tcp below.
+b:sdm120_unit1 a dtteo:DeviceBinding ;
+    dtteo:device "sdm120_unit1" ;
+    dtteo:deviceType types:eastron_sdm120 ;
+    dtteo:serves :unit1 ;
+    dtteo:base "modbus+tcp://192.168.1.50:502/1" ;   # example address: host, port, unit ID
+    dtteo:pollingTime 30 .

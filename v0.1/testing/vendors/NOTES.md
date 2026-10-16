@@ -92,3 +92,16 @@ Then stop it, run `--profile borealis` instead, and compare the two formats.
 ### Next: step 2b, mapper
 
 Build the part of the gateway that reads `dtteo_asset_model.ttl` and answers: "this vendor's `tempF` on this device is which point ID?"
+
+---
+
+## 2026-10-16 · Step 2e: what these two are, and what they are not
+
+**Acme and Borealis are made-up vendors.** Each is a small script that pretends to be a heat/cool unit and publishes in its own invented format. They exist only to prove one thing: two different formats can end up as identical canonical messages.
+
+They are **not** what the system is built around:
+- The onboarding design (`mappings/DESIGN.md`) is also tested against two **real, published** formats: **Tasmota** (open-source firmware for the ESP8266, JSON over MQTT) and the **Eastron SDM120** electricity meter (Modbus registers). See `mappings/types/`.
+- Acme and Borealis are now described the same way as the real devices: one device type each (`mappings/types/acme_hvac.ttl`, `borealis_hvac.ttl`) plus one binding each (`mappings/bindings/site1.ttl`).
+- Because both pretend to be **the same unit**, only one may be enabled at a time. Acme is on; Borealis is off. Swap the `dtteo:enabled` lines to switch, matching the compose profiles here.
+
+When real equipment arrives, these scripts can be deleted without touching the gateway.

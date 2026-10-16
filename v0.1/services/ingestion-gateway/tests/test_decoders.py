@@ -93,9 +93,12 @@ def test_undecodable_messages_raise(topic, payload):
 # --- Decoder + mapper together: the key promise -----------------------------------------
 
 def test_two_vendors_end_up_on_the_same_points():
-    mapper = Mapper.from_files(V01 / "dtteo_asset_model.ttl", sorted((V01 / "mappings").glob("*.ttl")))
+    # Only one of the two may be enabled at a time (step 2e), so one mapper each.
+    mappers = {"acme": Mapper.from_folder(V01),
+               "borealis": Mapper.from_folder(V01, enabled={"acme_hvac_0001": False, "site4_hvac_01": True})}
 
     def mapped(name):
+        mapper = mappers[name]
         found, unknown = set(), set()
         for r in decode(*load_sample(name)):
             m = mapper.lookup(r.source, r.device, r.field)
