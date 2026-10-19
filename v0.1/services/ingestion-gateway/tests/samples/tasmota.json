@@ -1,0 +1,12 @@
+{
+  "_note": "Shape copied from the Tasmota DS18x20 docs (https://tasmota.github.io/docs/DS18x20/), one probe, our time and value. Topic assumes FullTopic raw/tasmota/%topic%/%prefix%/.",
+  "topic": "raw/tasmota/tasmota_zone1/tele/SENSOR",
+  "payload": {
+    "Time": "2026-10-18T11:22:00",
+    "DS18B20": {
+      "Id": "00000566CC39",
+      "Temperature": 21.4
+    },
+    "TempUnit": "C"
+  }
+}
