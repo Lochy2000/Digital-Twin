@@ -1,0 +1,29 @@
+{
+  "_note": "What the (future) Modbus poller publishes after reading a simulated Eastron SDM120. Words generated from: voltage 236.9 V, current 4.87 A, power 1150.5 W, frequency 50.0 Hz, imported energy 2902.25 kWh (FLOAT32, big-endian).",
+  "topic": "raw/modbus/sdm120_unit1/registers",
+  "payload": {
+    "time": "2026-10-18T10:22:00.000Z",
+    "registers": {
+      "InputRegister:0": [
+        17260,
+        58982
+      ],
+      "InputRegister:6": [
+        16539,
+        55050
+      ],
+      "InputRegister:12": [
+        17551,
+        53248
+      ],
+      "InputRegister:70": [
+        16968,
+        0
+      ],
+      "InputRegister:72": [
+        17717,
+        25600
+      ]
+    }
+  }
+}
