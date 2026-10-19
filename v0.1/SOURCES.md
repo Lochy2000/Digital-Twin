@@ -5,6 +5,7 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 
 | Source | Cited in |
 |---|---|
+| <https://brandur.org/logfmt> | `services/ingestion-gateway/gateway/pipeline.py` |
 | <https://brickschema.readthedocs.io/en/stable/> | `dtteo_asset_model.ttl` |
 | <https://buildingmotif.readthedocs.io/en/latest/guides/ingress-bacnet-to-brick.html> | `mappings/dtteo_onboarding.ttl` |
 | <https://ci.apache.org/projects/flink/flink-docs-master/docs/concepts/time/> | `services/ingestion-gateway/gateway/normaliser.py` |
@@ -14,12 +15,17 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://docs.brickschema.org/brick/relationships.html> | `dtteo_asset_model.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://docs.brickschema.org/metadata/external-representations.html> | `mappings/dtteo_ref.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://docs.brickschema.org/metadata/timeseries-storage.html> | `dtteo_asset_model.ttl`, `mappings/dtteo_ref.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
-| <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html> | `testing/vendors/acme_publisher.py`, `testing/vendors/borealis_publisher.py` |
+| <https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html> | `services/ingestion-gateway/gateway/pipeline.py` |
+| <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html> | `services/ingestion-gateway/gateway/service.py`, `testing/vendors/acme_publisher.py`, `testing/vendors/borealis_publisher.py` |
 | <https://docs.python.org/3.9/library/struct.html> | `services/ingestion-gateway/gateway/decoders/modbus.py` |
 | <https://eclipse.dev/hono/docs/architecture/component-view/> | `services/ingestion-gateway/gateway/decoders/__init__.py` |
+| <https://eclipse.dev/paho/files/paho.mqtt.python/html/migrations.html> | `services/ingestion-gateway/gateway/service.py` |
 | <https://github.com/BrickSchema/Brick> | `dtteo_asset_model.ttl` |
+| <https://github.com/ioos/ioos_qc> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/validator.py` |
 | <https://github.com/python/cpython/blob/main/Doc/library/zoneinfo.rst> | `services/ingestion-gateway/gateway/decoders/tasmota.py`, `services/ingestion-gateway/requirements.txt` |
 | <https://json-schema.org/draft/2020-12/schema> | `contracts/check_examples.py` |
+| <https://mosquitto.org/man/mosquitto-conf-5.html> | `services/ingestion-gateway/gateway/service.py` |
+| <https://pypi.org/p/ioos-qc> | `services/ingestion-gateway/gateway/mapper.py`, `services/ingestion-gateway/gateway/validator.py` |
 | <https://pypi.org/project/sdm-modbus/0.4.3/> | `mappings/types/eastron_sdm120.ttl`, `services/ingestion-gateway/gateway/decoders/modbus.py` |
 | <https://qudt.org/vocab/unit/A> | `services/ingestion-gateway/gateway/units.py` |
 | <https://qudt.org/vocab/unit/DEG_C> | `dtteo_asset_model.ttl`, `services/ingestion-gateway/gateway/units.py` |
@@ -32,13 +38,16 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://qudt.org/vocab/unit/V> | `services/ingestion-gateway/gateway/units.py` |
 | <https://qudt.org/vocab/unit/W> | `services/ingestion-gateway/gateway/units.py` |
 | <https://rdflib.readthedocs.io/en/latest/intro_to_sparql/> | `services/ingestion-gateway/gateway/mapper.py` |
+| <https://reference.opcfoundation.org/specs/OPC-10000-8/a-4-3-3> | `services/ingestion-gateway/gateway/validator.py` |
 | <https://tasmota.github.io/docs/Commands/> | `mappings/types/tasmota_ds18b20.ttl`, `services/ingestion-gateway/gateway/decoders/tasmota.py` |
 | <https://tasmota.github.io/docs/DS18x20/> | `mappings/types/tasmota_ds18b20.ttl`, `services/ingestion-gateway/gateway/decoders/tasmota.py` |
 | <https://tasmota.github.io/docs/MQTT/> | `mappings/types/tasmota_ds18b20.ttl`, `services/ingestion-gateway/gateway/decoders/tasmota.py` |
 | <https://thingsboard.io/docs/user-guide/device-profiles/> | `mappings/dtteo_onboarding.ttl` |
 | <https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html> | `mappings/dtteo_onboarding.ttl`, `mappings/types/eastron_sdm120.ttl`, `services/ingestion-gateway/gateway/decoders/modbus.py`, `services/ingestion-gateway/gateway/mapper.py` |
+| <https://wcm-cce.cldnet.analog.com/media/cn/technical-documentation/data-sheets/2812.pdf> | `mappings/types/tasmota_ds18b20.ttl` |
 | <https://www.aggsoft.com/serial-data-logger/tutorials/modbus-data-logging/eastron-sdm120.htm> | `mappings/types/eastron_sdm120.ttl` |
-| <https://www.enterpriseintegrationpatterns.com/patterns/messaging/InvalidMessageChannel.html> | `services/ingestion-gateway/gateway/decoders/__init__.py` |
+| <https://www.enterpriseintegrationpatterns.com/patterns/messaging/InvalidMessageChannel.html> | `services/ingestion-gateway/gateway/decoders/__init__.py`, `services/ingestion-gateway/gateway/pipeline.py` |
 | <https://www.enterpriseintegrationpatterns.com/patterns/messaging/Normalizer.html> | `services/ingestion-gateway/gateway/normaliser.py` |
 | <https://www.hivemq.com/blog/mqtt-essentials-part-5-mqtt-topics-best-practices/> | `testing/vendors/acme_publisher.py`, `testing/vendors/borealis_publisher.py` |
+| <https://www.w3.org/TR/vocab-ssn/> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://www.w3.org/TR/wot-thing-description11/#thing-model> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |

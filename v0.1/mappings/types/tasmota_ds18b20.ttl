@@ -18,6 +18,9 @@
 
 @prefix dtteo: <urn:dtteo:schema#> .
 @prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix unit:  <http://qudt.org/vocab/unit/> .
+@prefix ssn-system: <http://www.w3.org/ns/ssn/systems/> .
+@prefix schema: <http://schema.org/> .
 @prefix types: <urn:dtteo:types#> .
 
 types:tasmota_ds18b20 a dtteo:DeviceType ;
@@ -27,5 +30,11 @@ types:tasmota_ds18b20 a dtteo:DeviceType ;
 
     dtteo:hasValue [
         dtteo:field "DS18B20.Temperature" ;
-        dtteo:pointClass brick:Temperature_Sensor     # generic; the binding says which point
+        dtteo:pointClass brick:Temperature_Sensor ;   # generic; the binding says which point
+        # What the DS18B20 can measure: "-55°C to +125°C" (Analog Devices datasheet,
+        # https://wcm-cce.cldnet.analog.com/media/cn/technical-documentation/data-sheets/2812.pdf).
+        # Outside this, the reading can't be real -> BAD.
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [
+            a ssn-system:MeasurementRange ;
+            schema:minValue -55 ; schema:maxValue 125 ; schema:unitCode unit:DEG_C ] ]
     ] .

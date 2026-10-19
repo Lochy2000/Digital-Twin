@@ -18,6 +18,9 @@
 #       Time-series references            https://docs.brickschema.org/metadata/timeseries-storage.html
 #       Units (QUDT), e.g.                https://qudt.org/vocab/unit/DEG_C
 #       Validation tool (brickschema)     https://brickschema.readthedocs.io/en/stable/
+#   - Expected ranges (dtteo:expectedRange, step 2g): outside them a reading is
+#     SUSPECT. The values below are PLACEHOLDERS chosen by us, not from Botanic;
+#     replace them with agreed operating limits (see mappings/dtteo_onboarding.ttl).
 #   - Validate after every change:
 #       python -c "import brickschema as b; g=b.Graph(load_brick=True); \
 #         g.load_file('dtteo_asset_model.ttl'); print(g.validate()[2])"
@@ -28,6 +31,8 @@
 @prefix ref:   <https://brickschema.org/schema/Brick/ref#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix unit:  <http://qudt.org/vocab/unit/> .
+@prefix schema: <http://schema.org/> .
+@prefix dtteo: <urn:dtteo:schema#> .
 @prefix :      <urn:dtteo:site1#> .
 
 # --- Spaces -------------------------------------------------------
@@ -63,6 +68,7 @@
 # --- Points: zone ---------------------------------------------------
 
 :zone_temp a brick:Zone_Air_Temperature_Sensor ;
+    dtteo:expectedRange [ schema:minValue 5 ; schema:maxValue 35 ; schema:unitCode unit:DEG_C ] ;   # placeholder: an occupied room
     rdfs:label "Zone air temperature" ;
     brick:hasUnit unit:DEG_C ;
     ref:hasExternalReference [
@@ -83,6 +89,7 @@
 # --- Points: unit ---------------------------------------------------
 
 :supply_temp a brick:Supply_Air_Temperature_Sensor ;
+    dtteo:expectedRange [ schema:minValue 0 ; schema:maxValue 60 ; schema:unitCode unit:DEG_C ] ;   # placeholder: heating and cooling supply air
     rdfs:label "Supply air temperature" ;
     brick:hasUnit unit:DEG_C ;
     ref:hasExternalReference [
@@ -92,6 +99,7 @@
     ] .
 
 :power a brick:Active_Power_Sensor ;
+    dtteo:expectedRange [ schema:minValue 0 ; schema:maxValue 10 ; schema:unitCode unit:KiloW ] ;   # placeholder: replace with the unit's rated input power
     rdfs:label "Electrical power" ;
     brick:hasUnit unit:KiloW ;
     ref:hasExternalReference [
@@ -137,6 +145,7 @@
 # --- Points: weather ------------------------------------------------
 
 :outside_temp a brick:Outside_Air_Temperature_Sensor ;
+    dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 40 ; schema:unitCode unit:DEG_C ] ;   # placeholder: UK weather
     rdfs:label "Outside air temperature" ;
     brick:hasUnit unit:DEG_C ;
     ref:hasExternalReference [

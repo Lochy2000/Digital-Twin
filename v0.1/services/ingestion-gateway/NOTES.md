@@ -639,3 +639,114 @@ python -m gateway.demo        :: every mapped reading now shows GOOD / SUSPECT /
 ### Next: step 2h, publisher and quarantine
 
 Wire the pieces into the running gateway: subscribe to `raw/#`, run decode -> map -> normalise -> validate, publish canonical messages on `dt/v1/telemetry/...` and anything rejected on `dt/v1/quarantine/...` (with a small, defined quarantine message format).
+
+---
+
+## 2026-10-19 · Step 2h: the running gateway (broker in, broker out)
+
+### The job
+
+Connect everything built so far to the broker, so it actually runs:
+
+```
+raw/#  ->  decode -> map -> normalise -> validate  ->  dt/v1/telemetry/site1/{equipment}/{point}
+                                                   ->  dt/v1/quarantine/{source}   (couldn't be processed)
+```
+
+### Two files, on purpose
+
+| File | Does | Why separate |
+|---|---|---|
+| `gateway/pipeline.py` | One raw message in -> the list of messages to publish, plus log lines | No MQTT in it, so it's tested without a broker |
+| `gateway/service.py` | Connects to the broker, subscribes, publishes what the pipeline returns | Small, and the only part that needs a broker |
+
+### Quarantine vs BAD (the rule, now in code)
+
+- **Quarantine**: the gateway couldn't turn it into a canonical message at all. Three stages: `decode` (whole message unreadable), `map` (field has no point), `normalise` (e.g. a mode word not in the value map).
+- **BAD / SUSPECT**: it was understood, but doesn't look right. It's still **published** as a canonical message with its flag, and stored later. Nothing is dropped.
+
+### The quarantine message (new contract)
+
+`contracts/quarantine_message.schema.json`. Follows the dead-letter pattern used by Kafka Connect: keep the **original message untouched** (`raw`) and add **context** (`stage`, `reason`, `field`, `value`, `topic`, `ingest_time`). So once a mapping is fixed, the original can be replayed.
+
+```json
+{"v": 1, "stage": "map", "field": "rh", "value": 54.7,
+ "reason": "field 'rh': optional, unit1 has no brick:Zone_Air_Humidity_Sensor point, so not mapped (add the point to the asset model to keep it)",
+ "topic": "raw/acme/acme_hvac_0001/telemetry", "source": "acme", "device": "acme_hvac_0001",
+ "raw": "{\"deviceId\": \"ACME-HVAC-0001\", ...}", "ingest_time": "2026-10-19T13:05:52.346Z"}
+```
+
+The reason says **what to fix**: device not bound, binding disabled, field not in the device type, or optional with no point.
+
+### Logs explain each message (as agreed)
+
+One line per event, in `key=value` form ("logfmt"): readable by eye, and searchable by tools later.
+
+```
+WARNING quarantine stage=map topic=raw/acme/acme_hvac_0001/telemetry field=rh value=55.5 reason="field 'rh': optional, ..."
+INFO    reading point=unit1.zone_air_temp value=93.3333 unit=DEG_C quality=SUSPECT ... reasons="93.3333 is outside the expected range 5.0..35.0"
+```
+
+- `WARNING`: every quarantine, with the reason.
+- `INFO`: every reading that isn't GOOD, with the validator's reasons. Also start-up notes from the mapper.
+- `DEBUG`: every GOOD reading too (`LOG_LEVEL=DEBUG`).
+
+The reasons stay in the logs, not in the canonical message, so the message contract is unchanged (v1).
+
+### Not losing data across restarts (the README's "small buffer")
+
+| What restarts | What happens | Mechanism |
+|---|---|---|
+| The broker | Gateway keeps unsent QoS 1 messages and sends them after it reconnects (up to 10,000) | paho-mqtt's outgoing queue (I read its `publish` code to confirm) |
+| The gateway | Broker keeps raw QoS 1 messages for it until it's back (Mosquitto default: 1,000) | Persistent session (`clean_session=False`) |
+
+Limit: Mosquitto keeps that queue in memory unless its `persistence` setting is on, so a *broker* restart while the gateway is also down loses it. Fine for v0.1; noted for the deployment step.
+
+### Settings (environment variables)
+
+`BROKER_HOST`, `BROKER_PORT`, `GATEWAY_SITE` (default `site1`), `MODEL_DIR`, `GATEWAY_ENABLED` (e.g. `acme_hvac_0001=off,site4_hvac_01=on`), `LOG_LEVEL`. In Docker, the asset model and `mappings/` are mounted read-only, so changing a mapping needs a restart, not a rebuild.
+
+### Checked
+
+- 107 tests pass (12 new in `test_pipeline.py`; every outgoing message is checked against its schema).
+- **Live run** against a real (test) MQTT broker: gateway + Acme publisher + a watcher subscribed to `dt/v1/#`. Telemetry, quarantine and online/offline status all arrived as expected:
+
+```
+R dt/v1/status/ingestion_gateway online
+  dt/v1/telemetry/site1/unit1/zone_air_temp {"v": 1, "point": "unit1.zone_air_temp", "value": 20.6111, ...
+  dt/v1/quarantine/acme {"v": 1, "stage": "map", "reason": "...", ...
+  dt/v1/telemetry/site1/unit1/mode_status {"v": 1, "point": "unit1.mode_status", "value": "heat", ...
+  dt/v1/status/acme_hvac_0001 offline
+  dt/v1/status/ingestion_gateway offline
+```
+
+### Try it
+
+With Docker (from `v0.1`):
+
+```bat
+docker compose --profile acme up --build
+:: second terminal
+docker compose logs -f gateway
+docker compose exec mosquitto mosquitto_sub -v -t "dt/v1/#"
+```
+
+To run Borealis instead (Windows `cmd`):
+
+```bat
+set GATEWAY_ENABLED=acme_hvac_0001=off,site4_hvac_01=on
+docker compose --profile borealis up --build
+```
+
+Without Docker (broker already running on your PC):
+
+```bat
+cd v0.1\services\ingestion-gateway
+venv\Scripts\activate
+pip install -r requirements.txt     :: paho-mqtt is new
+python -m gateway.service
+```
+
+### Stage 2 (ingestion gateway) is complete
+
+Raw data from four formats (two fake, two real) arrives on the broker and leaves as canonical, quality-flagged messages, with quarantine and logs for everything else. What's left in the gateway is later work: QARTOD's history-based checks (after storage), a Modbus poller, a CSV importer, and broker logins/ACL (deployment).

@@ -1,4 +1,4 @@
-# DT-TEO onboarding vocabulary: device types and device bindings (step 2e)
+# DT-TEO onboarding vocabulary: device types and device bindings 
 # ------------------------------------------------------------------
 # Design and sources: mappings/DESIGN.md
 #
@@ -110,3 +110,27 @@ dtteo:base a owl:DatatypeProperty ;
 dtteo:pollingTime a owl:DatatypeProperty ;
     rdfs:comment "Seconds between polls for polled devices." ;
     rdfs:range xsd:decimal .
+
+# --- Plausible ranges, used by the validator (step 2g) -------------------------
+# Two ranges, following the QARTOD "gross range test" (IOOS):
+#
+#   SENSOR range    what the sensor can physically measure, from its datasheet.
+#                   Written on a device type's value, with the W3C SSN terms:
+#                     ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [
+#                         a ssn-system:MeasurementRange ;
+#                         schema:minValue -55 ; schema:maxValue 125 ; schema:unitCode unit:DEG_C ] ]
+#                   Outside it -> BAD (QARTOD "fail span").
+#
+#   EXPECTED range  what is plausible at this point in this building; an operator's
+#                   judgement. Written on an asset-model point:
+#                     dtteo:expectedRange [ schema:minValue 5 ; schema:maxValue 35 ; schema:unitCode unit:DEG_C ]
+#                   Outside it -> SUSPECT (QARTOD "suspect span"). Must lie inside the sensor range.
+#
+# Sources:
+#   SSN system capabilities, and the schema:minValue/maxValue shape (DHT22 example, 5.1.1):
+#     https://www.w3.org/TR/vocab-ssn/
+#   QARTOD gross range test as implemented by IOOS (ioos_qc 3.0.0, qartod.gross_range_test):
+#     https://github.com/ioos/ioos_qc
+
+dtteo:expectedRange a owl:ObjectProperty ;
+    rdfs:comment "Operator's plausible range for a point (schema:minValue, schema:maxValue, schema:unitCode). Outside it, readings are SUSPECT." .

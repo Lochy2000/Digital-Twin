@@ -3,3 +3,4 @@ pytest==8.3.4
 jsonschema[format]==4.23.0   # tests check output against contracts/canonical_message.schema.json
 tzdata>=2025.1               # timezone data for the Tasmota decoder; Windows has none built in
                              # https://github.com/python/cpython/blob/main/Doc/library/zoneinfo.rst
+paho-mqtt==2.1.0              # MQTT client for the running gateway (same version as testing/vendors)

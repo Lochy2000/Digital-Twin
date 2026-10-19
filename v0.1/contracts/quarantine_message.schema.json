@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dtteo:contracts:quarantine_message:v1",
+  "title": "DT-TEO quarantine message (v1)",
+  "description": "What the ingestion gateway publishes on dt/v1/quarantine/{source} when it can't turn input into a canonical message. Pattern: EIP Invalid Message Channel (https://www.enterpriseintegrationpatterns.com/patterns/messaging/InvalidMessageChannel.html). Like a Kafka Connect dead letter queue, it keeps the ORIGINAL message untouched and adds context about the failure (https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html). Readings that were understood but look wrong are NOT quarantined: they are published as canonical messages with quality BAD or SUSPECT.",
+  "type": "object",
+  "required": ["v", "stage", "reason", "topic", "raw", "ingest_time"],
+  "additionalProperties": false,
+  "properties": {
+    "v": { "const": 1, "description": "Version of this message shape." },
+    "stage": {
+      "enum": ["decode", "map", "normalise"],
+      "description": "Where it failed. decode = the whole message couldn't be read. map = a field has no point (unknown, unbound, or its binding is disabled). normalise = the value couldn't be converted (e.g. a word not in the value map)."
+    },
+    "reason": { "type": "string", "minLength": 1, "description": "Plain-English cause, e.g. \"value 'DEFROST' is not in the value map for unit1.mode_status\"." },
+    "topic": { "type": "string", "description": "The raw topic it arrived on." },
+    "source": { "type": ["string", "null"], "description": "From the topic: raw/{source}/..., or null if the topic couldn't be read." },
+    "device": { "type": ["string", "null"], "description": "From the topic: raw/{source}/{device}/..., or null." },
+    "field": { "type": "string", "description": "Only for map / normalise: the field that failed, e.g. \"rh\"." },
+    "value": { "description": "Only for map / normalise: the field's value as decoded." },
+    "raw": { "type": "string", "description": "The original payload as text (UTF-8; undecodable bytes replaced), so it can be replayed once fixed." },
+    "ingest_time": { "type": "string", "format": "date-time", "pattern": "Z$", "description": "When the gateway received it, UTC." }
+  }
+}

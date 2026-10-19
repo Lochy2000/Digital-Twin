@@ -215,10 +215,12 @@ def mapping_files(v01: Path) -> list[Path]:
 class Mapper:
     def __init__(self, table: dict[tuple[str, str, str], PointMapping],
                  bindings: dict[tuple[str, str], Binding] | None = None,
-                 report: list[str] | None = None):
+                 report: list[str] | None = None,
+                 skipped: dict[tuple[str, str, str], str] | None = None):
         self._table = table
         self._bindings = bindings or {}
         self.report = report or []      # notes for people: skipped optional values, disabled devices
+        self._skipped = skipped or {}   # (source, device, field) -> why it isn't mapped (optional, no point)
 
     @classmethod
     def from_files(cls, asset_model: Path, mapping_files: Iterable[Path],
@@ -243,6 +245,10 @@ class Mapper:
         """Return the mapping, or None if this field is unknown (-> quarantine)."""
         return self._table.get((source, device, field))
 
+    def why_unmapped(self, source: str, device: str, field: str) -> str | None:
+        """If the device type lists this field but it was left unmapped at start-up, say why."""
+        return self._skipped.get((source, device, field))
+
     def binding(self, source: str, device: str) -> Binding | None:
         """The installed device's binding (enabled or not), or None if it isn't bound."""
         return self._bindings.get((source, device))
@@ -264,6 +270,7 @@ class _Builder:
         self.table: dict[tuple[str, str, str], PointMapping] = {}
         self.bindings: dict[tuple[str, str], Binding] = {}
         self.report: list[str] = []
+        self.skipped: dict[tuple[str, str, str], str] = {}
 
         # point IRI -> (point_id, unit)
         self.points = {row.point: (str(row.point_id), _local_name(row.unit))
@@ -280,7 +287,7 @@ class _Builder:
         self._add_bindings()
         self._check_one_source_per_point()
         log.info("mapper loaded %d field mappings, %d bindings", len(self.table), len(self.bindings))
-        return Mapper(self.table, self.bindings, self.report)
+        return Mapper(self.table, self.bindings, self.report, self.skipped)
 
     # --- shared ---------------------------------------------------------------------
     def _mapping(self, point, raw_unit, scale, owner, where: str) -> PointMapping:
@@ -378,14 +385,17 @@ class _Builder:
 
             # Resolve every value, even for disabled bindings, so mistakes show up now.
             # Only enabled devices go into the lookup table.
-            resolved = self._resolve(name, row.serves, values.get(row.type, []), dict(places.get(b, {})))
+            skipped: dict[str, str] = {}
+            resolved = self._resolve(name, row.serves, values.get(row.type, []), dict(places.get(b, {})), skipped)
+            self.skipped.update({(source, device, f): why for f, why in skipped.items()})
             if not enabled:
                 self.report.append(f"{source}/{device}: binding disabled, its data will be quarantined")
                 continue
             for field, mapping in resolved:
                 self._put((source, device, field), mapping)
 
-    def _resolve(self, name: str, serves, value_rows, placed: dict) -> list[tuple[str, PointMapping]]:
+    def _resolve(self, name: str, serves, value_rows, placed: dict,
+                 skipped: dict | None = None) -> list[tuple[str, PointMapping]]:
         out = []
         for v in value_rows:
             field = self._field_name(name, v)
@@ -398,8 +408,10 @@ class _Builder:
                 found = [r.point for r in self.g.query(_CANDIDATES, initBindings={"serves": serves, "cls": v.cls})]
                 if not found:
                     if v.optional is not None and v.optional.toPython():
-                        self.report.append(f"{where}: optional, {_local_name(serves)} has no "
-                                           f"{_short(v.cls)} point, so not mapped")
+                        why = f"optional, {_local_name(serves)} has no {_short(v.cls)} point, so not mapped"
+                        self.report.append(f"{where}: {why}")
+                        if skipped is not None:
+                            skipped[field] = why
                         continue
                     # Rule 2: a required value must have a point to go to. Optional values
                     # follow WoT's tm:optional (TD 1.1 section 9.3.4).

@@ -5,8 +5,14 @@
 #   docker compose --profile acme up --build
 #   docker compose --profile borealis up --build
 #
+# The ingestion gateway always runs. Acme is the enabled device by default
+# (mappings/bindings/site1.ttl). To run Borealis instead, tell the gateway too:
+#   GATEWAY_ENABLED="acme_hvac_0001=off,site4_hvac_01=on" docker compose --profile borealis up --build
+#
 # Watch what's on the broker:
 #   docker compose exec mosquitto mosquitto_sub -v -t "raw/#" -t "dt/v1/#"
+# Watch the gateway's log (one line per quarantined field / non-GOOD reading):
+#   docker compose logs -f gateway
 
 services:
   mosquitto:
@@ -16,6 +22,20 @@ services:
       - "1883:1883"
     volumes:
       - ./broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  gateway:
+    build: ./services/ingestion-gateway
+    container_name: v01-gateway
+    depends_on: [mosquitto]
+    environment:
+      - BROKER_HOST=mosquitto
+      - GATEWAY_SITE=site1
+      - GATEWAY_ENABLED=${GATEWAY_ENABLED:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./dtteo_asset_model.ttl:/model/dtteo_asset_model.ttl:ro
+      - ./mappings:/model/mappings:ro
     restart: unless-stopped
 
   acme:

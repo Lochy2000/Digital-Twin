@@ -36,7 +36,7 @@ These follow HiveMQ's [MQTT topic best practices](https://www.hivemq.com/blog/mq
 |---|---|---|---|---|---|
 | `raw/{source}/{device}/...` | Device data in its **own native format** (not canonical) | Devices, test vendors, sim plant | Ingestion gateway only | 0 or 1 | No |
 | `dt/v1/telemetry/{site}/{equipment}/{point}` | **Canonical messages**, one reading each | Ingestion gateway only | Twin, detection, historian, API | 1 | No |
-| `dt/v1/quarantine/{source}` | Readings the gateway couldn't process, plus the reason | Ingestion gateway only | Historian (to log them), engineer for debugging | 1 | No |
+| `dt/v1/quarantine/{source}` | Readings the gateway couldn't process, plus the reason (shape: `quarantine_message.schema.json`) | Ingestion gateway only | Historian (to log them), engineer for debugging | 1 | No |
 | `dt/v1/status/{client_id}` | `online` / `offline` for each service and device | Each client (`offline` is sent automatically by the broker, see below) | API, detection | 1 | **Yes** |
 
 ### Reserved for later steps (names only, not built yet)
