@@ -1,5 +1,6 @@
 # Device type: "Acme" HVAC unit  (FAKE test vendor, see testing/vendors/acme_publisher.py)
 # Kept as a test case: flat JSON, Fahrenheit, epoch-ms time, numeric mode codes.
+# Decoder: services/ingestion-gateway/gateway/decoders/acme.py
 
 @prefix dtteo: <urn:dtteo:schema#> .
 @prefix brick: <https://brickschema.org/schema/Brick#> .

@@ -10,6 +10,13 @@ What makes Acme awkward (on purpose):
 
 Publishes to:  raw/acme/<device_slug>/telemetry
 Status topic:  dt/v1/status/<client_id>   (online, with "offline" as Last Will)
+
+This is a MADE-UP vendor for testing, not a real product (see NOTES.md).
+
+Sources:
+  - Last Will, retained messages, QoS 1: MQTT 5.0 spec   https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html
+  - Topic naming:   https://www.hivemq.com/blog/mqtt-essentials-part-5-mqtt-topics-best-practices/
+  - Our topics:     v0.1/contracts/topics.md
 """
 import json
 import math

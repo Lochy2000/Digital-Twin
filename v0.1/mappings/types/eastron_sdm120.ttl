@@ -5,6 +5,8 @@
 #   - sdm-modbus 0.4.3 (Python library): all INPUT registers, 2 registers each,
 #     FLOAT32, decoded big-endian byte AND word order.
 # Still to confirm against Eastron's own protocol PDF before using a real meter.
+# Term meanings: https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html
+# Decoder: services/ingestion-gateway/gateway/decoders/modbus.py
 #
 # Addresses are the ones sent on the wire (0-based), as the W3C Modbus binding
 # requires. A manual's "30001"-style number = 30001 + address.

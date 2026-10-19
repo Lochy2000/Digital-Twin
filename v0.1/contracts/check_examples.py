@@ -7,6 +7,10 @@ Checks every example message against the canonical message schema.
 Run:  python check_examples.py
 This is the first "contract test". Later, each adapter's output will be
 checked the same way.
+
+Sources:
+  - JSON Schema 2020-12 (the schema's "$schema"):  https://json-schema.org/draft/2020-12/schema
+  - Message shape modelled on SenML (RFC 8428):    https://datatracker.ietf.org/doc/rfc8428/
 """
 import json
 import sys

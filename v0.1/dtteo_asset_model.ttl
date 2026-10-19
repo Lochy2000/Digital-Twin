@@ -12,6 +12,12 @@
 #     gateway publishes.
 #   - Real equipment: replace brick:Packaged_Heat_Pump with the class
 #     that matches Botanic's unit once it is specified.
+#   - Sources:
+#       Brick classes and relationships   https://docs.brickschema.org/brick/relationships.html
+#                                         https://github.com/BrickSchema/Brick
+#       Time-series references            https://docs.brickschema.org/metadata/timeseries-storage.html
+#       Units (QUDT), e.g.                https://qudt.org/vocab/unit/DEG_C
+#       Validation tool (brickschema)     https://brickschema.readthedocs.io/en/stable/
 #   - Validate after every change:
 #       python -c "import brickschema as b; g=b.Graph(load_brick=True); \
 #         g.load_file('dtteo_asset_model.ttl'); print(g.validate()[2])"

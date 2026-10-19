@@ -16,6 +16,17 @@
 # Register details for Modbus devices use the W3C WoT Modbus binding terms
 # (modv:entity, modv:address, ...). The spec's JSON-LD context declares
 # modv as https://www.w3.org/2019/wot/modbus ; in Turtle we add '#'.
+#
+# Sources:
+#   Thing Model vs Thing Description, tm:optional, version, one TM per TD:
+#     https://www.w3.org/TR/wot-thing-description11/#thing-model
+#   Modbus terms:   https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html
+#   Device profiles (same idea, ThingsBoard):  https://thingsboard.io/docs/user-guide/device-profiles/
+#   Asset models (same idea, AWS SiteWise):    https://docs.aws.amazon.com/iot-sitewise/latest/userguide/create-asset-models.html
+#   Enable/disable = associate/disassociate a data stream (SiteWise):
+#     https://docs.aws.amazon.com/iot-sitewise/latest/userguide/data-streams.html
+#   Placing generic points one by one (BuildingMOTIF):
+#     https://buildingmotif.readthedocs.io/en/latest/guides/ingress-bacnet-to-brick.html
 # ------------------------------------------------------------------
 
 @prefix dtteo: <urn:dtteo:schema#> .

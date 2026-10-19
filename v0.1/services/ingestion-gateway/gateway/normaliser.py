@@ -19,7 +19,18 @@ Steps, always in this order:
 If any step can't be done (a word not in the map, text where a number should be, an
 unknown unit), it raises NormaliseError and the reading goes to quarantine.
 
+Raw unit: if the message itself states its unit (RawRecord.unit, e.g. Tasmota's "TempUnit"),
+that wins over the device type's dtteo:rawUnit, because the device knows its own setting.
+
 What it does NOT do: judge whether a value is sensible (e.g. 999 °C). That's the validator.
+
+Sources:
+  - The pattern (many formats in, one common format out):
+      EIP Normalizer   https://www.enterpriseintegrationpatterns.com/patterns/messaging/Normalizer.html
+  - Unit conversion: see units.py (QUDT)
+  - Output shape: v0.1/contracts/canonical_message.schema.json (SenML-like: https://datatracker.ietf.org/doc/rfc8428/)
+  - Two times, sensor_time (event time) and ingest_time (processing time):
+      https://ci.apache.org/projects/flink/flink-docs-master/docs/concepts/time/
 """
 from __future__ import annotations
 
@@ -49,6 +60,7 @@ def _is_number(v) -> bool:
 
 def normalise(record: RawRecord, mapping: PointMapping, ingest_time: datetime) -> dict:
     value = record.value
+    raw_unit = record.unit or mapping.raw_unit         # the message's own unit wins (see above)
 
     # 1. Value map: translate vendor codes/words. Compare as text, so 2 and "2" both match.
     if mapping.value_map is not None:
@@ -58,16 +70,16 @@ def normalise(record: RawRecord, mapping: PointMapping, ingest_time: datetime) -
         value = mapping.value_map[key]
 
     # 2 + 3. Numbers: scale, then convert units.
-    elif mapping.unit is not None or mapping.scale is not None or mapping.raw_unit is not None:
+    elif mapping.unit is not None or mapping.scale is not None or raw_unit is not None:
         if not _is_number(value):
             raise NormaliseError(f"expected a number for {mapping.point_id}, got {value!r}")
         if mapping.scale is not None:
             value = float(value) * float(mapping.scale)
-        if mapping.raw_unit is not None:
+        if raw_unit is not None:
             if mapping.unit is None:
                 raise NormaliseError(f"{mapping.point_id} has a raw unit but no target unit in the asset model")
             try:
-                value = convert(value, mapping.raw_unit, mapping.unit)
+                value = convert(value, raw_unit, mapping.unit)
             except UnitError as e:
                 raise NormaliseError(str(e)) from e
         # 4. Tidy: remove floating-point noise. Whole numbers stay as written (int stays int).

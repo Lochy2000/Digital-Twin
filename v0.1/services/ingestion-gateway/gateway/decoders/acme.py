@@ -1,5 +1,5 @@
 """
-Decoder for the fake vendor "Acme".
+Decoder for the FAKE vendor "Acme".
 
 Acme's format (one flat JSON object per message):
     {"deviceId": "ACME-HVAC-0001", "ts": 1792006418428, "tempF": 70.4, "rh": 54.0, "op_state": 2}
@@ -7,6 +7,9 @@ Acme's format (one flat JSON object per message):
     ts        epoch MILLISECONDS (UTC)        -> becomes the time of every record
     deviceId  Acme's own ID                    -> metadata, not a reading
     all other keys are readings                -> one RawRecord each
+
+This is a made-up test format (testing/vendors/acme_publisher.py), not a real product.
+Its device type: mappings/types/acme_hvac.ttl
 """
 from __future__ import annotations
 
@@ -21,7 +24,8 @@ METADATA_KEYS = {"deviceId", "ts"}   # everything else is treated as a reading
 class AcmeDecoder:
     source = "acme"
 
-    def decode(self, device: str, payload: bytes) -> list[RawRecord]:
+    def decode(self, device: str, payload: bytes, binding=None, kind: str = "") -> list[RawRecord]:
+        # binding and kind aren't needed: everything this format needs is in the message.
         try:
             msg = json.loads(payload)
         except (ValueError, UnicodeDecodeError) as e:

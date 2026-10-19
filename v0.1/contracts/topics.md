@@ -85,6 +85,14 @@ device ──► raw/acme/hvac_01/telemetry ──► [ingestion gateway] ──
 - **Only the gateway reads `raw/...`, and only the gateway writes `dt/v1/telemetry/...`.** That is the "front door" rule: nothing downstream ever sees a device's native format.
 - If a device can't choose its own topic (some vendor kit has fixed topics), the MQTT adapter can subscribe to that fixed topic instead. The `raw/` prefix is the default, not a hard requirement.
 
+### Raw formats known so far (added in step 2f)
+
+| Source | Topic | Payload | Format defined by |
+|---|---|---|---|
+| `tasmota` | `raw/tasmota/{device}/tele/SENSOR` (also `STATE`, `LWT`) | Tasmota's own JSON | Tasmota. The device is set to this topic with `FullTopic raw/tasmota/%topic%/%prefix%/` ([Commands](https://tasmota.github.io/docs/Commands/)) |
+| `modbus` | `raw/modbus/{device}/registers` | `{"time": "<UTC>Z", "registers": {"InputRegister:12": [w1, w2], ...}}`: the 16-bit words read, untouched | **Us**: the Modbus poller (later step) publishes this. Decoded in `gateway/decoders/modbus.py` |
+| `acme`, `borealis` | `raw/acme/{device}/telemetry`, `raw/borealis/{device}/data` | Made-up test formats | `testing/vendors/` |
+
 ---
 
 ## QoS and retained messages

@@ -1,5 +1,6 @@
 # Device type: "Borealis" HVAC unit  (FAKE test vendor, see testing/vendors/borealis_publisher.py)
 # Kept as a test case: list of readings, Celsius, local time with offset, mode words.
+# Decoder: services/ingestion-gateway/gateway/decoders/borealis.py
 
 @prefix dtteo: <urn:dtteo:schema#> .
 @prefix brick: <https://brickschema.org/schema/Brick#> .

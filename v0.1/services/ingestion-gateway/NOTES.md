@@ -462,3 +462,99 @@ Try breaking it: in `bindings/site1.ttl`, change Borealis to `dtteo:enabled true
 
 - **Tasmota:** flatten the JSON (`DS18B20.Temperature`), check `TempUnit`, and turn local time into UTC using the binding's timezone.
 - **Modbus:** turn raw register values into numbers using `modv:type` and the byte/word order (a float across 2 registers). Polling a real meter comes later; this step decodes register values given to it, with a simulated SDM120 for tests.
+
+---
+
+## 2026-10-18 · Step 2f: decoders for the two real formats, and source links in the code
+
+### Source links in every code file
+
+Each code and model file now ends its header with a **Sources** list: the spec, docs page or library each rule in that file follows. Where a single rule comes from somewhere specific, the link is also next to that line (e.g. rule 3 in `mapper.py` -> AWS SiteWise).
+
+To see it all in one place: `v0.1/SOURCES.md` lists every link and which files cite it. It is generated, so it can't go stale:
+
+```bat
+cd v0.1
+python tools\list_sources.py
+```
+
+Every link was opened and checked while writing this step. The QUDT unit values were re-checked on qudt.org.
+
+### Tasmota decoder (`gateway/decoders/tasmota.py`)
+
+| Tasmota sends | Decoder does |
+|---|---|
+| Nested JSON: `{"DS18B20": {"Temperature": 21.4}}` | Flattens with dots: `DS18B20.Temperature` |
+| `Time`, `TempUnit`, the probe's `Id` | Treats as metadata, not readings |
+| `"TempUnit": "C"` or `"F"` | Passes it on as the record's unit (`DEG_C` / `DEG_F`); the normaliser converts F to C |
+| Local time, no offset: `"2026-10-18T11:22:00"` | Uses the binding's timezone (`Europe/London`) -> `10:22:00Z` |
+| Time with an offset (if `SetOption52` is on) | Uses it as given; no timezone needed |
+| `tele/LWT` = `Online` / `Offline` (plain text) | One record, field `LWT` (unmapped, so quarantined for now) |
+
+**Topic setup.** Tasmota normally publishes on `tele/<topic>/SENSOR`. Two Tasmota commands put it on our raw topic instead: `Topic tasmota_zone1` and `FullTopic raw/tasmota/%topic%/%prefix%/`. No firmware change. Recorded in `contracts/topics.md`.
+
+**The hour that happens twice.** When UK clocks go back (25 Oct 2026, 02:00 -> 01:00), local times from 01:00 to 01:59 happen twice. Without an offset, `01:30` could mean two different moments. The decoder refuses these (quarantine) rather than guess. Turning on `SetOption52` on the device avoids the problem entirely, so that's the recommended setting.
+
+### Modbus decoder (`gateway/decoders/modbus.py`)
+
+Modbus devices don't send anything: something has to ask. A **poller** (a later step) will read the registers listed in the device type and publish exactly what came back:
+
+```json
+{"time": "2026-10-18T10:22:00.000Z",
+ "registers": {"InputRegister:12": [17551, 53248]}}
+```
+
+The decoder turns `[17551, 53248]` into `1150.5` using the type's `modv:type` (`xsd:float` = 2 registers) and byte/word order. Then the normaliser turns 1150.5 W into 1.1505 kW as before.
+
+Why split it like this: the poller stays simple (it just copies registers), the raw topic shows exactly what the meter said, and the tricky part (byte order) is tested without any hardware.
+
+### What I added or changed
+
+| File | Change |
+|---|---|
+| `gateway/decoders/tasmota.py`, `modbus.py` | New |
+| `gateway/decoders/__init__.py` | Registers both; `decode(topic, payload, registry)` passes the device's binding to the decoder; `RawRecord.unit` |
+| `gateway/mapper.py` | `Binding.registers` (per Modbus value: kind, address, count, data type, byte/word order); start-up check that the data type and register count agree |
+| `gateway/normaliser.py` | A unit stated in the message wins over the type's raw unit |
+| `gateway/units.py` | V, A, Hz, kWh added (checked on qudt.org) |
+| `gateway/demo.py` | Shows all four formats |
+| `tests/test_real_formats.py` | 18 new tests |
+| `tests/samples/tasmota.json`, `sdm120.json` | Sample messages |
+| `requirements.txt` | `tzdata`: Windows has no timezone database built in |
+| `contracts/topics.md` | Raw formats table |
+| `tools/list_sources.py`, `SOURCES.md` | Source index |
+
+### Decisions
+
+**1. The mapper doubles as the device registry.** Decoders that need instance facts (timezone, register layout) get the device's binding through it. This is the role Hono's device registry plays. The decoders don't import the mapper; they're just handed the binding.
+
+**2. A unit in the message beats the type.** The device knows its own setting; the type only knows the default.
+
+**3. A register the type doesn't describe keeps its raw words** (e.g. `[1, 2]`) and goes to quarantine. It can't be decoded without knowing its type, but it isn't lost.
+
+**4. Borealis also sends a unit per reading (`"unit": "C"`)** but its decoder doesn't pass it on yet. Same idea as Tasmota; left as is because it's a made-up format.
+
+### Try it
+
+```bat
+cd v0.1\services\ingestion-gateway
+venv\Scripts\activate
+pip install -r requirements.txt     :: tzdata is new
+python -m pytest                    :: 76 passed
+python -m gateway.demo
+```
+
+```
+raw/modbus/sdm120_unit1/registers
+  InputRegister:0 = 236.89999389648438 -> QUARANTINE: unknown point
+  InputRegister:12 = 1150.5      -> unit1.power          = 1.1505 KiloW  @ 2026-10-18T10:22:00.000Z
+  ...
+raw/tasmota/tasmota_zone1/tele/SENSOR
+  DS18B20.Temperature = 21.4     -> unit1.zone_air_temp  = 21.4 DEG_C  @ 2026-10-18T10:22:00.000Z
+```
+
+`236.89999...` is how a 32-bit float stores 236.9. It is only rounded once it's mapped to a point (normaliser step 4).
+
+### Next: step 2g, validator
+
+As planned before: decide each reading's `quality` (GOOD / SUSPECT / BAD) with plausible ranges stored with the points.

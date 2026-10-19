@@ -17,12 +17,27 @@ From these it builds a plain lookup table once, at start-up. Per message, a look
 dictionary read. Anything inconsistent raises MappingError at start-up, never per message.
 
 If a lookup returns None, the field is unknown and the reading goes to quarantine.
-Design and sources: v0.1/mappings/DESIGN.md
+Design: v0.1/mappings/DESIGN.md
+
+Sources (what each part follows):
+  - Points link to their stored time series with ref:hasExternalReference / ref:TimeseriesReference:
+      https://docs.brickschema.org/metadata/timeseries-storage.html
+      https://docs.brickschema.org/metadata/external-representations.html
+  - brick:hasPoint and brick:feeds, used to find a point on the served equipment:
+      https://docs.brickschema.org/brick/relationships.html
+  - Device type vs instance (W3C WoT Thing Model, TD 1.1 section 9):
+      https://www.w3.org/TR/wot-thing-description11/#thing-model
+  - Modbus register terms (modv:entity, modv:address, ...):
+      https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html
+  - One data stream per property (rule 3):
+      https://docs.aws.amazon.com/iot-sitewise/latest/userguide/data-streams.html
+  - SPARQL in rdflib, including initBindings (used in _CANDIDATES):
+      https://rdflib.readthedocs.io/en/latest/intro_to_sparql/
 """
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
 from typing import Iterable
@@ -45,6 +60,17 @@ class PointMapping:
 
 
 @dataclass(frozen=True)
+class RegisterSpec:
+    """How to read one Modbus value. Terms from the W3C WoT Modbus binding (modv:)."""
+    entity: str               # "InputRegister", "HoldingRegister", ...
+    address: int              # as sent on the wire (0-based)
+    quantity: int             # number of 16-bit registers
+    xsd_type: str             # "float", "unsignedShort", ...
+    msb_first: bool = True    # modv:mostSignificantByte (default true in the spec)
+    msw_first: bool = True    # modv:mostSignificantWord (default true in the spec)
+
+
+@dataclass(frozen=True)
 class Binding:
     """One installed device. Holds the instance details decoders / pollers will need later."""
     source: str               # decoder name, e.g. "tasmota" (comes from the device type)
@@ -54,6 +80,7 @@ class Binding:
     enabled: bool
     timezone: str | None      # for devices that send local time with no offset
     base: str | None          # for polled devices, e.g. "modbus+tcp://192.168.1.50:502/1"
+    registers: dict = field(default_factory=dict, hash=False)   # Modbus only: field -> RegisterSpec
 
 
 class MappingError(Exception):
@@ -98,7 +125,7 @@ _TYPES = _PREFIXES + """
 SELECT ?type ?decoder WHERE { ?type a dtteo:DeviceType . OPTIONAL { ?type dtteo:decoder ?decoder } }"""
 
 _TYPE_VALUES = _PREFIXES + """
-SELECT ?type ?v ?field ?cls ?raw_unit ?scale ?optional ?entity ?address WHERE {
+SELECT ?type ?v ?field ?cls ?raw_unit ?scale ?optional ?entity ?address ?quantity ?xsd ?msb ?msw WHERE {
     ?type a dtteo:DeviceType ; dtteo:hasValue ?v .
     OPTIONAL { ?v dtteo:field ?field }
     OPTIONAL { ?v dtteo:pointClass ?cls }
@@ -107,6 +134,10 @@ SELECT ?type ?v ?field ?cls ?raw_unit ?scale ?optional ?entity ?address WHERE {
     OPTIONAL { ?v dtteo:optional ?optional }
     OPTIONAL { ?v modv:entity ?entity }
     OPTIONAL { ?v modv:address ?address }
+    OPTIONAL { ?v modv:quantity ?quantity }
+    OPTIONAL { ?v modv:type ?xsd }
+    OPTIONAL { ?v modv:mostSignificantByte ?msb }
+    OPTIONAL { ?v modv:mostSignificantWord ?msw }
 }"""
 
 _BINDINGS = _PREFIXES + """
@@ -262,6 +293,7 @@ class _Builder:
             name, row = _local_name(b), brows[0]
 
             # Rule 1: one device, one type that exists, serving something in the asset model.
+            # "One type" follows WoT TD 1.1 section 9.4: a TD "can only be an instance of one TM at a time".
             if len({(r.device, r.type, r.serves) for r in brows}) > 1:
                 raise MappingError(f"binding {name}: device, deviceType and serves must each be given once "
                                    "(a device is an instance of ONE type, as in WoT TD 1.1 section 9.4)")
@@ -281,7 +313,8 @@ class _Builder:
             self.bindings[(source, device)] = Binding(
                 source=source, device=device, device_type=_local_name(row.type),
                 serves=_local_name(row.serves), enabled=enabled,
-                timezone=str(row.tz) if row.tz else None, base=str(row.base) if row.base else None)
+                timezone=str(row.tz) if row.tz else None, base=str(row.base) if row.base else None,
+                registers=self._registers(name, values.get(row.type, [])))
 
             # Resolve every value, even for disabled bindings, so mistakes show up now.
             # Only enabled devices go into the lookup table.
@@ -308,7 +341,8 @@ class _Builder:
                         self.report.append(f"{where}: optional, {_local_name(serves)} has no "
                                            f"{_short(v.cls)} point, so not mapped")
                         continue
-                    # Rule 2: a required value must have a point to go to.
+                    # Rule 2: a required value must have a point to go to. Optional values
+                    # follow WoT's tm:optional (TD 1.1 section 9.3.4).
                     raise MappingError(f"{where}: {_local_name(serves)} has no {_short(v.cls)} point in the "
                                        "asset model (add the point, or mark the value optional in the type)")
                 if len(found) > 1:
@@ -321,6 +355,28 @@ class _Builder:
             raise MappingError(f"binding {name}: places field(s) {sorted(placed)} that its type does not have")
         return out
 
+    def _registers(self, name: str, value_rows) -> dict:
+        """Modbus values of a type -> {field: RegisterSpec}, checked against the data type."""
+        from .decoders.modbus import FORMATS        # the decoder's list of supported types
+        out = {}
+        for v in value_rows:
+            if v.entity is None:
+                continue
+            fld = self._field_name(name, v)
+            if v.xsd is None or v.quantity is None:
+                raise MappingError(f"binding {name}, field {fld!r}: Modbus values need modv:type and modv:quantity")
+            xsd = _local_name(v.xsd)
+            if xsd not in FORMATS:
+                raise MappingError(f"binding {name}, field {fld!r}: xsd:{xsd} not supported by the Modbus decoder yet")
+            if FORMATS[xsd][1] != int(v.quantity):
+                raise MappingError(f"binding {name}, field {fld!r}: xsd:{xsd} takes {FORMATS[xsd][1]} "
+                                   f"register(s), but modv:quantity is {int(v.quantity)}")
+            out[fld] = RegisterSpec(
+                entity=str(v.entity), address=int(v.address), quantity=int(v.quantity), xsd_type=xsd,
+                msb_first=True if v.msb is None else bool(v.msb.toPython()),
+                msw_first=True if v.msw is None else bool(v.msw.toPython()))
+        return out
+
     @staticmethod
     def _field_name(name: str, v) -> str:
         if v.field is not None:
@@ -331,7 +387,11 @@ class _Builder:
 
     # --- rule 3 -----------------------------------------------------------------------
     def _check_one_source_per_point(self) -> None:
-        """One live source per point (AWS SiteWise: a property links to one data stream at a time)."""
+        """
+        One live source per point. Follows AWS SiteWise: "an asset property can only be
+        linked to one data stream at a time".
+        https://docs.aws.amazon.com/iot-sitewise/latest/userguide/data-streams.html
+        """
         feeders: dict[str, list] = {}
         for key, m in self.table.items():
             feeders.setdefault(m.point_id, []).append(key)

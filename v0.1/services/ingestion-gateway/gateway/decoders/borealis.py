@@ -1,5 +1,5 @@
 """
-Decoder for the fake vendor "Borealis".
+Decoder for the FAKE vendor "Borealis".
 
 Borealis's format (a list of readings plus a status block):
     {"site": "site4", "unit": "site4-hvac_01",
@@ -10,6 +10,9 @@ Borealis's format (a list of readings plus a status block):
     readings[]     each one -> RawRecord(field=metric, value, time)
     status.{key}   each one -> RawRecord(field="status.<key>"), using the readings' time
     site, unit     metadata, not readings
+
+This is a made-up test format (testing/vendors/borealis_publisher.py), not a real product.
+Its device type: mappings/types/borealis_hvac.ttl
 """
 from __future__ import annotations
 
@@ -22,7 +25,8 @@ from . import DecodeError, RawRecord
 class BorealisDecoder:
     source = "borealis"
 
-    def decode(self, device: str, payload: bytes) -> list[RawRecord]:
+    def decode(self, device: str, payload: bytes, binding=None, kind: str = "") -> list[RawRecord]:
+        # binding and kind aren't needed: everything this format needs is in the message.
         try:
             msg = json.loads(payload)
         except (ValueError, UnicodeDecodeError) as e:

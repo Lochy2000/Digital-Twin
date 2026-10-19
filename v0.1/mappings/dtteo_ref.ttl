@@ -9,6 +9,13 @@
 #
 # The ingestion gateway's mapper reads these to turn vendor field
 # names into our point IDs.
+#
+# Sources:
+#   Brick external references (ref:hasExternalReference, BACnetReference, ...):
+#     https://docs.brickschema.org/metadata/external-representations.html
+#   Brick time-series references (the pattern copied here):
+#     https://docs.brickschema.org/metadata/timeseries-storage.html
+#   Value maps: our own addition (WoT has no equivalent); see mappings/DESIGN.md
 # ------------------------------------------------------------------
 
 @prefix dtteo: <urn:dtteo:schema#> .

@@ -1,5 +1,6 @@
 # Device bindings for site1: which installed device is which type, and what it serves.
 # One block per device. To add a device of a known type, add one block.
+# Vocabulary (and its sources): mappings/dtteo_onboarding.ttl
 #
 # Rule: only ONE enabled device may feed a point. Acme and Borealis pretend to be
 # the same unit, and the Tasmota probe would also measure zone 1, so only one of

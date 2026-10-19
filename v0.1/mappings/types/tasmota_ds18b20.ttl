@@ -1,12 +1,16 @@
 # Device type: ESP8266 running Tasmota firmware, with ONE DS18B20 temperature probe.
-# REAL format. Source: Tasmota docs, https://tasmota.github.io/docs/DS18x20/
+# REAL format. Sources:
+#   message example        https://tasmota.github.io/docs/DS18x20/
+#   SetOption8 (C/F), SetOption52 (UTC offset), FullTopic   https://tasmota.github.io/docs/Commands/
+#   topics, TelePeriod     https://tasmota.github.io/docs/MQTT/
+# Decoder: services/ingestion-gateway/gateway/decoders/tasmota.py
 #   Telemetry (every TelePeriod, default 300 s) looks like:
 #   {"Time":"2021-01-02T09:09:44","DS18B20":{"Id":"00000566CC39","Temperature":13.3},"TempUnit":"C"}
 #
 # Things this real format brings that the fake vendors didn't:
 #   - Time is LOCAL with no offset -> the binding must give the timezone.
 #   - Celsius by default, but switchable to Fahrenheit (SetOption8), and the
-#     message says which in "TempUnit" -> the decoder must check it (step 2f).
+#     message says which in "TempUnit" -> the decoder passes it on (step 2f).
 #   - A probe is generic: what it measures depends on where it is installed,
 #     so the TYPE only says "a temperature"; the BINDING places it on a point.
 #   - With several probes the keys become "DS18B20-1", "DS18B20-2", ... ;

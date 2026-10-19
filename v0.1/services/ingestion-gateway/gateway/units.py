@@ -10,7 +10,13 @@ SI base unit for its quantity (kelvin for temperature, watt for power, ...):
 So converting F -> C goes F -> K -> C. Any pair of units of the same quantity works the
 same way; no special F-to-C formula is needed.
 
-The table holds only the units v0.1 uses. Values are copied from qudt.org/vocab/unit/<ID>.
+The table holds only the units v0.1 uses. Values are copied from each unit's QUDT page,
+https://qudt.org/vocab/unit/<ID>  (no conversionOffset on the page means 0). Checked 2026-10-18:
+    https://qudt.org/vocab/unit/K         https://qudt.org/vocab/unit/DEG_C
+    https://qudt.org/vocab/unit/DEG_F     https://qudt.org/vocab/unit/W
+    https://qudt.org/vocab/unit/KiloW     https://qudt.org/vocab/unit/PERCENT
+    https://qudt.org/vocab/unit/V         https://qudt.org/vocab/unit/A
+    https://qudt.org/vocab/unit/HZ        https://qudt.org/vocab/unit/KiloW-HR
 Add a row when a new unit appears (and check it against the QUDT page).
 """
 from __future__ import annotations
@@ -25,6 +31,11 @@ _UNITS: dict[str, tuple[str, Decimal, Decimal]] = {
     "W":       ("power",       Decimal("1"),                                  Decimal("0")),
     "KiloW":   ("power",       Decimal("1000"),                               Decimal("0")),
     "PERCENT": ("dimensionless", Decimal("0.01"),                             Decimal("0")),
+    # Added in step 2f for the SDM120 meter's other values (not mapped to points yet):
+    "V":        ("voltage",    Decimal("1"),                                  Decimal("0")),
+    "A":        ("current",    Decimal("1"),                                  Decimal("0")),
+    "HZ":       ("frequency",  Decimal("1"),                                  Decimal("0")),
+    "KiloW-HR": ("energy",     Decimal("3600000"),                            Decimal("0")),   # to joules
 }
 
 
