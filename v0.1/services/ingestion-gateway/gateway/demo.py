@@ -3,7 +3,8 @@ Show what the gateway does so far, using the captured sample messages.
 
     python -m gateway.demo
 
-For each vendor message: decode -> map -> normalise, and print where every value ends up.
+For each message: decode -> map -> normalise -> validate, and print where every value ends up
+and its quality (GOOD / SUSPECT / BAD).
 Grows as more gateway pieces are added.
 """
 import json
@@ -13,6 +14,7 @@ from pathlib import Path
 from .decoders import decode
 from .mapper import Mapper
 from .normaliser import NormaliseError, normalise
+from .validator import with_quality
 
 HERE = Path(__file__).resolve().parent
 V01 = HERE.parents[2]
@@ -47,8 +49,12 @@ def main():
             except NormaliseError as e:
                 print(f"  {raw:30} -> QUARANTINE: {e}")
                 continue
-            unit = f" {n['unit']}" if n["unit"] else ""
-            print(f"  {raw:30} -> {n['point']:20} = {n['value']}{unit}  @ {n['sensor_time']}")
+            # The samples are recorded messages, so they're older than 6 h: switch the
+            # stale-data check off here, or every one would be BAD.
+            msg, verdict = with_quality(n, m, max_age=None)
+            unit = f" {msg['unit']}" if msg["unit"] else ""
+            why = f"  ({'; '.join(verdict.reasons)})" if verdict.reasons else ""
+            print(f"  {raw:30} -> {msg['point']:20} = {msg['value']}{unit}  {msg['quality']}{why}")
 
 
 if __name__ == "__main__":

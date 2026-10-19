@@ -558,3 +558,84 @@ raw/tasmota/tasmota_zone1/tele/SENSOR
 ### Next: step 2g, validator
 
 As planned before: decide each reading's `quality` (GOOD / SUSPECT / BAD) with plausible ranges stored with the points.
+
+---
+
+## 2026-10-19 · Step 2g: validator (quality flags)
+
+### The job
+
+Decide each reading's `quality`: **GOOD**, **SUSPECT** or **BAD**. The reading itself is never changed or thrown away. A BAD reading is still stored, with its flag, so it can be looked at later. (Quarantine is different: that's for messages the gateway can't *understand*. A BAD reading was understood, it just isn't believable.)
+
+### The pattern: QARTOD
+
+Rather than invent checks, this follows **QARTOD**, the US IOOS standard for quality-checking real-time sensor data, as implemented in their open-source Python library **ioos_qc** (I read its `qartod.py`, version 3.0.0). Its flags map straight onto ours, and onto OPC UA's Good / Uncertain / Bad:
+
+| QARTOD flag | Ours | OPC UA |
+|---|---|---|
+| 1 pass | GOOD | Good |
+| 3 suspect | SUSPECT | Uncertain |
+| 4 fail | BAD | Bad |
+
+Each check gives a flag and the **worst one wins** (the same order ioos_qc uses).
+
+### The four checks in this step
+
+| Check | QARTOD test | Fails as | Example |
+|---|---|---|---|
+| Outside the **sensor's** range | gross range, "fail span" | BAD | DS18B20 says 130 °C; it can only measure -55 to 125 |
+| Outside the **expected** range | gross range, "suspect span" | SUSPECT | 2 °C in an occupied room: possible, worth a look |
+| Time in the **future** | impossible date | BAD | more than 60 s ahead of when we received it |
+| Time too **old** | data reception | BAD | more than 6 h old when it arrived |
+
+### Where the two ranges live, and why there
+
+The two ranges come from different people, so they live in different files:
+
+- **Sensor range**: a fact about the *device model*, from its datasheet. It goes in the **device type**, written with the W3C SSN term for it (`ssn-system:MeasurementRange`, "the set of values that the Sensor can return"), in the same shape as SSN's own DHT22 example. Added for the DS18B20: -55 to 125 °C (Analog Devices datasheet).
+- **Expected range**: a judgement about *this point in this building*. It goes on the **asset-model point** (`dtteo:expectedRange`). Added for zone, supply and outside air temperature and power. **These four are placeholders I chose**, marked as such in the file. They need replacing with limits agreed with Botanic, especially the power one (should come from the unit's rated input power).
+
+The mapper reads both at start-up, converts them to the point's unit (so a range written in °F still works), and refuses to start if the expected range goes beyond the sensor range. That's ioos_qc's own rule.
+
+### What I added or changed
+
+| File | Change |
+|---|---|
+| `gateway/validator.py` | New: `validate()` -> `Verdict(quality, reasons)`; `with_quality()` -> a complete canonical message |
+| `gateway/mapper.py` | `PointMapping.fail_span` / `suspect_span`, loaded and unit-converted at start-up |
+| `mappings/dtteo_onboarding.ttl` | `dtteo:expectedRange`, and how both ranges are written |
+| `mappings/types/tasmota_ds18b20.ttl` | DS18B20 sensor range |
+| `dtteo_asset_model.ttl` | Placeholder expected ranges on four points |
+| `gateway/demo.py` | Shows the quality |
+| `tests/test_validator.py` | 19 tests |
+
+### Decisions
+
+**1. A minute of clock difference is allowed.** QARTOD flags any future time. Real device clocks drift a little, so a reading up to 60 s "ahead" is still GOOD.
+
+**2. The stale limit is 6 hours**, ioos_qc's default. It's right for live data but wrong for a historical CSV import, so it can be switched off (`max_age=None`). The demo does this, because its samples are recorded messages.
+
+**3. The fake vendors get no sensor range.** Acme and Borealis have no datasheet, and inventing one would be exactly the made-up detail we're avoiding. Their readings still get the expected-range and time checks through the asset-model point.
+
+**4. The reasons aren't in the message yet.** The contract only has `quality`. The reasons (e.g. "130 is outside the sensor's range") are returned for logs. Adding them to the message would change the contract; see open question below.
+
+### Not done yet: checks that need history
+
+QARTOD's **spike**, **rate of change** and **flat line** ("stuck sensor") tests, plus duplicate detection, compare a reading with the previous ones from the same point. That needs the gateway to keep a little state per point, so they come after the storage step, when there's somewhere to read recent values from.
+
+### Open question
+
+Should the canonical message carry *why* a reading isn't GOOD (e.g. `"qc": {"gross_range": 3}`, QARTOD style)? It's useful for the twin and for debugging, but it's a contract change (`v` 1 -> 2). My suggestion: not yet. Keep reasons in logs until something downstream needs them.
+
+### Try it
+
+```bat
+cd v0.1\services\ingestion-gateway
+venv\Scripts\activate
+python -m pytest              :: 95 passed
+python -m gateway.demo        :: every mapped reading now shows GOOD / SUSPECT / BAD
+```
+
+### Next: step 2h, publisher and quarantine
+
+Wire the pieces into the running gateway: subscribe to `raw/#`, run decode -> map -> normalise -> validate, publish canonical messages on `dt/v1/telemetry/...` and anything rejected on `dt/v1/quarantine/...` (with a small, defined quarantine message format).

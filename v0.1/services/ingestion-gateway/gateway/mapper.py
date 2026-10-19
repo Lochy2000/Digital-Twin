@@ -31,6 +31,10 @@ Sources (what each part follows):
       https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html
   - One data stream per property (rule 3):
       https://docs.aws.amazon.com/iot-sitewise/latest/userguide/data-streams.html
+  - Sensor range shape (ssn-system:MeasurementRange + schema:minValue/maxValue), SSN 5.1.1:
+      https://www.w3.org/TR/vocab-ssn/
+  - "Suspect span must lie inside the fail span" rule (QARTOD gross range test, ioos_qc 3.0.0):
+      https://pypi.org/p/ioos-qc
   - SPARQL in rdflib, including initBindings (used in _CANDIDATES):
       https://rdflib.readthedocs.io/en/latest/intro_to_sparql/
 """
@@ -45,6 +49,8 @@ from typing import Iterable
 from rdflib import Graph
 from rdflib.namespace import RDF
 
+from .units import UnitError, convert
+
 log = logging.getLogger(__name__)
 
 BRICK = "https://brickschema.org/schema/Brick#"
@@ -57,6 +63,9 @@ class PointMapping:
     raw_unit: str | None      # unit the device sends in, if different, e.g. "DEG_F"
     scale: Decimal | None     # multiply raw number by this first, e.g. 0.1
     value_map: dict[str, str] | None = None   # device value -> our value, e.g. {"2": "cool"}
+    # Plausible ranges, both already converted to the point's unit (step 2g, used by the validator):
+    fail_span: tuple[float, float] | None = None     # what the SENSOR can measure (device type)
+    suspect_span: tuple[float, float] | None = None  # what we EXPECT at this point (asset model)
 
 
 @dataclass(frozen=True)
@@ -94,6 +103,8 @@ PREFIX brick: <https://brickschema.org/schema/Brick#>
 PREFIX ref:   <https://brickschema.org/schema/Brick/ref#>
 PREFIX dtteo: <urn:dtteo:schema#>
 PREFIX modv:  <https://www.w3.org/2019/wot/modbus#>
+PREFIX schema: <http://schema.org/>
+PREFIX ssn-system: <http://www.w3.org/ns/ssn/systems/>
 """
 
 # Every point that can be stored: it has a time-series ID. Unit is optional.
@@ -102,6 +113,26 @@ SELECT ?point ?point_id ?unit WHERE {
     ?point ref:hasExternalReference ?ts .
     ?ts a ref:TimeseriesReference ; ref:hasTimeseriesId ?point_id .
     OPTIONAL { ?point brick:hasUnit ?unit }
+}"""
+
+# Step 2g ranges. Both use schema:minValue / maxValue / unitCode, the shape the W3C SSN
+# Recommendation uses in its DHT22 example (section 5.1.1): https://www.w3.org/TR/vocab-ssn/
+#   - sensor range, in a device type's value: ssn-system:MeasurementRange ("the set of values
+#     the Sensor can return"). Outside it -> BAD (QARTOD gross range "fail span").
+#   - expected range, on an asset-model point: dtteo:expectedRange. Outside it -> SUSPECT
+#     (QARTOD gross range "suspect span", set by the operator).
+_MEASUREMENT_RANGES = _PREFIXES + """
+SELECT ?owner ?min ?max ?unit WHERE {
+    ?owner ssn-system:hasSystemCapability/ssn-system:hasSystemProperty ?r .
+    ?r a ssn-system:MeasurementRange ; schema:minValue ?min ; schema:maxValue ?max .
+    OPTIONAL { ?r schema:unitCode ?unit }
+}"""
+
+_EXPECTED_RANGES = _PREFIXES + """
+SELECT ?owner ?min ?max ?unit WHERE {
+    ?owner dtteo:expectedRange ?r .
+    ?r schema:minValue ?min ; schema:maxValue ?max .
+    OPTIONAL { ?r schema:unitCode ?unit }
 }"""
 
 # Route 1 (step 2b): a point says directly "I am field Z of device Y from source X".
@@ -240,6 +271,9 @@ class _Builder:
         self.value_maps: dict = {}
         for row in graph.query(_VALUE_MAPS):
             self.value_maps.setdefault(row.owner, {})[str(row["from"])] = str(row.to)
+        # owner (type value / point) -> (min, max, unit)
+        self.sensor_ranges = {r.owner: (r.min, r.max, r.unit) for r in graph.query(_MEASUREMENT_RANGES)}
+        self.expected_ranges = {r.owner: (r.min, r.max, r.unit) for r in graph.query(_EXPECTED_RANGES)}
 
     def build(self) -> Mapper:
         self._add_field_refs()
@@ -254,13 +288,39 @@ class _Builder:
             # It could never be stored, so refuse now rather than per message.
             raise MappingError(f"{where}: point {_short(point)} has no ref:hasTimeseriesId")
         point_id, unit = self.points[point]
+        fail = self._span(self.sensor_ranges.get(owner), unit, f"{where}: sensor range")
+        suspect = self._span(self.expected_ranges.get(point), unit, f"{point_id}: expected range")
+        if fail and suspect and (suspect[0] < fail[0] or suspect[1] > fail[1]):
+            # Same rule as ioos_qc's gross_range_test: "Suspect ... must fall within the Fail" span.
+            raise MappingError(f"{point_id}: expected range {suspect} goes beyond the sensor's range {fail}")
         return PointMapping(
             point_id=point_id,
             unit=unit,
             raw_unit=_local_name(raw_unit),
             scale=Decimal(str(scale)) if scale is not None else None,
             value_map=self.value_maps.get(owner),
+            fail_span=fail,
+            suspect_span=suspect,
         )
+
+    @staticmethod
+    def _span(found, point_unit, where: str) -> tuple[float, float] | None:
+        """(min, max, unit) from the graph -> (min, max) in the point's unit, checked."""
+        if found is None:
+            return None
+        lo, hi, unit = found
+        unit = _local_name(unit)
+        if unit is None:
+            raise MappingError(f"{where} needs schema:unitCode")
+        if point_unit is None:
+            raise MappingError(f"{where} has a unit but the point has no brick:hasUnit")
+        try:
+            lo, hi = convert(float(lo), unit, point_unit), convert(float(hi), unit, point_unit)
+        except UnitError as e:
+            raise MappingError(f"{where}: {e}") from e
+        if lo > hi:
+            raise MappingError(f"{where}: minValue is above maxValue")
+        return (round(lo, 4), round(hi, 4))
 
     def _put(self, key: tuple[str, str, str], mapping: PointMapping) -> None:
         if key in self.table and self.table[key] != mapping:
