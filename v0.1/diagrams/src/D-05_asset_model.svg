@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1450 660" width="1450" height="660" role="img" aria-label="D-05 asset model: site, building and room; an HVAC zone containing the room; a heat/cool unit located in the room that feeds the zone and has six points; the zone has a temperature sensor and setpoint, and the temperature sensor links to its time series by ID" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToyNWRhYjM5MC1lNDA3LTQ5MDEtOTY3YS1lNWUxMWM3NzQ1NjIAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaJWyaNi6AwsNDJNeM88a6xIAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo0ZDQ1NDJhNi0zZGRjLTQ1NzAtOTQ0Yy1iZjVkYjFlYWJmN2VscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoYKZ1/zBLqLSe+5k7CJf9wgAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggsT+e1DZvh3eV9vQ/5yANAYLONbDun+OicN82FM1UUnCkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaOVZpv5Q1BFpPchCDeuDoBwAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIL+Ut+YrgL9nh5B8r/vt7lP7P1kcD7rnZFyfgmP53+9MZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GQG0Zmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjI1ZGFiMzkwLWU0MDctNDkwMS05NjdhLWU1ZTExYzc3NDU2Mi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjBkNTQwMzJhLTY5YzAtNDllOS1hMDQzLWVlZmVmMzk1ZTZiN3JjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCCxP57UNm+Hd5X29D/nIA0Bgs41sO6f46Jw3zYUzVRScKJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggKI3vwTIEQfufA2o5TJqENJ+MYcyUcW9uKx2YegTVCzuiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggjccJBKL0nzI7o5MRcNNetD3YlNPl7FB4g+s5mYsDrx90Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQBZCzo7SoJPtRH0/tolVDIoJdO7qAPorlEMSgGJFxwrtUqN7jgz8DYad1RgGn69E0OSJ91qsBE+KdGUsGf7BXpI=</c2pa:manifest></metadata>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap');
+    .bg { fill: #FFFFFF; }
+    .box { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .sys { fill: rgba(14,110,104,0.07); stroke: #0E6E68; stroke-width: 2; }
+    .conn { fill: none; stroke: #141618; stroke-width: 1.25; }
+    .head { fill: #141618; }
+    .title { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #141618; }
+    .name { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; fill: #141618; }
+    .cls { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 10px; fill: #596064; }
+    .rel { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 11px; fill: #141618; }
+    .val { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 10.5px; fill: #0E6E68; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" class="head"/></marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1450" height="660"/>
+  <text class="title" x="24" y="34">D-05 · Asset model: one heat/cool unit serving one zone</text>
+
+  <g transform="translate(0,50)">
+    <!-- Spaces -->
+    <rect class="box" x="40" y="60" width="180" height="60" rx="2"/>
+    <text class="name" x="54" y="84">Site</text>
+    <text class="cls" x="54" y="104">rec:Site</text>
+
+    <rect class="box" x="290" y="60" width="180" height="60" rx="2"/>
+    <text class="name" x="304" y="84">Building</text>
+    <text class="cls" x="304" y="104">rec:Building</text>
+
+    <rect class="box" x="540" y="60" width="180" height="60" rx="2"/>
+    <text class="name" x="554" y="84">Room</text>
+    <text class="cls" x="554" y="104">rec:Room</text>
+
+    <rect class="box" x="860" y="60" width="200" height="60" rx="2"/>
+    <text class="name" x="874" y="84">HVAC zone</text>
+    <text class="cls" x="874" y="104">rec:HVACZone</text>
+
+    <line class="conn" x1="220" y1="90" x2="286" y2="90" marker-end="url(#a)"/>
+    <text class="rel" x="253" y="82" text-anchor="middle">hasPart</text>
+    <line class="conn" x1="470" y1="90" x2="536" y2="90" marker-end="url(#a)"/>
+    <text class="rel" x="503" y="82" text-anchor="middle">hasPart</text>
+    <line class="conn" x1="860" y1="90" x2="724" y2="90" marker-end="url(#a)"/>
+    <text class="rel" x="792" y="82" text-anchor="middle">hasPart</text>
+
+    <!-- Equipment -->
+    <rect class="box" x="540" y="250" width="220" height="64" rx="2"/>
+    <text class="name" x="554" y="276">Heat / cool unit</text>
+    <text class="cls" x="554" y="298">brick:Packaged_Heat_Pump</text>
+
+    <line class="conn" x1="630" y1="250" x2="630" y2="124" marker-end="url(#a)"/>
+    <text class="rel" x="638" y="190">hasLocation</text>
+
+    <path class="conn" d="M760 282 H960 V124" marker-end="url(#a)"/>
+    <text class="rel" x="968" y="210">feeds</text>
+
+    <rect class="box" x="20" y="250" width="250" height="64" rx="2"/>
+    <text class="name" x="34" y="276">Weather station</text>
+    <text class="cls" x="34" y="298">brick:Weather_Station</text>
+
+    <!-- Zone points -->
+    <rect class="box" x="1140" y="60" width="295" height="60" rx="2"/>
+    <text class="name" x="1154" y="84">Zone setpoint</text>
+    <text class="cls" x="1154" y="104">brick:Target_Zone_Air_Temperature_Setpoint</text>
+
+    <rect class="box" x="1140" y="170" width="295" height="60" rx="2"/>
+    <text class="name" x="1154" y="194">Zone air temperature</text>
+    <text class="cls" x="1154" y="214">brick:Zone_Air_Temperature_Sensor</text>
+
+    <line class="conn" x1="1060" y1="90" x2="1136" y2="90" marker-end="url(#a)"/>
+    <text class="rel" x="1098" y="82" text-anchor="middle">hasPoint</text>
+    <path class="conn" d="M1020 120 V200 H1136" marker-end="url(#a)"/>
+    <text class="rel" x="1030" y="192">hasPoint</text>
+
+    <!-- Link to telemetry -->
+    <rect class="sys" x="1140" y="258" width="295" height="86" rx="2"/>
+    <text class="name" x="1154" y="281">Time-series link</text>
+    <text class="cls" x="1154" y="299">ref:TimeseriesReference</text>
+    <text class="val" x="1154" y="318">id: unit1.zone_air_temp</text>
+    <text class="val" x="1154" y="334">postgresql://dtteo/telemetry</text>
+
+    <line class="conn" x1="1275" y1="230" x2="1275" y2="254" marker-end="url(#a)"/>
+    <text class="rel" x="1267" y="247" text-anchor="end">hasExternalReference</text>
+
+    <!-- Unit points: two rows of three -->
+    <path class="conn" d="M650 314 V384"/>
+    <path class="conn" d="M420 384 H1090 V500 H420"/>
+    <line class="conn" x1="420" y1="384" x2="420" y2="416" marker-end="url(#a)"/>
+    <line class="conn" x1="680" y1="384" x2="680" y2="416" marker-end="url(#a)"/>
+    <line class="conn" x1="940" y1="384" x2="940" y2="416" marker-end="url(#a)"/>
+    <line class="conn" x1="420" y1="500" x2="420" y2="516" marker-end="url(#a)"/>
+    <line class="conn" x1="680" y1="500" x2="680" y2="516" marker-end="url(#a)"/>
+    <line class="conn" x1="940" y1="500" x2="940" y2="516" marker-end="url(#a)"/>
+    <text class="rel" x="658" y="356">hasPoint</text>
+
+    <rect class="box" x="300" y="420" width="240" height="60" rx="2"/>
+    <text class="name" x="314" y="444">Supply air temperature</text>
+    <text class="cls" x="314" y="464">brick:Supply_Air_Temperature_Sensor</text>
+
+    <rect class="box" x="560" y="420" width="240" height="60" rx="2"/>
+    <text class="name" x="574" y="444">Electrical power</text>
+    <text class="cls" x="574" y="464">brick:Active_Power_Sensor</text>
+
+    <rect class="box" x="820" y="420" width="240" height="60" rx="2"/>
+    <text class="name" x="834" y="444">Reported mode</text>
+    <text class="cls" x="834" y="464">brick:Mode_Status</text>
+
+    <rect class="box" x="300" y="520" width="240" height="60" rx="2"/>
+    <text class="name" x="314" y="544">Requested mode</text>
+    <text class="cls" x="314" y="564">brick:Mode_Command</text>
+
+    <rect class="box" x="560" y="520" width="240" height="60" rx="2"/>
+    <text class="name" x="574" y="544">Heating output</text>
+    <text class="cls" x="574" y="564">brick:Heating_Command</text>
+
+    <rect class="box" x="820" y="520" width="240" height="60" rx="2"/>
+    <text class="name" x="834" y="544">Cooling output</text>
+    <text class="cls" x="834" y="564">brick:Cooling_Command</text>
+
+    <!-- Weather point -->
+    <rect class="box" x="20" y="420" width="260" height="60" rx="2"/>
+    <text class="name" x="34" y="444">Outside air temperature</text>
+    <text class="cls" x="34" y="464">brick:Outside_Air_Temperature_Sensor</text>
+    <line class="conn" x1="145" y1="314" x2="145" y2="416" marker-end="url(#a)"/>
+    <text class="rel" x="153" y="370">hasPoint</text>
+  </g>
+</svg>

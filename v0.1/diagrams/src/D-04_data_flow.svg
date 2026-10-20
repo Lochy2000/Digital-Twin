@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 1000" width="1180" height="1000" role="img" aria-label="D-04 data flow: how one Tasmota temperature reading changes shape from the device's raw payload to a decoded record, a mapped and normalised reading, a canonical message, and later a twin comparison and a stored row" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTpjNDdmOTM3Yy01YjJhLTQwZjUtYjUxMi1iY2MzZjVhYzNmYTQAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaNz8opTrZPJ0jOC5KpDMow8AAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpmNWI4N2ZmNC0xYTUwLTRlNmUtYWRlNi0zYzIzNjcxZDVjYTBscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNo5EZgUs1OKwUwV8qdDrjdIgAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggbX2hPe3C3RYTijGZtbcXDL/5j+5ejlcvjD6++kEKGEOkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaClep3LShdTY6MunI/M1WNMAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIC7fXka0yWD3lC41trmrUp6tQoSiM3kfCCpstdnGWHjhZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GQGKZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmM0N2Y5MzdjLTViMmEtNDBmNS1iNTEyLWJjYzNmNWFjM2ZhNC9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjJkNmQyYWQ3LTAwMjgtNGYzYS1iNDQyLWU2MjY1OGI5YzRmMHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCBtfaE97cLdFhOKMZm1txcMv/mP7l6OVy+MPr76QQoYQ6JjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggAQtM6Cc4OiCuOhxnwbRZwzc9Pz5uuodVTpGPSnm/IMiiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgg1ZD5jOuXLEDlSx1qPgTXkA86127n5Oh634sVulDFo210Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQLtNPhIxLTn1aX1+k0yevVSK9DQjLPq1FMHSB/Z3NszpP0mA4EKM0eO11NEK38DPb4Y+yCJUh1Q02OqW4N7C7ao=</c2pa:manifest></metadata>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap');
+    .bg { fill: #FFFFFF; }
+    .card { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .card.side { stroke: #596064; stroke-dasharray: 5 4; }
+    .conn { fill: none; stroke: #141618; stroke-width: 1.25; }
+    .head { fill: #141618; }
+    .title { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #141618; }
+    .step { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; fill: #141618; }
+    .step.dim { fill: #596064; }
+    .note { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12.5px; fill: #596064; }
+    .k { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 12px; fill: #596064; }
+    .v { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 12px; fill: #141618; }
+    .new { fill: #0E6E68; font-weight: 500; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" class="head"/></marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1180" height="1000"/>
+  <text class="title" x="24" y="34">D-04 · Data flow: how one reading changes shape</text>
+
+  <!-- 1. Device sends -->
+  <text class="step" x="330" y="78">Device sends a reading (ESP8266 running Tasmota)</text>
+  <rect class="card" x="330" y="88" width="520" height="74" rx="2"/>
+  <text class="k" x="346" y="110">topic</text><text class="v" x="450" y="110">raw/tasmota/tasmota_zone1/tele/SENSOR</text>
+  <text class="k" x="346" y="128">payload</text><text class="v" x="450" y="128">{"Time": "2026-10-18T11:22:00",</text>
+  <text class="v" x="450" y="146"> "DS18B20": {"Temperature": 21.4}, "TempUnit": "C"}</text>
+  <text class="note" x="890" y="106"><tspan x="890">Its own format: nested JSON, and</tspan><tspan x="890" dy="17">local time with no time zone.</tspan></text>
+
+  <line class="conn" x1="590" y1="162" x2="590" y2="194" marker-end="url(#a)"/>
+
+  <!-- 2. Decoded -->
+  <text class="step" x="330" y="214">Decoded into a raw record</text>
+  <rect class="card" x="330" y="224" width="520" height="110" rx="2"/>
+  <text class="k" x="346" y="246">source</text><text class="v" x="450" y="246">tasmota</text>
+  <text class="k" x="346" y="264">device</text><text class="v" x="450" y="264">tasmota_zone1</text>
+  <text class="k" x="346" y="282">field</text><text class="v" x="450" y="282">DS18B20.Temperature</text>
+  <text class="k" x="346" y="300">value</text><text class="v" x="450" y="300">21.4</text><text class="k" x="520" y="300">unit</text><text class="v new" x="560" y="300">DEG_C</text>
+  <text class="k" x="346" y="318">time</text><text class="v new" x="450" y="318">2026-10-18T11:22:00+01:00</text>
+  <text class="note" x="890" y="250"><tspan x="890">Every format ends up as these</tspan><tspan x="890" dy="17">fields. The device's binding gives</tspan><tspan x="890" dy="17">its time zone (Europe/London).</tspan></text>
+
+  <!-- CSV joins here (planned) -->
+  <text class="step dim" x="40" y="214">Or a CSV row (planned)</text>
+  <rect class="card side" x="40" y="224" width="250" height="56" rx="2"/>
+  <text class="v" x="56" y="246">2026-03-01 14:00,</text>
+  <text class="v" x="56" y="264">Zone 1 Temp, 21.5</text>
+  <line class="conn" x1="290" y1="252" x2="326" y2="252" marker-end="url(#a)"/>
+
+  <line class="conn" x1="590" y1="334" x2="590" y2="366" marker-end="url(#a)"/>
+
+  <!-- 3. Mapped and normalised -->
+  <text class="step" x="330" y="386">Mapped to a point, then normalised</text>
+  <rect class="card" x="330" y="396" width="520" height="92" rx="2"/>
+  <text class="k" x="346" y="418">point</text><text class="v new" x="450" y="418">unit1.zone_air_temp</text>
+  <text class="k" x="346" y="436">value</text><text class="v" x="450" y="436">21.4</text><text class="k" x="520" y="436">unit</text><text class="v" x="560" y="436">DEG_C</text>
+  <text class="k" x="346" y="454">sensor_time</text><text class="v new" x="450" y="454">2026-10-18T10:22:00.000Z</text>
+  <text class="k" x="346" y="472">ingest_time</text><text class="v new" x="450" y="472">2026-10-18T10:22:01.000Z</text>
+  <text class="note" x="890" y="422"><tspan x="890">The binding places the probe on</tspan><tspan x="890" dy="17">zone 1's temperature point. Units</tspan><tspan x="890" dy="17">are converted if needed, time</tspan><tspan x="890" dy="17">becomes UTC, arrival time added.</tspan></text>
+
+  <!-- Quarantine branch -->
+  <text class="step" x="40" y="424">No point: quarantined</text>
+  <rect class="card side" x="40" y="434" width="250" height="56" rx="2"/>
+  <text class="k" x="56" y="456">field</text><text class="v" x="112" y="456">DS18B20-2.Temperature</text>
+  <text class="k" x="56" y="474">reason</text><text class="v" x="112" y="474">not in device type</text>
+  <line class="conn" x1="330" y1="462" x2="294" y2="462" marker-end="url(#a)"/>
+
+  <line class="conn" x1="590" y1="488" x2="590" y2="520" marker-end="url(#a)"/>
+
+  <!-- 4. Canonical message -->
+  <text class="step" x="330" y="540">Checked and published as the canonical message</text>
+  <rect class="card" x="330" y="550" width="520" height="128" rx="2"/>
+  <text class="v" x="346" y="572">{"v": 1, "point": "unit1.zone_air_temp",</text>
+  <text class="v" x="346" y="590"> "value": 21.4, "unit": "DEG_C",</text>
+  <text class="v" x="346" y="608"> "sensor_time": "2026-10-18T10:22:00.000Z",</text>
+  <text class="v" x="346" y="626"> "ingest_time": "2026-10-18T10:22:01.000Z",</text>
+  <text class="v" x="346" y="644"> "source": "tasmota:tasmota_zone1",</text>
+  <text class="v" x="346" y="662"> <tspan class="new">"quality": "GOOD"</tspan>}</text>
+  <text class="note" x="890" y="576"><tspan x="890">Range and time checked, quality</tspan><tspan x="890" dy="17">added. Published on</tspan><tspan x="890" dy="17">dt/v1/telemetry/site1/unit1/</tspan><tspan x="890" dy="17">zone_air_temp. This is the only</tspan><tspan x="890" dy="17">shape the rest of the system sees.</tspan></text>
+
+  <line class="conn" x1="590" y1="678" x2="590" y2="710" marker-end="url(#a)"/>
+
+  <!-- 5. Twin comparison (planned) -->
+  <text class="step dim" x="330" y="730">Compared with the twin's prediction (planned)</text>
+  <rect class="card side" x="330" y="740" width="520" height="92" rx="2"/>
+  <text class="k" x="346" y="762">predicted</text><text class="v" x="450" y="762">21.2 DEG_C</text>
+  <text class="k" x="346" y="780">measured</text><text class="v" x="450" y="780">21.4 DEG_C</text>
+  <text class="k" x="346" y="798">residual</text><text class="v" x="450" y="798">+0.2 K</text>
+  <text class="k" x="346" y="816">data_state</text><text class="v" x="450" y="816">LIVE</text>
+  <text class="note" x="890" y="766"><tspan x="890">The gap between prediction and</tspan><tspan x="890" dy="17">measurement is what anomaly</tspan><tspan x="890" dy="17">detection watches.</tspan></text>
+
+  <line class="conn" x1="590" y1="832" x2="590" y2="864" marker-end="url(#a)"/>
+
+  <!-- Bulk bypass -->
+  <path class="conn" d="M850 614 H870 V922 H854" marker-end="url(#a)"/>
+  <text class="note" x="882" y="864">Bulk history skips the twin</text>
+
+  <!-- 6. Stored (planned) -->
+  <text class="step dim" x="330" y="884">Stored for history and ML (planned)</text>
+  <rect class="card side" x="330" y="894" width="520" height="56" rx="2"/>
+  <text class="k" x="346" y="916">sensor_time</text><text class="k" x="546" y="916">point</text><text class="k" x="710" y="916">value</text><text class="k" x="770" y="916">quality</text>
+  <text class="v" x="346" y="934">2026-10-18 10:22:00.000Z</text><text class="v" x="546" y="934">unit1.zone_air_temp</text><text class="v" x="710" y="934">21.4</text><text class="v" x="770" y="934">GOOD</text>
+  <text class="note" x="890" y="920"><tspan x="890">Both timestamps are kept, so late</tspan><tspan x="890" dy="17">or replayed data stays in order.</tspan></text>
+</svg>

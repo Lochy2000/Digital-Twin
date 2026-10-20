@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1340 860" width="1340" height="860" role="img" aria-label="D-07 what-if run sequence: the engineer starts a scenario through the API, which sends an MQTT 5 request with a response topic and correlation data. The scenario worker copies the latest twin state, steps it forward in a loop, saves the run, and replies on the response topic. The live twin is never changed." xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo2NDMyMGExZi02YjBkLTQ1YjktOWQ5Zi02M2RlMjFmZTkxMGEAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaMtHxTmJAHEEqY+fgyv8XV8AAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo1NjQ0MmY2MC0yODQ4LTQ2ZDktODU5MS01MmUyNzZhM2Q2MWJscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNokku1awqnsxNte/RFM1HgHgAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgg13HN/mLZd22nu//WhlwkBzlAkKpz1aUT07FlVADaT3KkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaPHJlFh66vDIIAyloWb59p8AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIDmo4IBZKYXltwTN/tDdd05Zq06uC0+7SOgP+6iA36B+ZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GQHlZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjY0MzIwYTFmLTZiMGQtNDViOS05ZDlmLTYzZGUyMWZlOTEwYS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjk0YTFkZjgyLTBhNTgtNDZiMS1hOTg4LTQwMGM3MzE4Y2Q4ZnJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCDXcc3+Ytl3bae7/9aGXCQHOUCQqnPVpRPTsWVUANpPcqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgghhI1hDvgKzirgbeKCWW/0y810RkAi8oGOzDDx7PK/+CiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggpWpyWdS5attj22D0wgAnZGuIdAID785ZJKuxi4QY5350Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQI5Vd2UCkrj6j9xka+6XY3P7mFGg2rqdFD2EJYaL2HoHkegMdkswRsUF7E4BxLJvvto9qU6w2rehz8eUl3ulsyc=</c2pa:manifest></metadata>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap');
+    .bg { fill: #FFFFFF; }
+    .head-box { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .life { stroke: #596064; stroke-width: 1; stroke-dasharray: 5 4; }
+    .bar { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .bar.acc { fill: rgba(14,110,104,0.12); stroke: #0E6E68; }
+    .msg { fill: none; stroke: #141618; stroke-width: 1.25; }
+    .msg.reply { stroke-dasharray: 5 4; }
+    .frame { fill: none; stroke: #0E6E68; stroke-width: 1.5; }
+    .frame-tab { fill: #FFFFFF; stroke: #0E6E68; stroke-width: 1.5; }
+    .note { fill: #FFFFFF; stroke: #596064; stroke-width: 1; }
+    .fill-ink { fill: #141618; }
+    .title { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #141618; }
+    .name { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; fill: #141618; }
+    .lbl { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 500; fill: #141618; }
+    .desc { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; fill: #596064; }
+    .tech { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 10.5px; fill: #596064; }
+    .code { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 11px; fill: #141618; }
+    .acc-t { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 11px; fill: #0E6E68; }
+  </style>
+  <defs>
+    <!-- synchronous: filled head -->
+    <marker id="sync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 1 L9 5 L0 9 Z" class="fill-ink"/></marker>
+    <!-- asynchronous / reply: open head -->
+    <marker id="open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#141618" stroke-width="1.4"/></marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1340" height="860"/>
+  <text class="title" x="24" y="34">D-07 · What-if run: a scenario never touches the live twin</text>
+
+  <!-- Lifeline heads -->
+  <rect class="head-box" x="40" y="58" width="160" height="50" rx="2"/>
+  <text class="name" x="120" y="80" text-anchor="middle">Engineer</text>
+  <text class="tech" x="120" y="97" text-anchor="middle">[Person]</text>
+
+  <rect class="head-box" x="280" y="58" width="160" height="50" rx="2"/>
+  <text class="name" x="360" y="80" text-anchor="middle">API gateway</text>
+  <text class="tech" x="360" y="97" text-anchor="middle">[FastAPI]</text>
+
+  <rect class="head-box" x="520" y="58" width="160" height="50" rx="2"/>
+  <text class="name" x="600" y="80" text-anchor="middle">Message broker</text>
+  <text class="tech" x="600" y="97" text-anchor="middle">[Mosquitto · MQTT 5]</text>
+
+  <rect class="head-box" x="740" y="58" width="160" height="50" rx="2"/>
+  <text class="name" x="820" y="80" text-anchor="middle">Twin engine</text>
+  <text class="tech" x="820" y="97" text-anchor="middle">[Python]</text>
+
+  <rect class="head-box" x="940" y="58" width="160" height="50" rx="2"/>
+  <text class="name" x="1020" y="80" text-anchor="middle">Scenario worker</text>
+  <text class="tech" x="1020" y="97" text-anchor="middle">[Python]</text>
+
+  <rect class="head-box" x="1140" y="58" width="160" height="50" rx="2"/>
+  <text class="name" x="1220" y="80" text-anchor="middle">Time-series store</text>
+  <text class="tech" x="1220" y="97" text-anchor="middle">[TimescaleDB]</text>
+
+  <!-- Lifelines -->
+  <line class="life" x1="120" y1="108" x2="120" y2="830"/>
+  <line class="life" x1="360" y1="108" x2="360" y2="830"/>
+  <line class="life" x1="600" y1="108" x2="600" y2="830"/>
+  <line class="life" x1="820" y1="108" x2="820" y2="830"/>
+  <line class="life" x1="1020" y1="108" x2="1020" y2="830"/>
+  <line class="life" x1="1220" y1="108" x2="1220" y2="830"/>
+
+  <!-- Activation bars -->
+  <rect class="bar" x="355" y="195" width="10" height="155"/>
+  <rect class="bar" x="355" y="748" width="10" height="52"/>
+  <rect class="bar acc" x="1015" y="390" width="10" height="330"/>
+  <rect class="bar" x="1215" y="625" width="10" height="50"/>
+
+  <!-- Twin publishes its state (ongoing) -->
+  <line class="msg" x1="820" y1="150" x2="604" y2="150" marker-end="url(#open)"/>
+  <text class="lbl" x="712" y="142" text-anchor="middle">twin state, kept as last value</text>
+
+  <!-- Engineer starts a run -->
+  <line class="msg" x1="120" y1="200" x2="353" y2="200" marker-end="url(#sync)"/>
+  <text class="lbl" x="238" y="192" text-anchor="middle">Run: setpoint −2 °C for 6 h</text>
+
+  <!-- API subscribes to its reply topic first -->
+  <line class="msg" x1="365" y1="245" x2="596" y2="245" marker-end="url(#open)"/>
+  <text class="code" x="480" y="237" text-anchor="middle">subscribe dt/v1/scenario/res/r42</text>
+
+  <!-- API publishes the request -->
+  <line class="msg" x1="365" y1="300" x2="596" y2="300" marker-end="url(#open)"/>
+  <text class="code" x="480" y="275" text-anchor="middle">publish dt/v1/scenario/req</text>
+  <text class="code" x="480" y="292" text-anchor="middle">Response Topic: …/res/r42</text>
+  <text class="code" x="480" y="316" text-anchor="middle">Correlation Data: r42</text>
+
+  <!-- API answers the engineer straight away -->
+  <line class="msg reply" x1="355" y1="345" x2="124" y2="345" marker-end="url(#open)"/>
+  <text class="lbl" x="238" y="337" text-anchor="middle">Accepted, run r42</text>
+
+  <!-- Broker delivers request and latest state -->
+  <line class="msg" x1="600" y1="395" x2="1011" y2="395" marker-end="url(#open)"/>
+  <text class="lbl" x="910" y="387" text-anchor="middle">request r42</text>
+  <line class="msg" x1="600" y1="435" x2="1011" y2="435" marker-end="url(#open)"/>
+  <text class="lbl" x="910" y="427" text-anchor="middle">latest twin state</text>
+
+  <!-- Worker copies the state -->
+  <path class="msg" d="M1025 465 H1070 V485 H1029" marker-end="url(#open)"/>
+  <text class="acc-t" x="1078" y="479">copy state</text>
+
+  <!-- Loop fragment -->
+  <rect class="frame" x="950" y="505" width="230" height="95"/>
+  <path class="frame-tab" d="M950 505 H1000 V519 L992 527 H950 Z"/>
+  <text class="acc-t" x="958" y="520">loop</text>
+  <text class="acc-t" x="1006" y="520">[every Δt for 6 h]</text>
+  <path class="msg" d="M1025 550 H1070 V570 H1029" marker-end="url(#open)"/>
+  <text class="code" x="1078" y="564">step(state, Δt)</text>
+
+  <!-- Note on the live twin -->
+  <path class="note" d="M740 470 H888 L900 482 V530 H740 Z"/>
+  <path class="note" d="M888 470 V482 H900"/>
+  <text class="desc" x="752" y="494">Live twin keeps running.</text>
+  <text class="desc" x="752" y="512">The run never changes it.</text>
+
+  <!-- Save results -->
+  <line class="msg" x1="1025" y1="630" x2="1213" y2="630" marker-end="url(#sync)"/>
+  <text class="lbl" x="1120" y="622" text-anchor="middle">save run</text>
+  <text class="tech" x="1120" y="646" text-anchor="middle">inputs, results, model</text>
+  <line class="msg reply" x1="1215" y1="670" x2="1029" y2="670" marker-end="url(#open)"/>
+  <text class="lbl" x="1120" y="662" text-anchor="middle">saved</text>
+
+  <!-- Worker replies on the response topic -->
+  <line class="msg" x1="1015" y1="712" x2="604" y2="712" marker-end="url(#open)"/>
+  <text class="code" x="880" y="704" text-anchor="middle">publish dt/v1/scenario/res/r42</text>
+  <text class="code" x="880" y="728" text-anchor="middle">Correlation Data: r42</text>
+
+  <line class="msg" x1="600" y1="755" x2="369" y2="755" marker-end="url(#open)"/>
+  <text class="lbl" x="480" y="747" text-anchor="middle">result r42</text>
+
+  <line class="msg" x1="355" y1="795" x2="124" y2="795" marker-end="url(#open)"/>
+  <text class="lbl" x="238" y="787" text-anchor="middle">run complete</text>
+  <text class="tech" x="238" y="811" text-anchor="middle">WebSocket</text>
+</svg>

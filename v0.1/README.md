@@ -1,6 +1,8 @@
 # DT-TEO v0.1: Digital Twin Foundation
 
-**Status:** proposal and prototyping · **Last updated:** 14 October 2026
+**Status:** proposal and prototyping · **Last updated:** 19 October 2026
+
+**New here?** Start with [`GUIDE.md`](GUIDE.md): a short guide to what is built so far and how to use it. This README is the full design.
 
 This folder records the first stage of the DT-TEO digital twin: a proposed pipeline that can be tested quickly now and scaled later. Nothing here is locked in. The aim is a **modular, safe foundation** where sensors, data sources, models and storage can all be swapped without rewriting everything downstream.
 
@@ -30,6 +32,8 @@ There is no real building or site in this stage. Data comes from a simulated pla
 | File | What it is |
 |---|---|
 | `README.md` | This document |
+| `GUIDE.md` | Short, practical guide to what is built and how to use it |
+| `decisions/` | Architecture decision records (ADRs): one short file per significant decision |
 | `architecture.png` | Reference table of standard IoT architecture layers |
 | `dtteo_asset_model.ttl` | Starting asset model (Brick schema) for one placeholder heat/cool unit |
 | `diagrams/system_context.png` | D-01 · what the platform exchanges data with |
@@ -39,6 +43,7 @@ There is no real building or site in this stage. Data comes from a simulated pla
 | `diagrams/asset_model.png` | D-05 · the semantic model of the unit and its sensors |
 | `diagrams/deployment_images.png` | D-06 · how v0.1 runs on one lab PC |
 | `diagrams/what_if.png` | D-07 · how a scenario run works without touching the live twin |
+| `diagrams/onboarding.png` | D-09 · how a device type, a binding and the asset model give each field its point |
 | `diagrams/normalizer.png`, `invalid_message.png`, `logical_components.png`, `device_registery.png`, `MQTT_5_Request_Response.png` | Reference images from external docs, credited where they are used |
 
 ---
@@ -132,7 +137,7 @@ There is one small plug-in per type of source:
 | File adapter | CSV exports | Reads files in chunks, so large files don't fill memory |
 | Modbus poller | Meters, heat pumps, controllers | **Pull:** asks the device for numbered "registers" on a timer |
 
-Adding a new protocol later (OPC UA, BACnet, a vendor API) means writing one new adapter, and nothing after it changes. The `../testing/adapter/` folder already tests this idea with two fake vendors (`vendor_acme_publisher.py`, `vendor_borealis_publisher.py`) that send differently shaped data.
+Adding a new protocol later (OPC UA, BACnet, a vendor API) means writing one new adapter, and nothing after it changes. Built so far (October 2026): the MQTT side, with decoders for two made-up test vendors (`testing/vendors/`) and two real formats, Tasmota and the Eastron SDM120 Modbus meter (`mappings/types/`). The Modbus poller and CSV importer are still to come. See `GUIDE.md`.
 
 The same pattern is used by **Eclipse Hono**, an open-source IoT connectivity project. Hono has a separate adapter for each protocol; each adapter checks the device against a registry, then hands data to the messaging layer.
 
@@ -164,9 +169,12 @@ The validator checks each reading: is it in a sensible range, is the format corr
 
 ### Quarantine
 
-Readings that can't be processed aren't dropped. They go to a separate **quarantine topic** where they can be inspected later. Two cases send a reading there:
-- an **unknown point**: a new sensor nobody has registered yet;
-- a **failed check**: the reading broke one of the validator's rules.
+Readings that can't be processed aren't dropped. They go to a separate **quarantine topic** where they can be inspected later, with the original message and the reason (`contracts/quarantine_message.schema.json`). Three cases send a reading there:
+- the message **can't be read** at all (e.g. not valid JSON);
+- an **unknown point**: a field nobody has mapped yet;
+- a value that **can't be converted** (e.g. a mode word not in the value map).
+
+A reading that was understood but fails a validator check is **not** quarantined: it is published with quality `SUSPECT` or `BAD`, so nothing is lost and the flag can be revisited (step 2g).
 
 Registering the point in the asset model releases future readings normally. This is the **Invalid Message Channel** pattern:
 
@@ -208,9 +216,10 @@ This follows one example temperature reading and shows **the actual data** at ea
   "v": 1,
   "point": "unit1.zone_air_temp",
   "value": 21.52,
-  "unit": "degC",
-  "sensor_time": "2026-10-14T12:00:00Z",
-  "ingest_time": "2026-10-14T12:00:00.4Z",
+  "unit": "DEG_C",
+  "sensor_time": "2026-10-14T12:00:00.000Z",
+  "ingest_time": "2026-10-14T12:00:00.400Z",
+  "source": "acme:acme_hvac_0001",
   "quality": "GOOD"
 }
 ```
@@ -219,7 +228,8 @@ This follows one example temperature reading and shows **the actual data** at ea
 |---|---|
 | `v` | Schema version, so the format can change later without breaking old data |
 | `point` | Standard point ID; links to the asset model |
-| `value`, `unit` | The reading in SI units |
+| `value`, `unit` | The reading, and its unit as a QUDT ID (e.g. `DEG_C`, `KiloW`) |
+| `source` | Optional: which format and device it came from, for tracing |
 | `sensor_time` | When it was **measured**, called "event time" |
 | `ingest_time` | When we **received** it, called "processing time" |
 | `quality` | Set by the validator |
@@ -308,7 +318,7 @@ The working prototype in the repo root (`../docker-compose.yml`) currently runs 
 - it handles the weeks-long queries that calibration and ML need;
 - one database can hold telemetry, alerts, twin state and run history together.
 
-This is a proposal, not yet a decision. Storage sits behind an interface, so either can be used.
+This is a proposal, not yet a decision. Storage sits behind an interface, so either can be used. The full comparison against the project's requirements, with what similar platforms use, is in [`decisions/ADR-001-time-series-store.md`](decisions/ADR-001-time-series-store.md).
 
 ---
 
@@ -334,7 +344,7 @@ The live twin keeps running and is never changed. OpenTwins uses the same idea, 
 *Source: [HiveMQ – MQTT 5 Request/Response pattern](https://www.hivemq.com/blog/mqtt5-essentials-part9-request-response-pattern/)*
 
 MQTT is normally one-way. MQTT 5 adds two message properties that turn it into a request and a reply:
-- **Response Topic:** "send your answer to this topic", e.g. `dt/scn/res/r42`.
+- **Response Topic:** "send your answer to this topic", e.g. `dt/v1/scenario/res/r42`.
 - **Correlation Data:** an ID such as `r42`, so the requester knows which request an answer belongs to.
 
 The requester subscribes to its reply topic *first*, then sends the request. The responder publishes the result to that topic and copies the same ID back.

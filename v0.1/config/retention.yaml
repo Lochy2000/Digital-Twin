@@ -1,0 +1,48 @@
+# DT-TEO v0.1: data retention settings
+# ------------------------------------------------------------------
+# !! REVIEW BEFORE PILOT OR COMMERCIAL USE !!
+# Decided: 2026-10-19, for the feasibility study only.
+# Why these values, and the change log: decisions/ADR-001-time-series-store.md, section 9.
+#
+# Read by the storage setup (stage 3). To change retention:
+#   1. edit the values here,
+#   2. update the table and change log in ADR-001 section 9,
+#   3. re-run the storage setup.
+#
+# Periods use PostgreSQL interval text ("90 days", "2 years").
+# null = keep for ever (no deletion).
+# ------------------------------------------------------------------
+
+active: feasibility          # which profile below is used: feasibility | production
+
+profiles:
+
+  # ACTIVE. Simple sensor readings, small volume (~0.5 GB per site-year): keep everything.
+  feasibility:
+    raw_readings: null         # every canonical message
+    summaries:
+      intervals: ["15 minutes", "1 hour"]   # mean, min, max per point
+      keep: null
+    alerts: null
+    scenario_runs: null
+    quarantine: null
+
+  # NOT ACTIVE. PROPOSAL ONLY: values are our reasoning (ADR-001 section 9),
+  # not a customer or legal requirement. Confirm with Botanic before switching to it.
+  production:
+    raw_readings: "2 years"    # one full baseline year (IPMVP) + one year to compare against
+    summaries:
+      intervals: ["15 minutes", "1 hour"]
+      keep: "10 years"         # PLACEHOLDER for "length of customer contract"
+    alerts: "10 years"         # PLACEHOLDER for "length of customer contract"
+    scenario_runs: "10 years"  # PLACEHOLDER for "length of customer contract"
+    quarantine: "90 days"      # debugging data; holds whole raw messages
+    # End of contract: export to the customer, then delete (set by the contract, not here).
+
+rules:
+  # Raw data is only deleted after its summaries have been built
+  # (TimescaleDB: deleting inside an aggregate's refresh window removes aggregated values too).
+  delete_raw_only_after_summaries: true
+  # Sensors that could identify people (occupancy, motion, small-room CO2) are out of scope
+  # for feasibility. Adding one requires reviewing ADR-001 section 9 first.
+  personal_data_sensors_allowed: false

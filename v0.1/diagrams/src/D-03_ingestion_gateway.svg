@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1450 610" width="1450" height="610" role="img" aria-label="D-03 ingestion gateway components: transports feed one pipeline of decoder, mapper, normaliser, validator and publisher; the mapper reads the model files at start-up; messages that can't be decoded, mapped or converted go to quarantine; every understood reading is published with a quality flag" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo5YmJhNDgwMS0zMjJhLTRjN2QtOTJiYy1lODUxMmI3NTVjYjYAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaFSX6hxM27aBXfsdQuwo5W8AAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDplMGRhOGRmOS1mYmNiLTQ2MmEtOTZiMy0zNDgyOGU4NTdlODBscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoDsDKt2djzVr9Zqr/Q0i9VwAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggmSZjLfF3kq6qnpK9NRHr/9d7N77WHW/SbKOnxSxwQbikZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaFbySLYKnDf00HSvwIe7eqMAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIOb7jXMfx2IF0L6BIZvj2Vjb4OsClXZJNjv3jb/i05R1ZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GQHXZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjliYmE0ODAxLTMyMmEtNGM3ZC05MmJjLWU4NTEyYjc1NWNiNi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmMxOWNiYmNlLTUwMGUtNDUxMy04ZmExLTdjMTFlMGY3ZjQ1N3JjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCCZJmMt8XeSrqqekr01Eev/13s3vtYdb9Jso6fFLHBBuKJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg0lOHcRXAcfo82bRy2uj31evBbDYMes33OnXXdK4ucuiiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgg9UdkgUISLhjhs1rlenoShiuQyATslXevUa3ZD3mkXsx0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQJrlVHNTNDKFcyipANxo7TbPqG9mYmFHkDSUJTm6DTyCIjq2Aulf9KPhsFpCZenlPQweEDCn5IbxJuhH9poXKYw=</c2pa:manifest></metadata>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap');
+    .bg { fill: #FFFFFF; }
+    .box { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .plan { fill: #FFFFFF; stroke: #596064; stroke-width: 1; stroke-dasharray: 4 3; }
+    .bound { fill: none; stroke: #596064; stroke-width: 1; stroke-dasharray: 6 4; }
+    .sys { fill: rgba(14,110,104,0.07); stroke: #0E6E68; stroke-width: 2; }
+    .conn { fill: none; stroke: #141618; stroke-width: 1.25; }
+    .head { fill: #141618; }
+    .title { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #141618; }
+    .name { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14.5px; font-weight: 600; fill: #141618; }
+    .name.acc { fill: #0E6E68; }
+    .name.dim { fill: #596064; }
+    .desc { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; fill: #596064; }
+    .lbl { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; font-weight: 500; fill: #141618; }
+    .tech { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 10.5px; fill: #596064; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" class="head"/></marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1450" height="610"/>
+  <text class="title" x="24" y="34">D-03 · Components: ingestion gateway</text>
+
+  <g transform="translate(0,50)">
+    <!-- Model files (read at start-up) -->
+    <rect class="box" x="510" y="0" width="300" height="56" rx="2"/>
+    <text class="name" x="524" y="22">Asset model, device types, bindings</text>
+    <text class="tech" x="524" y="42">[Turtle files · Brick · WoT terms]</text>
+
+    <!-- Gateway boundary -->
+    <rect class="bound" x="190" y="80" width="950" height="440" rx="2"/>
+    <text class="name" x="210" y="106">Ingestion gateway</text>
+    <text class="tech" x="352" y="106">[Container · Python]</text>
+
+    <!-- External sources -->
+    <rect class="box" x="24" y="140" width="140" height="56" rx="2"/>
+    <text class="name" x="36" y="163">MQTT devices</text>
+    <text class="desc" x="36" y="182">Tasmota, test vendors</text>
+
+    <rect class="box" x="24" y="250" width="140" height="56" rx="2"/>
+    <text class="name" x="36" y="273">Modbus devices</text>
+    <text class="desc" x="36" y="292">e.g. SDM120 meter</text>
+
+    <rect class="box" x="24" y="360" width="140" height="56" rx="2"/>
+    <text class="name" x="36" y="383">CSV files</text>
+    <text class="desc" x="36" y="402">BMS exports, history</text>
+
+    <!-- Transports -->
+    <rect class="box" x="214" y="135" width="156" height="66" rx="2"/>
+    <text class="name" x="228" y="157">MQTT subscriber</text>
+    <text class="tech" x="228" y="173">[service.py]</text>
+    <text class="desc" x="228" y="190">Subscribes to raw/#</text>
+
+    <rect class="plan" x="214" y="245" width="156" height="66" rx="2"/>
+    <text class="name dim" x="228" y="267">Modbus poller</text>
+    <text class="tech" x="228" y="283">[planned]</text>
+    <text class="desc" x="228" y="300">Reads registers</text>
+
+    <rect class="plan" x="214" y="355" width="156" height="66" rx="2"/>
+    <text class="name dim" x="228" y="377">CSV importer</text>
+    <text class="tech" x="228" y="393">[planned]</text>
+    <text class="desc" x="228" y="410">Reads rows</text>
+
+    <!-- Pipeline -->
+    <rect class="sys" x="400" y="130" width="710" height="300" rx="2"/>
+    <text class="name acc" x="720" y="160">Pipeline</text>
+    <text class="tech" x="792" y="160">[pipeline.py · runs once per message]</text>
+
+    <rect class="box" x="418" y="232" width="120" height="72" rx="2"/>
+    <text class="name" x="430" y="255">Decoder</text>
+    <text class="desc" x="430" y="274">One per format:</text>
+    <text class="desc" x="430" y="290">field, value, time</text>
+
+    <rect class="box" x="556" y="232" width="120" height="72" rx="2"/>
+    <text class="name" x="568" y="255">Mapper</text>
+    <text class="desc" x="568" y="274">Field → point ID,</text>
+    <text class="desc" x="568" y="290">unit, ranges</text>
+
+    <rect class="box" x="694" y="232" width="120" height="72" rx="2"/>
+    <text class="name" x="706" y="255">Normaliser</text>
+    <text class="desc" x="706" y="274">Codes, units,</text>
+    <text class="desc" x="706" y="290">UTC time</text>
+
+    <rect class="box" x="832" y="232" width="120" height="72" rx="2"/>
+    <text class="name" x="844" y="255">Validator</text>
+    <text class="desc" x="844" y="274">GOOD / SUSPECT</text>
+    <text class="desc" x="844" y="290">/ BAD</text>
+
+    <rect class="box" x="970" y="232" width="120" height="72" rx="2"/>
+    <text class="name" x="982" y="255">Publisher</text>
+    <text class="desc" x="982" y="274">Canonical msg,</text>
+    <text class="desc" x="982" y="290">queues if offline</text>
+
+    <!-- Outputs -->
+    <rect class="box" x="1200" y="240" width="226" height="56" rx="2"/>
+    <text class="name" x="1214" y="263">Telemetry topics</text>
+    <text class="tech" x="1214" y="282">dt/v1/telemetry/…</text>
+
+    <rect class="box" x="1200" y="340" width="226" height="56" rx="2"/>
+    <text class="name" x="1214" y="363">Gateway log</text>
+    <text class="tech" x="1214" y="382">[key=value lines]</text>
+
+    <rect class="box" x="1200" y="442" width="226" height="56" rx="2"/>
+    <text class="name" x="1214" y="465">Quarantine topics</text>
+    <text class="tech" x="1214" y="484">dt/v1/quarantine/{source}</text>
+
+    <!-- Sources -> transports -->
+    <line class="conn" x1="164" y1="168" x2="210" y2="168" marker-end="url(#a)"/>
+    <line class="conn" x1="164" y1="278" x2="210" y2="278" marker-end="url(#a)"/>
+    <line class="conn" x1="164" y1="388" x2="210" y2="388" marker-end="url(#a)"/>
+
+    <!-- Transports -> decoder -->
+    <path class="conn" d="M370 168 H392 V256 H414" marker-end="url(#a)"/>
+    <line class="conn" x1="370" y1="278" x2="414" y2="278" marker-end="url(#a)"/>
+    <path class="conn" d="M370 388 H392 V300 H414" marker-end="url(#a)"/>
+
+    <!-- Mapper <- model files -->
+    <line class="conn" x1="616" y1="228" x2="616" y2="60" marker-end="url(#a)"/>
+    <text class="lbl" x="624" y="112">reads at start-up</text>
+
+    <!-- Pipeline sequence -->
+    <line class="conn" x1="538" y1="268" x2="552" y2="268" marker-end="url(#a)"/>
+    <line class="conn" x1="676" y1="268" x2="690" y2="268" marker-end="url(#a)"/>
+    <line class="conn" x1="814" y1="268" x2="828" y2="268" marker-end="url(#a)"/>
+    <line class="conn" x1="952" y1="268" x2="966" y2="268" marker-end="url(#a)"/>
+
+    <!-- Publisher -> telemetry -->
+    <line class="conn" x1="1090" y1="268" x2="1196" y2="268" marker-end="url(#a)"/>
+    <text class="lbl" x="1155" y="260" text-anchor="middle">every quality</text>
+
+    <!-- Pipeline -> log -->
+    <line class="conn" x1="1110" y1="368" x2="1196" y2="368" marker-end="url(#a)"/>
+
+    <!-- Rejects -> quarantine -->
+    <path class="conn" d="M478 304 V470 H1196" marker-end="url(#a)"/>
+    <line class="conn" x1="616" y1="304" x2="616" y2="467"/>
+    <line class="conn" x1="754" y1="304" x2="754" y2="467"/>
+    <text class="lbl" x="486" y="350">can't read</text>
+    <text class="lbl" x="624" y="350">no point</text>
+    <text class="lbl" x="762" y="350">can't convert</text>
+  </g>
+</svg>
