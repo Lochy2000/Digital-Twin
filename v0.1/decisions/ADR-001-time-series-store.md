@@ -142,7 +142,7 @@ Not a choice for v0.1, but it shows the route stays open:
 **Use PostgreSQL with the TimescaleDB extension (Community edition) for v0.1, written so that it still runs on plain PostgreSQL.**
 
 In practice:
-1. **One table, one row per reading:** point, `sensor_time`, `ingest_time`, a numeric value column and a text value column, unit, quality, source. Unique key: point + `sensor_time`, so QoS 1 duplicates are skipped with `ON CONFLICT DO NOTHING`.
+1. *(Refined by [ADR-002](ADR-002-database-layout.md), proposed 28 Oct 2026: a small `series` table holds each site + point once, the readings table references it, the unique key is `series_id` + `sensor_time`, and a true/false value column is added.)* **One table, one row per reading:** point, `sensor_time`, `ingest_time`, a numeric value column and a text value column, unit, quality, source. Unique key: point + `sensor_time`, so QoS 1 duplicates are skipped with `ON CONFLICT DO NOTHING`.
 2. **Standard SQL in the code.** TimescaleDB features (hypertable, compression, hourly averages, retention) are switched on by a setup script, not used inside the application code. If the licence is rejected, the same code runs on plain PostgreSQL (option A), and only those housekeeping features need replacing.
 3. **The historian sits behind a small interface** (`write(messages)`, `read(point, from, to)`), as VOLTTRON does. Swapping to QuestDB or a cloud store later means one new class.
 4. **Alerts, scenario runs and twin state** go in ordinary tables in the same database.
