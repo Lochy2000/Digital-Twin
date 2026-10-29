@@ -21,7 +21,8 @@ profiles:
   feasibility:
     raw_readings: null         # every canonical message
     summaries:
-      intervals: ["15 minutes", "1 hour"]   # mean, min, max per point
+      intervals: ["15 minutes", "1 hour"]   # per point, by its dtteo:valueKind (ADR-002 section 5):
+                                            #   measurement: mean, min, max; total: energy used; state: time in each state
       keep: null
     alerts: null
     scenario_runs: null

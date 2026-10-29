@@ -4,7 +4,12 @@
 FROM python:3.11-slim
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt     # runtime only; tests use requirements-dev.txt
 COPY gateway/ gateway/
 ENV MODEL_DIR=/model
+# Run as an ordinary user, not root: "If a service can run without privileges, use USER
+# to change to a non-root user" (Docker build best practices,
+# https://docs.docker.com/build/building/best-practices/#user).
+RUN useradd --system --no-create-home gateway
+USER gateway
 CMD ["python", "-u", "-m", "gateway.service"]

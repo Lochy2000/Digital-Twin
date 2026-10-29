@@ -21,6 +21,12 @@
 #   - Expected ranges (dtteo:expectedRange, step 2g): outside them a reading is
 #     SUSPECT. The values below are PLACEHOLDERS chosen by us, not from Botanic;
 #     replace them with agreed operating limits (see mappings/dtteo_onboarding.ttl).
+#   - Value kind (dtteo:valueKind, step 2k): how readings of a point combine over
+#     time, so storage can summarise them correctly (see mappings/dtteo_onboarding.ttl):
+#       "measurement"  a level that goes up and down (temperature, power)  -> mean/min/max
+#       "total"        a running total that only goes up, or resets to 0
+#                      (an energy meter's kWh)                              -> last minus first
+#       "state"        a word or on/off held until it changes (mode)       -> time in each state
 #   - Validate after every change:
 #       python -c "import brickschema as b; g=b.Graph(load_brick=True); \
 #         g.load_file('dtteo_asset_model.ttl'); print(g.validate()[2])"
@@ -59,7 +65,7 @@
     rdfs:label "Heat/cool unit 1" ;
     brick:feeds :zone1 ;
     brick:hasLocation :room1 ;
-    brick:hasPoint :supply_temp, :power, :mode_cmd, :mode_status, :heat_cmd, :cool_cmd .
+    brick:hasPoint :supply_temp, :power, :energy, :mode_cmd, :mode_status, :heat_cmd, :cool_cmd .
 
 :weather1 a brick:Weather_Station ;
     rdfs:label "Weather source (simulated in v0.1)" ;
@@ -70,6 +76,7 @@
 :zone_temp a brick:Zone_Air_Temperature_Sensor ;
     dtteo:expectedRange [ schema:minValue 5 ; schema:maxValue 35 ; schema:unitCode unit:DEG_C ] ;   # placeholder: an occupied room
     rdfs:label "Zone air temperature" ;
+    dtteo:valueKind "measurement" ;
     brick:hasUnit unit:DEG_C ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
@@ -79,6 +86,7 @@
 
 :zone_setpoint a brick:Target_Zone_Air_Temperature_Setpoint ;
     rdfs:label "Zone temperature setpoint" ;
+    dtteo:valueKind "measurement" ;
     brick:hasUnit unit:DEG_C ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
@@ -91,6 +99,7 @@
 :supply_temp a brick:Supply_Air_Temperature_Sensor ;
     dtteo:expectedRange [ schema:minValue 0 ; schema:maxValue 60 ; schema:unitCode unit:DEG_C ] ;   # placeholder: heating and cooling supply air
     rdfs:label "Supply air temperature" ;
+    dtteo:valueKind "measurement" ;
     brick:hasUnit unit:DEG_C ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
@@ -101,6 +110,7 @@
 :power a brick:Active_Power_Sensor ;
     dtteo:expectedRange [ schema:minValue 0 ; schema:maxValue 10 ; schema:unitCode unit:KiloW ] ;   # placeholder: replace with the unit's rated input power
     rdfs:label "Electrical power" ;
+    dtteo:valueKind "measurement" ;
     brick:hasUnit unit:KiloW ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
@@ -108,8 +118,19 @@
         ref:storedAt "postgresql://dtteo/telemetry"
     ] .
 
+:energy a brick:Electric_Energy_Sensor ;
+    rdfs:label "Electrical energy used (meter total)" ;
+    dtteo:valueKind "total" ;          # a meter register: only goes up (or resets), so summaries use last minus first
+    brick:hasUnit unit:KiloW-HR ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "unit1.energy" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
 :mode_cmd a brick:Mode_Command ;
     rdfs:label "Requested operating mode (heat / cool / off)" ;
+    dtteo:valueKind "state" ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
         ref:hasTimeseriesId "unit1.mode_cmd" ;
@@ -118,6 +139,7 @@
 
 :mode_status a brick:Mode_Status ;
     rdfs:label "Reported operating mode (heat / cool / off)" ;
+    dtteo:valueKind "state" ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
         ref:hasTimeseriesId "unit1.mode_status" ;
@@ -126,6 +148,7 @@
 
 :heat_cmd a brick:Heating_Command ;
     rdfs:label "Heating output (0-100 %)" ;
+    dtteo:valueKind "measurement" ;
     brick:hasUnit unit:PERCENT ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
@@ -135,6 +158,7 @@
 
 :cool_cmd a brick:Cooling_Command ;
     rdfs:label "Cooling output (0-100 %)" ;
+    dtteo:valueKind "measurement" ;
     brick:hasUnit unit:PERCENT ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
@@ -147,9 +171,10 @@
 :outside_temp a brick:Outside_Air_Temperature_Sensor ;
     dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 40 ; schema:unitCode unit:DEG_C ] ;   # placeholder: UK weather
     rdfs:label "Outside air temperature" ;
+    dtteo:valueKind "measurement" ;
     brick:hasUnit unit:DEG_C ;
     ref:hasExternalReference [
         a ref:TimeseriesReference ;
-        ref:hasTimeseriesId "site1.outside_air_temp" ;
+        ref:hasTimeseriesId "weather1.outside_air_temp" ;   # <equipment>.<point>, like the others (was site1.outside_air_temp)
         ref:storedAt "postgresql://dtteo/telemetry"
     ] .

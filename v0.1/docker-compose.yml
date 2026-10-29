@@ -16,12 +16,15 @@
 
 services:
   mosquitto:
-    image: eclipse-mosquitto:2
+    # Pinned to an exact version so test runs can be repeated (":2" moves when a new 2.x ships).
+    # 2.0.22 is what ":2" pointed to on 28 Oct 2026. 2.1.x is only published as -alpine tags.
+    image: eclipse-mosquitto:2.0.22
     container_name: v01-mosquitto
     ports:
       - "1883:1883"
     volumes:
       - ./broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data      # queued messages survive a restart (broker/mosquitto.conf)
     restart: unless-stopped
 
   gateway:
@@ -57,3 +60,8 @@ services:
     environment:
       - BROKER_HOST=mosquitto
     restart: unless-stopped
+
+# Named volumes: Docker keeps them between "docker compose down" and "up".
+# "docker compose down -v" deletes them (a clean start).
+volumes:
+  mosquitto-data:

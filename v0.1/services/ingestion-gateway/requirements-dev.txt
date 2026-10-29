@@ -1,0 +1,4 @@
+# For development and tests on your PC:  pip install -r requirements-dev.txt
+-r requirements.txt
+pytest==8.3.4
+jsonschema[format]==4.23.0   # tests check output against contracts/*.schema.json

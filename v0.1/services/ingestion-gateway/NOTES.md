@@ -750,3 +750,169 @@ python -m gateway.service
 ### Stage 2 (ingestion gateway) is complete
 
 Raw data from four formats (two fake, two real) arrives on the broker and leaves as canonical, quality-flagged messages, with quarantine and logs for everything else. What's left in the gateway is later work: QARTOD's history-based checks (after storage), a Modbus poller, a CSV importer, and broker logins/ACL (deployment).
+
+---
+
+## 2026-10-28 · Step 2i: message v2 (site, time source, reasons stored with the data)
+
+### The job
+
+A review before stage 3 (storage) found three things the database would need that the v1 message didn't carry. They're cheap to add now and expensive once data is stored. Full reasoning and sources: `contracts/NOTES.md`, step 2i.
+
+| Gap | Risk if left | Fix |
+|---|---|---|
+| No site in the message | A second site's `unit1.zone_air_temp` looks like a duplicate of site 1's and is silently dropped by storage | `site` field (from `GATEWAY_SITE`) |
+| Gateway-stamped times look like device times | QoS 1 re-deliveries of messages with no device time are stored twice; their times are less precise | `time_source`: `device` / `gateway` |
+| Validator reasons only in the log | A stored BAD reading can't say why it's BAD | `qc` list, only when not GOOD |
+
+### What I changed
+
+| File | Change |
+|---|---|
+| `contracts/canonical_message.schema.json` | v2: `site`, `time_source` required; optional `qc` |
+| `contracts/quarantine_message.schema.json` | v2: `site` required; new stage `internal` (step 2j) |
+| `contracts/examples/` | Moved to v2; three new invalid examples |
+| `gateway/normaliser.py` | `normalise(record, mapping, ingest_time, site)`: stamps `site` and `time_source` |
+| `gateway/validator.py` | Each check now has a name (`Check`); `with_quality` adds the `qc` list |
+| `gateway/pipeline.py` | Passes the site to the normaliser and into quarantine messages |
+| `tests/` | Updated for v2; new tests for site, time source, qc |
+
+### How `qc` is built
+
+The validator already collected `(flag, reason)` pairs. Each is now a `Check(test, flag, reason)`, and the message lists every one:
+
+```
+130 °C on a DS18B20 zone probe:
+  sensor_range    BAD      130.0 is outside the sensor's range -55.0..125.0
+  expected_range  SUSPECT  130.0 is outside the expected range 5.0..35.0
+  -> quality BAD (worst wins), qc lists both
+```
+
+Test names are ours, not QARTOD's function names, because two of our checks (`sensor_range`, `expected_range`) are the two halves of one QARTOD test (gross range: fail span and suspect span, [ioos_qc 3.0.0 `gross_range_test`](https://github.com/ioos/ioos_qc)).
+
+### Try it
+
+```bat
+cd v0.1\contracts
+python check_examples.py
+cd ..\services\ingestion-gateway
+python -m pytest
+```
+
+---
+
+## 2026-10-28 · Step 2j: reliability fixes (nothing lost silently)
+
+### The job
+
+Close the four places where data could be lost or mislabelled without anyone noticing, and move the gateway to MQTT 5 to match the design.
+
+### 1. The broker now keeps queued messages across a restart
+
+`broker/mosquitto.conf`, `docker-compose.yml`
+
+The gateway uses a persistent session: while it's away, Mosquitto holds its QoS 1 messages. But Mosquitto's `persistence` defaults to `false`, meaning "the data will be stored in memory only" ([mosquitto.conf](https://mosquitto.org/man/mosquitto-conf-5.html)). Step 2h noted this as a limit; it matters more once the historian depends on it.
+
+| Setting | Value | Why |
+|---|---|---|
+| `persistence` | `true` | Save the in-memory state (sessions, queued messages) to `mosquitto.db` |
+| `persistence_location` | `/mosquitto/data/` | On a named Docker volume (`mosquitto-data`), so it outlives the container |
+| `autosave_interval` | `60` | The default saves only every 1800 s (30 min); a crash loses up to that much. 60 s is cheap here |
+| `max_queued_messages` | `100000` | Default is 1000 per client, then messages are dropped. ~10 points × 1/min = 14,400 a day, so this is about a week of downtime |
+
+Upgrade path: Mosquitto 2.1 added a `persist-sqlite` plugin that "saves changes to disk as they are made" (batched every 5 s) instead of snapshots ([docs](https://mosquitto.org/documentation/persistence/sqlite/)). Not used yet: 2.1 is only published as `-alpine` Docker tags and deprecates `acl_file`/`password_file`, which the deployment step will need ([2.1.0 release notes](https://mosquitto.org/blog/2026/01/version-2-1-0-released/)).
+
+The image is now pinned to `eclipse-mosquitto:2.0.22` (what `:2` pointed to on 28 Oct 2026), so a test run can be repeated exactly.
+
+### 2. A message paho refuses is logged
+
+`gateway/service.py: send()`
+
+`client.publish()` returns a result that was ignored. In paho-mqtt 2.1.0, once `MAX_QUEUED` messages are waiting, `publish` returns `MQTT_ERR_QUEUE_SIZE` and **does not keep the message** (read in paho's `Client.publish` source). That now logs an ERROR `publish_dropped ...`. `MQTT_ERR_NO_CONN` is not logged: paho keeps those and sends them after reconnecting.
+
+### 3. A gateway bug quarantines the message instead of losing it
+
+`gateway/pipeline.py: process()`
+
+Before, an unexpected exception was logged and the message was gone (paho had already acknowledged it). Now `process()` never raises: it logs the stack trace and publishes the original to quarantine with `stage: "internal"`, so it can be replayed once the bug is fixed. This is the **Dead Letter Channel** idea ([EIP](https://www.enterpriseintegrationpatterns.com/patterns/messaging/DeadLetterChannel.html)); Kafka Connect's error handling does the same with its dead letter queue ([docs](https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html)). The quarantine contract gained the `internal` stage (v2).
+
+### 4. A late reading is SUSPECT, not BAD
+
+`gateway/validator.py`
+
+The "too old when it arrived" check (6 h) followed ioos_qc's `data_reception_test`, which flags FAIL. I read that function: its docstring says it "is intended for data centers or streams" and checks timestamps are "within a certain amount of time of present". That's a question about the **stream**, not the **value**. For us the usual cause is our own outage (the broker replaying queued messages), so marking real measurements BAD would hide good data from history and calibration.
+
+Now: `late_arrival` → SUSPECT, with the reason in `qc`. Whether a reading is too old to drive the live twin is the twin's decision (LIVE / COASTING / STALE), not the gateway's. This is a deliberate difference from ioos_qc, written in the validator header.
+
+### 5. The gateway speaks MQTT 5
+
+`gateway/service.py`
+
+The README design uses MQTT 5 (shared subscriptions, request/response), but paho defaults to 3.1.1. In MQTT 5, `clean_session=False` is replaced by **Clean Start = false plus a Session Expiry Interval above 0**. With no interval, "the session data is promptly deleted from the broker as soon as the client's network connection terminates" ([HiveMQ, MQTT 5 Essentials part 4](https://www.hivemq.com/blog/mqtt5-session-message-expiry/)). Set: `clean_start=False`, `SessionExpiryInterval = 7 days`.
+
+### Checked (live)
+
+Real Mosquitto 2.0 with the new config, the gateway over MQTT 5, a watcher on `dt/v1/telemetry/#`:
+
+1. Reading at 70 °F → published (21.11 °C).
+2. Gateway stopped (SIGTERM) → 71 °F and 72 °F published to `raw/` while it's away.
+3. **Broker restarted** (`mosquitto.db` written).
+4. Gateway started → `connected session_present=true`, and both queued readings came out:
+
+```
+21.6667  sensor_time 22:34:50.684Z  ingest_time 22:34:56.177Z  device  GOOD
+22.2222  sensor_time 22:34:50.705Z  ingest_time 22:34:56.178Z  device  GOOD
+```
+
+The 6-second gap between the two times is the outage: exactly what the two timestamps are for.
+
+115 tests pass (new: internal-error quarantine, late = SUSPECT, publish refused is logged).
+
+---
+
+## 2026-10-28 · Step 2k: value kinds, an energy point, and housekeeping
+
+### 1. Every point says what kind of value it is
+
+`dtteo_asset_model.ttl`, `mappings/dtteo_onboarding.ttl`, `gateway/mapper.py`
+
+`config/retention.yaml` plans 15-minute and hourly summaries as "mean, min, max". That's right for a temperature, but wrong for two other kinds of point:
+
+| Kind | Example | How it behaves | Right summary |
+|---|---|---|---|
+| `measurement` | temperature, power | Goes up and down | mean, min, max |
+| `total` | energy meter's kWh register | Only goes up, or resets to 0 | **last minus first** = energy used in that period. The mean of a meter reading means nothing |
+| `state` | mode heat / cool / off | A word held until it changes | **time in each state** |
+
+These are the standard **gauge** and **counter** types used by monitoring tools. Prometheus defines a gauge as "a single numerical value that can arbitrarily go up and down" and a counter as "a cumulative metric ... whose value can only increase or be reset to zero on restart" ([Prometheus metric types](https://prometheus.io/docs/concepts/metric_types)). `state` is ours, for words.
+
+Each point now carries `dtteo:valueKind`. The mapper **refuses to start** if a stored point has none or a misspelt one, because storage needs it to summarise correctly (ADR-002). `python -m gateway.mapper` now also lists every point with its kind, unit and Brick class, and `Mapper.points()` returns the same list for the historian to fill its series table.
+
+### 2. Energy point added
+
+The SDM120 meter's energy register (`InputRegister:72`, kWh) was skipped because the asset model had nowhere to put it. The energy and cost layer is the next major feature, and it needs kWh, so: `:energy a brick:Electric_Energy_Sensor`, unit `KiloW-HR`, kind `total`, time-series ID `unit1.energy`. The register now maps (4 field mappings instead of 3).
+
+Why store the meter total rather than adding up power readings: adding up power × time misses whatever happens between samples. The meter does that sum itself, continuously.
+
+### 3. `site1.outside_air_temp` → `weather1.outside_air_temp`
+
+Every other point ID is `<equipment>.<point>`. This one used the site, so its topic came out as `dt/v1/telemetry/site1/site1/outside_air_temp`. The equipment is `:weather1` (the weather station), so the ID now matches the rule.
+
+### 4. Housekeeping
+
+| Change | Why |
+|---|---|
+| `requirements-dev.txt` (new): `pytest`, `jsonschema` | They were installed in the production image. `requirements.txt` is now runtime only. **On your PC run `pip install -r requirements-dev.txt` once.** |
+| Dockerfile runs as user `gateway`, not root | "If a service can run without privileges, use USER to change to a non-root user" ([Docker build best practices](https://docs.docker.com/build/building/best-practices/#user)) |
+| `eclipse-mosquitto:2.0.22` pinned | Repeatable runs (step 2j) |
+| README and GUIDE | Storage is decided (ADR-001); message v2; ten points; persistence; test count |
+| D-04 diagram (`diagrams/src/D-04_data_flow.svg` + PNG) | Shows the v2 message |
+
+### Checked
+
+- 118 tests pass; `python check_examples.py` passes; `python -m gateway.mapper` lists 4 mappings and 10 points.
+- Brick check (brickschema 0.8.0): the new energy point raises the same, single kind of warning as every existing point ("unit ... is not an instance of qudt:Unit"). That warning comes from this brickschema version not loading the QUDT unit catalogue, not from the model; no class or relationship problems.
+
+### Next: stage 3, storage
+
+The database layout is proposed in `decisions/ADR-002-database-layout.md`. Build starts once it's agreed.

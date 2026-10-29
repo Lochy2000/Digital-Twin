@@ -1,6 +1,6 @@
 # DT-TEO v0.1: Digital Twin Foundation
 
-**Status:** proposal and prototyping · **Last updated:** 19 October 2026
+**Status:** proposal and prototyping · **Last updated:** 28 October 2026
 
 **New here?** Start with [`GUIDE.md`](GUIDE.md): a short guide to what is built so far and how to use it. This README is the full design.
 
@@ -33,7 +33,8 @@ There is no real building or site in this stage. Data comes from a simulated pla
 |---|---|
 | `README.md` | This document |
 | `GUIDE.md` | Short, practical guide to what is built and how to use it |
-| `decisions/` | Architecture decision records (ADRs): one short file per significant decision |
+| `decisions/` | Architecture decision records (ADRs): ADR-001 time-series store (accepted), ADR-002 database layout (proposed) |
+| `config/retention.yaml` | How long each kind of stored data is kept (ADR-001 section 9) |
 | `architecture.png` | Reference table of standard IoT architecture layers |
 | `dtteo_asset_model.ttl` | Starting asset model (Brick schema) for one placeholder heat/cool unit |
 | `diagrams/system_context.png` | D-01 · what the platform exchanges data with |
@@ -165,7 +166,7 @@ This is the **Normalizer** pattern from *Enterprise Integration Patterns*: a rou
 
 ### Validator
 
-The validator checks each reading: is it in a sensible range, is the format correct, is it a duplicate? It then adds a **quality flag** (`GOOD`, `SUSPECT` or `BAD`). Readings aren't silently "fixed"; they are labelled, so later steps can decide what to do with them.
+The validator checks each reading: is it within what the sensor can measure, within what we expect at that point, and did it arrive with a believable time? It then adds a **quality flag** (`GOOD`, `SUSPECT` or `BAD`) and, if not GOOD, the reasons (`qc`). Readings aren't silently "fixed"; they are labelled, so later steps can decide what to do with them. Checks that need a point's history (spikes, stuck sensors) come after storage.
 
 ### Quarantine
 
@@ -174,7 +175,7 @@ Readings that can't be processed aren't dropped. They go to a separate **quarant
 - an **unknown point**: a field nobody has mapped yet;
 - a value that **can't be converted** (e.g. a mode word not in the value map).
 
-A reading that was understood but fails a validator check is **not** quarantined: it is published with quality `SUSPECT` or `BAD`, so nothing is lost and the flag can be revisited (step 2g).
+A reading that was understood but fails a validator check is **not** quarantined: it is published with quality `SUSPECT` or `BAD`, and a `qc` list saying which check flagged it, so nothing is lost and the flag can be revisited (steps 2g, 2i). A fourth case, a bug in the gateway itself, also quarantines the message (stage `internal`) rather than losing it (step 2j).
 
 Registering the point in the asset model releases future readings normally. This is the **Invalid Message Channel** pattern:
 
@@ -184,7 +185,7 @@ Registering the point in the asset model releases future readings normally. This
 
 ### Publisher
 
-The publisher sends the finished **canonical message** to the broker. It also holds a small buffer, so a short broker outage doesn't lose data.
+The publisher sends the finished **canonical message** to the broker over MQTT 5. It also holds a small buffer, so a short broker outage doesn't lose data, and logs an error if that buffer ever fills. The broker itself saves queued messages to disk, so a broker restart doesn't lose them either (`broker/mosquitto.conf`, step 2j).
 
 ### Scaling the gateway later
 
@@ -213,12 +214,14 @@ This follows one example temperature reading and shows **the actual data** at ea
 
 ```json
 {
-  "v": 1,
+  "v": 2,
+  "site": "site1",
   "point": "unit1.zone_air_temp",
   "value": 21.52,
   "unit": "DEG_C",
   "sensor_time": "2026-10-14T12:00:00.000Z",
   "ingest_time": "2026-10-14T12:00:00.400Z",
+  "time_source": "device",
   "source": "acme:acme_hvac_0001",
   "quality": "GOOD"
 }
@@ -226,13 +229,16 @@ This follows one example temperature reading and shows **the actual data** at ea
 
 | Field | Why it's there |
 |---|---|
-| `v` | Schema version, so the format can change later without breaking old data |
+| `v` | Schema version, so the format can change later without breaking old data (v2 since step 2i) |
+| `site` | Which site; `site` + `point` identifies a reading uniquely across sites |
 | `point` | Standard point ID; links to the asset model |
 | `value`, `unit` | The reading, and its unit as a QUDT ID (e.g. `DEG_C`, `KiloW`) |
 | `source` | Optional: which format and device it came from, for tracing |
 | `sensor_time` | When it was **measured**, called "event time" |
 | `ingest_time` | When we **received** it, called "processing time" |
+| `time_source` | `device` if the device sent the time, `gateway` if we had to use the arrival time |
 | `quality` | Set by the validator |
+| `qc` | Only when not GOOD: which checks flagged it, and why |
 
 **Why two timestamps?** Data can arrive late, out of order or replayed from a file. Keeping the time it was measured (event time) separately from the time it arrived (processing time) keeps results correct regardless of arrival order. See [Apache Flink – Timely stream processing](https://ci.apache.org/projects/flink/flink-docs-master/docs/concepts/time/).
 
@@ -262,7 +268,7 @@ Each point in the model **points to** its time-series ID (the highlighted box in
 
 ### The starting model: `dtteo_asset_model.ttl`
 
-The asset model file describes one **placeholder** heat/cool unit serving one zone, with eight points: mode, heating output, cooling output, electrical power, supply air temperature, zone air temperature, zone setpoint and outside temperature. It is written in **Turtle** (`.ttl`), a plain-text format for graphs, using the **[Brick schema](https://github.com/BrickSchema/Brick)**.
+The asset model file describes one **placeholder** heat/cool unit serving one zone, with ten points: requested and reported mode, heating output, cooling output, electrical power, electrical energy (meter total), supply air temperature, zone air temperature, zone setpoint and outside temperature. Each point says what **kind** of value it is (`measurement`, `total` or `state`), so storage knows how to summarise it (step 2k). It is written in **Turtle** (`.ttl`), a plain-text format for graphs, using the **[Brick schema](https://github.com/BrickSchema/Brick)**.
 
 - All class and relationship names were checked against Brick 1.5 using the [`brickschema` Python library](https://brickschema.readthedocs.io/en/stable/), and the model validates with no errors.
 - Newer Brick versions move Site, Building, Room and HVAC Zone into the **RealEstateCore** vocabulary, which is why they appear as `rec:` classes.
@@ -276,7 +282,8 @@ The asset model file describes one **placeholder** heat/cool unit serving one zo
 1. Add a point node with its Brick class and unit.
 2. List it under the equipment's `brick:hasPoint`.
 3. Give it a `ref:hasTimeseriesId` matching the point ID the gateway publishes.
-4. Re-run validation:
+4. Give it a `dtteo:valueKind` (`"measurement"`, `"total"` or `"state"`).
+5. Re-run validation (and `python -m gateway.mapper`, which refuses to start if the kind is missing):
 
 ```bash
 python -c "import brickschema as b; g=b.Graph(load_brick=True); g.load_file('dtteo_asset_model.ttl'); print(g.validate()[2])"
@@ -312,13 +319,14 @@ This shows how v0.1 runs on **one lab PC** using Docker Compose. Docker Compose 
 - **The broker requires a login.** Since Mosquitto 2.0, a broker that accepts connections from other machines refuses anonymous clients by default ([Mosquitto 2.0 migration notes](https://mosquitto.org/documentation/migrating-to-2-0/)), so the ESP8266 needs a username and password.
 - **Scaling:** the scenario worker can have extra copies added. The twin engine stays as one instance because it holds live state in memory.
 
-### Current repo vs this proposal
+### Storage: decided
 
-The working prototype in the repo root (`../docker-compose.yml`) currently runs Mosquitto, **InfluxDB 2.7**, Grafana, a simulated publisher and a storage subscriber. v0.1 proposes moving storage to **TimescaleDB** because:
+The working prototype in the repo root (`../docker-compose.yml`) runs **InfluxDB 2.7**. v0.1 uses **PostgreSQL with the TimescaleDB extension** instead, **accepted on 19 October 2026** for the feasibility study ([`decisions/ADR-001-time-series-store.md`](decisions/ADR-001-time-series-store.md)), because:
 - it handles the weeks-long queries that calibration and ML need;
-- one database can hold telemetry, alerts, twin state and run history together.
+- one database can hold telemetry, alerts, twin state and run history together;
+- the application code uses standard SQL, so plain PostgreSQL remains a fallback if the TimescaleDB licence is rejected before commercial use.
 
-This is a proposal, not yet a decision. Storage sits behind an interface, so either can be used. The full comparison against the project's requirements, with what similar platforms use, is in [`decisions/ADR-001-time-series-store.md`](decisions/ADR-001-time-series-store.md).
+How the tables, migrations, historian writes, access and backups work is proposed in [`decisions/ADR-002-database-layout.md`](decisions/ADR-002-database-layout.md).
 
 ---
 
@@ -372,7 +380,7 @@ These are deliberately **not** in v0.1:
 
 - What controller or interface will Botanic's own unit expose (Modbus, BACnet, proprietary)? This decides which adapter matters most.
 - What are the real unit's inputs, outputs and modes? These will replace the placeholder in `dtteo_asset_model.ttl` and the simulated plant.
-- Storage: confirm TimescaleDB or stay on InfluxDB for v0.1.
+- Database layout (ADR-002): confirm the proposal before the historian is built.
 - Should ESP8266 firmware be written in ESPHome (simpler) or Arduino (more control over messages)?
 - When should the command path design (D-08) start?
 

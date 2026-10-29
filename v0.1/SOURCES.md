@@ -24,7 +24,9 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://github.com/ioos/ioos_qc> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/validator.py` |
 | <https://github.com/python/cpython/blob/main/Doc/library/zoneinfo.rst> | `services/ingestion-gateway/gateway/decoders/tasmota.py`, `services/ingestion-gateway/requirements.txt` |
 | <https://json-schema.org/draft/2020-12/schema> | `contracts/check_examples.py` |
-| <https://mosquitto.org/man/mosquitto-conf-5.html> | `services/ingestion-gateway/gateway/service.py` |
+| <https://mosquitto.org/documentation/persistence/sqlite/> | `broker/mosquitto.conf` |
+| <https://mosquitto.org/man/mosquitto-conf-5.html> | `broker/mosquitto.conf`, `services/ingestion-gateway/gateway/service.py` |
+| <https://prometheus.io/docs/concepts/metric_types> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://pypi.org/p/ioos-qc> | `services/ingestion-gateway/gateway/mapper.py`, `services/ingestion-gateway/gateway/validator.py` |
 | <https://pypi.org/project/sdm-modbus/0.4.3/> | `mappings/types/eastron_sdm120.ttl`, `services/ingestion-gateway/gateway/decoders/modbus.py` |
 | <https://qudt.org/vocab/unit/A> | `services/ingestion-gateway/gateway/units.py` |
@@ -46,8 +48,11 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html> | `mappings/dtteo_onboarding.ttl`, `mappings/types/eastron_sdm120.ttl`, `services/ingestion-gateway/gateway/decoders/modbus.py`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://wcm-cce.cldnet.analog.com/media/cn/technical-documentation/data-sheets/2812.pdf> | `mappings/types/tasmota_ds18b20.ttl` |
 | <https://www.aggsoft.com/serial-data-logger/tutorials/modbus-data-logging/eastron-sdm120.htm> | `mappings/types/eastron_sdm120.ttl` |
+| <https://www.enterpriseintegrationpatterns.com/patterns/messaging/DeadLetterChannel.html> | `services/ingestion-gateway/gateway/pipeline.py` |
 | <https://www.enterpriseintegrationpatterns.com/patterns/messaging/InvalidMessageChannel.html> | `services/ingestion-gateway/gateway/decoders/__init__.py`, `services/ingestion-gateway/gateway/pipeline.py` |
 | <https://www.enterpriseintegrationpatterns.com/patterns/messaging/Normalizer.html> | `services/ingestion-gateway/gateway/normaliser.py` |
 | <https://www.hivemq.com/blog/mqtt-essentials-part-5-mqtt-topics-best-practices/> | `testing/vendors/acme_publisher.py`, `testing/vendors/borealis_publisher.py` |
+| <https://www.hivemq.com/blog/mqtt5-session-message-expiry/> | `services/ingestion-gateway/gateway/service.py` |
+| <https://www.rfc-editor.org/rfc/rfc8428> | `services/ingestion-gateway/gateway/normaliser.py` |
 | <https://www.w3.org/TR/vocab-ssn/> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://www.w3.org/TR/wot-thing-description11/#thing-model> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |

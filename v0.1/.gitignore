@@ -2,3 +2,5 @@ venv/
 .venv/
 __pycache__/
 .pytest_cache/
+# Passwords for Docker Compose (ADR-002 section 8). Never commit.
+.env
