@@ -147,3 +147,51 @@ This folder was first created at the repo root by mistake. It now lives at `v0.1
 
 1. Copy the acme and borealis publishers into `v0.1/testing/vendors/` and fix them so they really send different formats, on `raw/...` topics.
 2. Build the first gateway pieces: the MQTT adapter and the mapper (reading the asset model).
+
+---
+
+## 2026-10-28 · Step 2i: canonical message v2 (site, time source, qc reasons)
+
+Before anything is stored (stage 3), three gaps in v1 were closed. Changing the shape now costs a few tests; changing it after data is stored means migrating that data. `v` goes from `1` to `2` because a v2 message isn't valid v1 and vice versa (decision 1 in step 1a said exactly this).
+
+### What changed
+
+```json
+{
+  "v": 2,
+  "site": "site1",
+  "point": "unit1.power",
+  "value": 12.4,
+  "unit": "KiloW",
+  "sensor_time": "2026-10-14T12:00:05Z",
+  "ingest_time": "2026-10-14T12:00:05.120Z",
+  "time_source": "device",
+  "quality": "SUSPECT",
+  "qc": [{"test": "expected_range", "flag": "SUSPECT", "reason": "12.4 is outside the expected range 0.0..10.0"}]
+}
+```
+
+| Field | New? | Why |
+|---|---|---|
+| `site` | required | Point IDs are only unique **within** a site. Two sites would both have `unit1.zone_air_temp`, and storage that skips duplicates by point + time would silently drop the second site's readings. SenML has the same rule: base name + name "must result in a globally unique identifier" ([RFC 8428 §4.2](https://www.rfc-editor.org/rfc/rfc8428)). The site was already in the topic; it is now in the message too, so storage never has to parse topics. |
+| `time_source` | required | `"device"` or `"gateway"`. If a device sends no time, the gateway uses the arrival time (SenML treats a missing time as "roughly now", [RFC 8428 §4.5.3](https://www.rfc-editor.org/rfc/rfc8428)). That time is less precise, **and** an MQTT QoS 1 re-delivery of such a message gets a *new* time, so storage can't recognise it as a duplicate. Marking it means analysis knows which times to trust. |
+| `qc` | optional | Only when quality isn't GOOD: one entry per check that flagged it (`sensor_range`, `expected_range`, `future_time`, `late_arrival`). Before, the reasons only reached the gateway log, so a stored BAD reading couldn't say why. QARTOD tools keep a flag per test for the same reason ([ioos_qc](https://github.com/ioos/ioos_qc)). This closes the open question from steps 1a and 2g. |
+
+The quarantine message is also v2: it gains `site`, and a new stage `internal` (step 2j).
+
+### Examples
+
+- `examples/valid/*` moved to v2; `power_suspect.json` now shows a `qc` list.
+- New invalid examples: `missing_site.json`, `old_version_1.json` (a v1 message is rejected), `empty_qc.json` (`qc` must list at least one check, or be left out).
+
+### Decisions
+
+**1. Site goes in the message, not in the point ID.** *Alternative:* rename points to `site1.unit1.zone_air_temp`. That would make the asset model site-specific in every ID and break the "topic = site + point" rule in `topics.md`. Keeping site separate matches how the topic is already built.
+
+**2. Devices should send their own time.** `time_source: "gateway"` is allowed, not an error, because some sources (a simple sensor, the CSV importer without a time column) genuinely have no clock. But for devices we control, set the time on the device: Tasmota and ESPHome both sync over NTP and include the time in their messages.
+
+**3. No `qc` on GOOD readings.** Keeps the common message small; "no qc" means "nothing flagged".
+
+### Still open
+
+- The open question from step 1a, "should `point` IDs include the site?", is answered: no, `site` is its own field.

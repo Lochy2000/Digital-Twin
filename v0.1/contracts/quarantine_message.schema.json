@@ -1,16 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:dtteo:contracts:quarantine_message:v1",
-  "title": "DT-TEO quarantine message (v1)",
-  "description": "What the ingestion gateway publishes on dt/v1/quarantine/{source} when it can't turn input into a canonical message. Pattern: EIP Invalid Message Channel (https://www.enterpriseintegrationpatterns.com/patterns/messaging/InvalidMessageChannel.html). Like a Kafka Connect dead letter queue, it keeps the ORIGINAL message untouched and adds context about the failure (https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html). Readings that were understood but look wrong are NOT quarantined: they are published as canonical messages with quality BAD or SUSPECT.",
+  "$id": "urn:dtteo:contracts:quarantine_message:v2",
+  "title": "DT-TEO quarantine message (v2)",
+  "description": "What the ingestion gateway publishes on dt/v1/quarantine/{source} when it can't turn input into a canonical message. Pattern: EIP Invalid Message Channel (https://www.enterpriseintegrationpatterns.com/patterns/messaging/InvalidMessageChannel.html). Like a Kafka Connect dead letter queue, it keeps the ORIGINAL message untouched and adds context about the failure (https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html). Readings that were understood but look wrong are NOT quarantined: they are published as canonical messages with quality BAD or SUSPECT. v2 (steps 2i/2j) added `site` and the `internal` stage.",
   "type": "object",
-  "required": ["v", "stage", "reason", "topic", "raw", "ingest_time"],
+  "required": ["v", "site", "stage", "reason", "topic", "raw", "ingest_time"],
   "additionalProperties": false,
   "properties": {
-    "v": { "const": 1, "description": "Version of this message shape." },
+    "v": { "const": 2, "description": "Version of this message shape." },
+    "site": { "type": "string", "pattern": "^[a-z0-9_]+$", "description": "The gateway's site (from config), so quarantined data can be traced to a site." },
     "stage": {
-      "enum": ["decode", "map", "normalise"],
-      "description": "Where it failed. decode = the whole message couldn't be read. map = a field has no point (unknown, unbound, or its binding is disabled). normalise = the value couldn't be converted (e.g. a word not in the value map)."
+      "enum": ["decode", "map", "normalise", "internal"],
+      "description": "Where it failed. decode = the whole message couldn't be read. map = a field has no point (unknown, unbound, or its binding is disabled). normalise = the value couldn't be converted (e.g. a word not in the value map). internal = a bug in the gateway itself; the message is kept so it can be replayed once the bug is fixed."
     },
     "reason": { "type": "string", "minLength": 1, "description": "Plain-English cause, e.g. \"value 'DEFROST' is not in the value map for unit1.mode_status\"." },
     "topic": { "type": "string", "description": "The raw topic it arrived on." },

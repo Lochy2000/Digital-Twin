@@ -1,21 +1,27 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:dtteo:schema:canonical-message:1",
-  "title": "DT-TEO canonical message",
-  "description": "The one message shape every service after the ingestion gateway receives. One message = one reading of one point. Meaning (what the point is, what it belongs to) lives in the asset model, linked by `point`.",
+  "$id": "urn:dtteo:schema:canonical-message:2",
+  "title": "DT-TEO canonical message (v2)",
+  "description": "The one message shape every service after the ingestion gateway receives. One message = one reading of one point. Meaning (what the point is, what it belongs to) lives in the asset model, linked by `point`. A reading is identified by `site` + `point` (like SenML, RFC 8428 section 4.2, where base name + name must be globally unique). v2 (step 2i) added `site`, `time_source` and `qc`; see contracts/NOTES.md.",
   "type": "object",
-  "required": ["v", "point", "value", "unit", "sensor_time", "ingest_time", "quality"],
+  "required": ["v", "site", "point", "value", "unit", "sensor_time", "ingest_time", "time_source", "quality"],
   "additionalProperties": false,
   "properties": {
     "v": {
       "description": "Schema version. Bump when the shape changes so old and new messages can be told apart.",
-      "const": 1
+      "const": 2
+    },
+    "site": {
+      "description": "Which site the reading belongs to (from gateway config; the same value as the {site} level in the topic). Together with `point` it makes the reading's identity unique across sites.",
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "examples": ["site1"]
     },
     "point": {
-      "description": "Point ID. Must match a ref:hasTimeseriesId in the asset model (dtteo_asset_model.ttl). Lowercase, dot-separated: <equipment>.<point>.",
+      "description": "Point ID. Must match a ref:hasTimeseriesId in the asset model (dtteo_asset_model.ttl). Lowercase, dot-separated: <equipment>.<point>. Unique within a site, not across sites.",
       "type": "string",
       "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$",
-      "examples": ["unit1.zone_air_temp", "site1.outside_air_temp"]
+      "examples": ["unit1.zone_air_temp", "weather1.outside_air_temp"]
     },
     "value": {
       "description": "The reading after normalisation. Numbers for measurements and percentages, strings for modes/states, booleans for on/off.",
@@ -28,7 +34,7 @@
       "examples": ["DEG_C", "KiloW", "PERCENT", null]
     },
     "sensor_time": {
-      "description": "When the reading was measured (event time), in UTC. If the source gives no time, the adapter uses the time it read the value.",
+      "description": "When the reading was measured (event time), in UTC. If the source gives no time, the gateway uses the time it received the value; `time_source` then says \"gateway\".",
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
@@ -39,14 +45,33 @@
       "format": "date-time",
       "pattern": "Z$"
     },
+    "time_source": {
+      "description": "Who set sensor_time. \"device\" = the device's own clock. \"gateway\" = the device sent no time, so sensor_time is the arrival time (SenML treats a missing time as 'roughly now', RFC 8428 section 4.5.3). Gateway-stamped readings are less precise in time, and an MQTT QoS 1 re-delivery of one can't be recognised as a duplicate by its time.",
+      "enum": ["device", "gateway"]
+    },
     "quality": {
-      "description": "Set by the validator. GOOD = passed all checks. SUSPECT = usable but flagged (e.g. outside the usual range). BAD = failed a check; stored for the record but not used by the twin.",
+      "description": "Set by the validator. GOOD = passed all checks. SUSPECT = usable but flagged (e.g. outside the usual range, or arrived late). BAD = failed a check; stored for the record but not used by the twin.",
       "enum": ["GOOD", "SUSPECT", "BAD"]
+    },
+    "qc": {
+      "description": "Only present when quality is not GOOD: each check that flagged the reading, so the reason is stored with the data rather than only in the gateway log. Follows QARTOD practice of keeping a flag per test (ioos_qc).",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["test", "flag", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "test": { "enum": ["sensor_range", "expected_range", "future_time", "late_arrival"] },
+          "flag": { "enum": ["SUSPECT", "BAD"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
     },
     "source": {
       "description": "Optional. Where the reading came from, as <adapter>:<device id>. Used for tracing problems back to a device.",
       "type": "string",
-      "examples": ["mqtt-acme:ACME-HVAC-0001", "csv:bms_export_2026-03.csv"]
+      "examples": ["acme:acme_hvac_0001", "csv:bms_export_2026-03.csv"]
     }
   }
 }

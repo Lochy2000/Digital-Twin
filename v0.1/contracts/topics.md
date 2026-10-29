@@ -61,7 +61,7 @@ site   =  site1                         (from gateway config)
 topic  =  dt/v1/telemetry/site1/unit1/zone_air_temp
 ```
 
-The site is in the **topic** but not in the **point ID**, because there is only one site in v0.1. If a second site arrives, this is the place to revisit (see the open question in `NOTES.md`).
+The site is in the **topic** and, since message v2, in the message's `site` field, but not in the **point ID**. Point IDs are unique within a site; `site` + `point` is unique everywhere (`NOTES.md`, step 2i).
 
 Example subscriptions:
 
@@ -102,7 +102,7 @@ device ──► raw/acme/hvac_01/telemetry ──► [ingestion gateway] ──
 - **1:** at least once. Delivery is retried until acknowledged, so a message may arrive twice.
 - **2:** exactly once. Slowest, and not needed here.
 
-We use **QoS 1** for canonical data. Duplicates are harmless because storage can ignore a second copy with the same `point` + `sensor_time`.
+We use **QoS 1** for canonical data. Duplicates are harmless because storage can ignore a second copy with the same `site` + `point` + `sensor_time`. One exception: a reading whose device sent no time (`time_source: "gateway"`) gets its arrival time, so a re-delivered copy has a different time and is stored twice. That's why devices should send their own time (`NOTES.md`, step 2i).
 
 **Retained** means the broker keeps the *last* message on that topic and hands it to anyone who subscribes later. It suits "current state" topics (`status`, twin `state`), but not readings: a new subscriber shouldn't receive an old reading as if it were fresh.
 
