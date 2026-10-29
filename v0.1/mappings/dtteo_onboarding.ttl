@@ -134,3 +134,24 @@ dtteo:pollingTime a owl:DatatypeProperty ;
 
 dtteo:expectedRange a owl:ObjectProperty ;
     rdfs:comment "Operator's plausible range for a point (schema:minValue, schema:maxValue, schema:unitCode). Outside it, readings are SUSPECT." .
+
+# --- Value kind, used by storage to summarise a point (step 2k) ------------------
+# Written on every asset-model point that has a time-series ID; the mapper refuses to
+# start if one is missing or misspelt. One of:
+#
+#   "measurement"  a level that can go up and down: temperature, power, % output.
+#                  Summaries: mean, min, max.  (Prometheus "gauge": "a single numerical
+#                  value that can arbitrarily go up and down")
+#   "total"        a running total that only goes up, or resets to zero: an energy
+#                  meter's kWh register. Summaries: last minus first (energy used in
+#                  that period), allowing for resets. Averaging it is meaningless.
+#                  (Prometheus "counter": "can only increase or be reset to zero on restart")
+#   "state"        a word or on/off value held until it changes: mode heat / cool / off.
+#                  Summaries: time spent in each state.
+#
+# Source: Prometheus metric types  https://prometheus.io/docs/concepts/metric_types
+# How each kind is stored and summarised: decisions/ADR-002-database-layout.md
+
+dtteo:valueKind a owl:DatatypeProperty ;
+    rdfs:comment "How readings of this point combine over time: \"measurement\", \"total\" or \"state\". Decides how storage summarises it." ;
+    rdfs:range xsd:string .
