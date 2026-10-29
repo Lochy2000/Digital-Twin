@@ -13,7 +13,7 @@ from collections import defaultdict
 from pathlib import Path
 
 V01 = Path(__file__).resolve().parents[1]
-SCAN = ("*.py", "*.ttl", "*.txt", "*.conf", "*.yml")
+SCAN = ("*.py", "*.ttl", "*.txt", "*.conf", "*.yml", "*.sql", "*.sh")
 SKIP_DIRS = {"venv", ".pytest_cache", "__pycache__"}
 # Identifiers written in the data itself, not references to read.
 NAMESPACES = re.compile(r"(^http://qudt\.org/|schema/Brick(/ref)?#|w3id\.org/rec#|qudt\.org/vocab/unit/$|"

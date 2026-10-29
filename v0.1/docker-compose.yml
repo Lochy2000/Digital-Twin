@@ -13,6 +13,12 @@
 #   docker compose exec mosquitto mosquitto_sub -v -t "raw/#" -t "dt/v1/#"
 # Watch the gateway's log (one line per quarantined field / non-GOOD reading):
 #   docker compose logs -f gateway
+#
+# Database (stage 3): copy .env.example to .env and set the passwords first.
+# The database starts with the stack; "migrate" applies storage/migrations, then exits.
+#   docker compose logs migrate                  did the migrations apply?
+#   docker compose run --rm backup               one backup into v0.1/backups/
+#   docker compose exec timescaledb psql -U dtteo_owner -d dtteo     SQL prompt
 
 services:
   mosquitto:
@@ -61,7 +67,73 @@ services:
       - BROKER_HOST=mosquitto
     restart: unless-stopped
 
+  # --- Storage (stage 3, decisions/ADR-002) -------------------------------------------------
+  timescaledb:
+    # PostgreSQL 18 + TimescaleDB, exact version pinned. Not the "-oss" tags: they lack the
+    # Community features ADR-001 relies on (continuous aggregates, retention policies).
+    image: timescale/timescaledb:2.31.0-pg18
+    container_name: v01-timescaledb
+    environment:
+      POSTGRES_DB: dtteo
+      POSTGRES_USER: dtteo_owner                    # owns the tables; used by migrations and backups
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy .env.example to .env and set the passwords}
+      HISTORIAN_DB_PASSWORD: ${HISTORIAN_DB_PASSWORD:?set in .env}   # read by storage/init/10_users.sh
+      GRAFANA_DB_PASSWORD: ${GRAFANA_DB_PASSWORD:?set in .env}
+      TIMESCALEDB_TELEMETRY: "off"                  # don't send usage statistics to the vendor
+    volumes:
+      # PostgreSQL 18 images keep data in /var/lib/postgresql/18/docker and declare the volume
+      # one level up (https://github.com/docker-library/postgres/pull/1259), so mount there.
+      # A named volume, NOT a folder in OneDrive: live database files must not be synced.
+      - timescale-data:/var/lib/postgresql
+      # Creates the login users, first start only. Mount the ONE file: the image has its own
+      # scripts in that folder (000_install_timescaledb.sh, 001_timescaledb_tune.sh) that must still run.
+      - ./storage/init/10_users.sh:/docker-entrypoint-initdb.d/10_users.sh:ro
+    # No "ports:": only containers on this Compose network can reach it (README section 6).
+    # For pgAdmin/DBeaver on this PC, add:  ports: ["127.0.0.1:5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dtteo_owner -d dtteo"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    # dbmate applies any new files in storage/migrations, in order, then exits (ADR-002 section 6).
+    # If this tag won't pull, use ghcr.io/amacneil/dbmate:2
+    image: ghcr.io/amacneil/dbmate:2.37.0
+    container_name: v01-migrate
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://dtteo_owner:${POSTGRES_PASSWORD}@timescaledb:5432/dtteo?sslmode=disable
+    volumes:
+      - ./storage/migrations:/db/migrations:ro
+    # --no-dump-schema: skip writing schema.sql (needs a pg_dump matching PostgreSQL 18).
+    command: ["--migrations-dir", "/db/migrations", "--wait", "--no-dump-schema", "up"]
+    restart: "no"
+
+  backup:
+    # Not started by "up". Run on demand:  docker compose run --rm backup
+    # Files land in v0.1/backups/ (git-ignored). No off-PC copy yet (no backup device).
+    image: timescale/timescaledb:2.31.0-pg18        # same image, so pg_dump matches the server
+    profiles: ["backup"]
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    environment:
+      PGHOST: timescaledb
+      PGUSER: dtteo_owner
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: dtteo
+    volumes:
+      - ./storage/backup.sh:/backup.sh:ro
+      - ./backups:/backups
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    restart: "no"
+
 # Named volumes: Docker keeps them between "docker compose down" and "up".
-# "docker compose down -v" deletes them (a clean start).
+# "docker compose down -v" deletes them (a clean start: broker queue AND the database).
 volumes:
   mosquitto-data:
+  timescale-data:

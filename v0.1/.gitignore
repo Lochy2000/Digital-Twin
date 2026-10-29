@@ -4,3 +4,5 @@ __pycache__/
 .pytest_cache/
 # Passwords for Docker Compose (ADR-002 section 8). Never commit.
 .env
+# Database backups (docker compose run --rm backup). Kept local, not committed.
+backups/

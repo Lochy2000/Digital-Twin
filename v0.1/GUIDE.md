@@ -6,7 +6,7 @@
 - Step-by-step build notes: [`services/ingestion-gateway/NOTES.md`](services/ingestion-gateway/NOTES.md)
 - Every source used, and which file uses it: [`SOURCES.md`](SOURCES.md)
 
-*Last updated 28 October 2026 (after step 2k).*
+*Last updated 29 October 2026 (after stage 3a).*
 
 ---
 
@@ -29,7 +29,8 @@ Data from devices and files comes **in**. The platform turns it into **one stand
 | Message broker (Mosquitto) | The "post office" every service talks through (MQTT); saves queued messages to disk | Built (`docker-compose.yml`, `broker/mosquitto.conf`) |
 | **Ingestion gateway** | Turns any device's data into standard messages | **Built** (`services/ingestion-gateway/`) |
 | Asset model | Describes the building, equipment and sensors | Built, placeholder unit (`dtteo_asset_model.ttl`) |
-| Historian + time-series store | Keeps every message | Next (stage 3). Database chosen ([ADR-001](decisions/ADR-001-time-series-store.md)); layout proposed ([ADR-002](decisions/ADR-002-database-layout.md)) |
+| Time-series store (PostgreSQL 18 + TimescaleDB) | Keeps every reading | **Built** (`storage/`, [ADR-002](decisions/ADR-002-database-layout.md)) |
+| Historian | Writes messages into the store | Next (stage 3b) |
 | Simulated plant, twin engine, scenario worker | Physics model, live twin, what-if runs | Later stages |
 | API, dashboards | For the engineer and ML work | Later stages |
 
@@ -172,7 +173,9 @@ All commands are run in Windows `cmd`, from `v0.1\services\ingestion-gateway` wi
 | See every field → point mapping, and warnings | `python -m gateway.mapper` |
 | See sample messages go through the pipeline | `python -m gateway.demo` |
 | Run the live stack (broker + gateway + Acme) | from `v0.1`: `docker compose --profile acme up --build` |
-| Wipe the broker's saved messages (clean start) | from `v0.1`: `docker compose down -v` |
+| First time with the database | from `v0.1`: `copy .env.example .env`, set the passwords, then `docker compose up -d` (details: `storage/NOTES.md`) |
+| Back up the database | from `v0.1`: `docker compose run --rm backup` |
+| Wipe the broker queue and the database (clean start) | from `v0.1`: `docker compose down -v` |
 | Watch messages / gateway log | `docker compose exec mosquitto mosquitto_sub -v -t "dt/v1/#"` · `docker compose logs -f gateway` |
 | Add another device of a known model | Add one block to `mappings/bindings/site1.ttl`, then run the mapper check |
 | Add a new model of device | Add a file in `mappings/types/` (copy the closest one); a new decoder only if it's a new *format* |
@@ -194,6 +197,7 @@ v0.1/
 ├── broker/                      Mosquitto settings (persistence on)
 ├── config/retention.yaml        how long stored data is kept
 ├── decisions/                   ADR-001 (database), ADR-002 (database layout)
+├── storage/                     database migrations, first-start users, backup script
 ├── contracts/                   message formats and topic rules (the "agreements")
 ├── mappings/
 │   ├── types/                   one file per device model

@@ -1,6 +1,6 @@
 # ADR-002: Database layout, and how data gets in, out and backed up
 
-**Status:** Proposed, 28 October 2026. To confirm before the historian (stage 3) is built.
+**Status:** Accepted, 29 October 2026, for the feasibility study (PostgreSQL 18; backups local for now). Proposed 28 October 2026.
 **Builds on:** [ADR-001](ADR-001-time-series-store.md) (PostgreSQL + TimescaleDB, accepted 19 Oct 2026). This record refines ADR-001's decision item 1 (the table shape) and adds the operating details ADR-001 left open.
 
 *Everything below is a proposal for the feasibility study. The SQL is a sketch to show the shape; the exact SQL is written and tested in the build step, with notes, one piece at a time.*
@@ -212,10 +212,10 @@ The database port stays inside the Compose network (README section 6). To use a 
 
 The data is grant evidence, so it's backed up from day one.
 
-- **How:** `pg_dump -Fc` (PostgreSQL's custom-format dump) nightly, plus before any migration. File name includes the date, the PostgreSQL version and the TimescaleDB version, because Timescale's docs say to "keep track of the versions of PostgreSQL and TimescaleDB you are running" ([logical backup](https://www.tigerdata.com/docs/deploy/self-hosted/backup-and-restore/logical-backup)).
+- **How:** `pg_dump -Fc` (PostgreSQL's custom-format dump), run on demand with `docker compose run --rm backup` (before any migration, and regularly once there's real data; schedule it then). File name includes the date, the PostgreSQL version and the TimescaleDB version, because Timescale's docs say to "keep track of the versions of PostgreSQL and TimescaleDB you are running" ([logical backup](https://www.tigerdata.com/docs/deploy/self-hosted/backup-and-restore/logical-backup)).
 - **Restore** (same link): create the database and extension → `SELECT timescaledb_pre_restore();` → `pg_restore -Fc` → `SELECT timescaledb_post_restore();`. Not `pg_restore -j`: "This option does not correctly restore the TimescaleDB catalogs."
 - **Test the restore** once in the build step, into a throwaway database. A backup that's never been restored isn't known to work.
-- **Where:** the dump files go to a backup folder that is copied off the PC. The **live database files stay in a Docker named volume**, not in a folder inside OneDrive: a sync tool copying files of a running database can capture them half-written, whereas a Docker volume is a persistent data store "created and managed by Docker" ([Docker volumes](https://docs.docker.com/engine/storage/volumes/)), outside the synced folder.
+- **Where:** `v0.1/backups/` on the lab PC (git-ignored). **No off-PC copy yet:** there is no backup device or site, and little data. Add one before real site data arrives. The **live database files stay in a Docker named volume**, not in a folder inside OneDrive: a sync tool copying files of a running database can capture them half-written, whereas a Docker volume is a persistent data store "created and managed by Docker" ([Docker volumes](https://docs.docker.com/engine/storage/volumes/)), outside the synced folder.
 
 ---
 
@@ -246,10 +246,10 @@ ADR-001 section 9's rule still holds: raw data is deleted only after its summari
 
 | | Feasibility (this ADR) | Production (later) |
 |---|---|---|
-| Database | One container, `timescale/timescaledb:2.31.0-pg17` (exact version pinned; not the `-oss` tags, which lack the Community features ADR-001 relies on) | Managed PostgreSQL or Tiger Cloud; licence reviewed first (ADR-001) |
+| Database | One container, `timescale/timescaledb:2.31.0-pg18` (exact version pinned; not the `-oss` tags, which lack the Community features ADR-001 relies on) | Managed PostgreSQL or Tiger Cloud; licence reviewed first (ADR-001) |
 | Historian | One instance | Several, with a shared subscription |
 | Summaries | Continuous aggregates + SQL views | Toolkit `counter_agg` / `state_agg` if views get slow |
-| Backups | Nightly `pg_dump`, copied off the PC | Point-in-time recovery from the managed service |
+| Backups | On-demand `pg_dump` to a local folder | Point-in-time recovery from the managed service |
 | Customers | One test site | `site` per customer site; separate databases or row-level security per customer, decided then |
 
 ---
@@ -267,9 +267,9 @@ ADR-001 section 9's rule still holds: raw data is deleted only after its summari
 
 ## 14. Open questions
 
-1. Confirm this layout, especially the series table and the three value columns.
-2. PostgreSQL 17 or 18? Proposed 17: widely offered by managed services today. 18 is equally supported by the TimescaleDB images.
-3. Where should the off-PC backup copies go (a Botanic drive, cloud storage)?
+1. ~~Confirm the layout~~ Confirmed 29 Oct 2026.
+2. ~~PostgreSQL 17 or 18~~ **18** (29 Oct 2026).
+3. Off-PC backup location: **not needed yet** (no backup device or site; little data). Revisit before real site data.
 
 ---
 
@@ -278,3 +278,4 @@ ADR-001 section 9's rule still holds: raw data is deleted only after its summari
 | Date | Change |
 |---|---|
 | 2026-10-28 | Proposed |
+| 2026-10-29 | Accepted: PostgreSQL 18; backups local only for now. Built in stage 3a (`storage/NOTES.md`); summaries (section 5) come once the historian is storing data |

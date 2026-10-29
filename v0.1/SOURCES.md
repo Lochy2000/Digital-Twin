@@ -16,13 +16,16 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://docs.brickschema.org/metadata/external-representations.html> | `mappings/dtteo_ref.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://docs.brickschema.org/metadata/timeseries-storage.html> | `dtteo_asset_model.ttl`, `mappings/dtteo_ref.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html> | `services/ingestion-gateway/gateway/pipeline.py` |
+| <https://docs.docker.com/guides/postgresql/advanced-configuration-and-initialization> | `storage/init/10_users.sh` |
 | <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html> | `services/ingestion-gateway/gateway/service.py`, `testing/vendors/acme_publisher.py`, `testing/vendors/borealis_publisher.py` |
 | <https://docs.python.org/3.9/library/struct.html> | `services/ingestion-gateway/gateway/decoders/modbus.py` |
 | <https://eclipse.dev/hono/docs/architecture/component-view/> | `services/ingestion-gateway/gateway/decoders/__init__.py` |
 | <https://eclipse.dev/paho/files/paho.mqtt.python/html/migrations.html> | `services/ingestion-gateway/gateway/service.py` |
 | <https://github.com/BrickSchema/Brick> | `dtteo_asset_model.ttl` |
+| <https://github.com/docker-library/postgres/pull/1259> | `docker-compose.yml` |
 | <https://github.com/ioos/ioos_qc> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/validator.py` |
 | <https://github.com/python/cpython/blob/main/Doc/library/zoneinfo.rst> | `services/ingestion-gateway/gateway/decoders/tasmota.py`, `services/ingestion-gateway/requirements.txt` |
+| <https://grafana.com/docs/grafana/latest/datasources/postgres/configure/> | `storage/migrations/20261029120300_roles_and_grants.sql` |
 | <https://json-schema.org/draft/2020-12/schema> | `contracts/check_examples.py` |
 | <https://mosquitto.org/documentation/persistence/sqlite/> | `broker/mosquitto.conf` |
 | <https://mosquitto.org/man/mosquitto-conf-5.html> | `broker/mosquitto.conf`, `services/ingestion-gateway/gateway/service.py` |
@@ -54,5 +57,7 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://www.hivemq.com/blog/mqtt-essentials-part-5-mqtt-topics-best-practices/> | `testing/vendors/acme_publisher.py`, `testing/vendors/borealis_publisher.py` |
 | <https://www.hivemq.com/blog/mqtt5-session-message-expiry/> | `services/ingestion-gateway/gateway/service.py` |
 | <https://www.rfc-editor.org/rfc/rfc8428> | `services/ingestion-gateway/gateway/normaliser.py` |
+| <https://www.tigerdata.com/docs/deploy/self-hosted/backup-and-restore/logical-backup> | `storage/backup.sh` |
+| <https://www.tigerdata.com/docs/reference/timescaledb/hypertables/create_hypertable/> | `storage/migrations/20261029120200_timescale_hypertables.sql` |
 | <https://www.w3.org/TR/vocab-ssn/> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://www.w3.org/TR/wot-thing-description11/#thing-model> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
