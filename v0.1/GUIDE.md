@@ -6,7 +6,7 @@
 - Step-by-step build notes: [`services/ingestion-gateway/NOTES.md`](services/ingestion-gateway/NOTES.md)
 - Every source used, and which file uses it: [`SOURCES.md`](SOURCES.md)
 
-*Last updated 29 October 2026 (after stage 3a).*
+*Last updated 29 October 2026 (after stage 3b).*
 
 ---
 
@@ -30,7 +30,7 @@ Data from devices and files comes **in**. The platform turns it into **one stand
 | **Ingestion gateway** | Turns any device's data into standard messages | **Built** (`services/ingestion-gateway/`) |
 | Asset model | Describes the building, equipment and sensors | Built, placeholder unit (`dtteo_asset_model.ttl`) |
 | Time-series store (PostgreSQL 18 + TimescaleDB) | Keeps every reading | **Built** (`storage/`, [ADR-002](decisions/ADR-002-database-layout.md)) |
-| Historian | Writes messages into the store | Next (stage 3b) |
+| Historian | Writes messages into the store | **Built** (`services/historian/`) |
 | Simulated plant, twin engine, scenario worker | Physics model, live twin, what-if runs | Later stages |
 | API, dashboards | For the engineer and ML work | Later stages |
 
@@ -174,6 +174,7 @@ All commands are run in Windows `cmd`, from `v0.1\services\ingestion-gateway` wi
 | See sample messages go through the pipeline | `python -m gateway.demo` |
 | Run the live stack (broker + gateway + Acme) | from `v0.1`: `docker compose --profile acme up --build` |
 | First time with the database | from `v0.1`: `copy .env.example .env`, set the passwords, then `docker compose up -d` (details: `storage/NOTES.md`) |
+| See what's being stored | `docker compose logs -f historian` |
 | Back up the database | from `v0.1`: `docker compose run --rm backup` |
 | Wipe the broker queue and the database (clean start) | from `v0.1`: `docker compose down -v` |
 | Watch messages / gateway log | `docker compose exec mosquitto mosquitto_sub -v -t "dt/v1/#"` · `docker compose logs -f gateway` |
@@ -208,6 +209,7 @@ v0.1/
 │   ├── gateway/                 the code (decoders/, mapper, normaliser, validator, pipeline, service)
 │   ├── tests/                   118 tests + sample messages
 │   └── NOTES.md                 build notes, step by step
+├── services/historian/          broker -> database (tests + NOTES.md)
 ├── testing/vendors/             the two made-up vendors
 ├── tools/list_sources.py        builds SOURCES.md
 └── diagrams/                    all diagrams (D-01 to D-07, D-09)

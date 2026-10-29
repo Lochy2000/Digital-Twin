@@ -1,0 +1,3 @@
+# For development and tests on your PC:  pip install -r requirements-dev.txt
+-r requirements.txt
+pytest==8.3.4

@@ -17,6 +17,7 @@
 # Database (stage 3): copy .env.example to .env and set the passwords first.
 # The database starts with the stack; "migrate" applies storage/migrations, then exits.
 #   docker compose logs migrate                  did the migrations apply?
+#   docker compose logs -f historian             what's being stored (a summary a minute)
 #   docker compose run --rm backup               one backup into v0.1/backups/
 #   docker compose exec timescaledb psql -U dtteo_owner -d dtteo     SQL prompt
 
@@ -112,6 +113,28 @@ services:
     # --no-dump-schema: skip writing schema.sql (needs a pg_dump matching PostgreSQL 18).
     command: ["--migrations-dir", "/db/migrations", "--wait", "--no-dump-schema", "up"]
     restart: "no"
+
+  historian:
+    # Writes canonical and quarantine messages into the database (stage 3b, ADR-002 section 7).
+    build:
+      context: ./services                     # so the image can include gateway.mapper
+      dockerfile: historian/Dockerfile
+    container_name: v01-historian
+    depends_on:
+      mosquitto:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully     # tables exist before we write
+    environment:
+      BROKER_HOST: mosquitto
+      DATABASE_URL: postgresql://historian:${HISTORIAN_DB_PASSWORD}@timescaledb:5432/dtteo
+      HISTORIAN_SITE: site1
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./dtteo_asset_model.ttl:/model/dtteo_asset_model.ttl:ro
+      - ./mappings:/model/mappings:ro
+      - ./contracts:/contracts:ro
+    restart: unless-stopped
 
   backup:
     # Not started by "up". Run on demand:  docker compose run --rm backup

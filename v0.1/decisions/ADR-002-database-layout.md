@@ -279,3 +279,4 @@ ADR-001 section 9's rule still holds: raw data is deleted only after its summari
 |---|---|
 | 2026-10-28 | Proposed |
 | 2026-10-29 | Accepted: PostgreSQL 18; backups local only for now. Built in stage 3a (`storage/NOTES.md`); summaries (section 5) come once the historian is storing data |
+| 2026-10-29 | Historian built (stage 3b, `services/historian/NOTES.md`) |

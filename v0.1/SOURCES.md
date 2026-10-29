@@ -30,6 +30,7 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://mosquitto.org/documentation/persistence/sqlite/> | `broker/mosquitto.conf` |
 | <https://mosquitto.org/man/mosquitto-conf-5.html> | `broker/mosquitto.conf`, `services/ingestion-gateway/gateway/service.py` |
 | <https://prometheus.io/docs/concepts/metric_types> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
+| <https://psycopg.org/psycopg3/docs/advanced/pipeline.html> | `services/historian/historian/store.py` |
 | <https://pypi.org/p/ioos-qc> | `services/ingestion-gateway/gateway/mapper.py`, `services/ingestion-gateway/gateway/validator.py` |
 | <https://pypi.org/project/sdm-modbus/0.4.3/> | `mappings/types/eastron_sdm120.ttl`, `services/ingestion-gateway/gateway/decoders/modbus.py` |
 | <https://qudt.org/vocab/unit/A> | `services/ingestion-gateway/gateway/units.py` |
@@ -55,7 +56,9 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://www.enterpriseintegrationpatterns.com/patterns/messaging/InvalidMessageChannel.html> | `services/ingestion-gateway/gateway/decoders/__init__.py`, `services/ingestion-gateway/gateway/pipeline.py` |
 | <https://www.enterpriseintegrationpatterns.com/patterns/messaging/Normalizer.html> | `services/ingestion-gateway/gateway/normaliser.py` |
 | <https://www.hivemq.com/blog/mqtt-essentials-part-5-mqtt-topics-best-practices/> | `testing/vendors/acme_publisher.py`, `testing/vendors/borealis_publisher.py` |
-| <https://www.hivemq.com/blog/mqtt5-session-message-expiry/> | `services/ingestion-gateway/gateway/service.py` |
+| <https://www.hivemq.com/blog/mqtt5-session-message-expiry/> | `services/historian/historian/service.py`, `services/ingestion-gateway/gateway/service.py` |
+| <https://www.hivemq.com/blog/understanding-mqtt-message-ordering/> | `services/historian/historian/service.py` |
+| <https://www.psycopg.org/psycopg3/docs/> | `services/historian/requirements.txt` |
 | <https://www.rfc-editor.org/rfc/rfc8428> | `services/ingestion-gateway/gateway/normaliser.py` |
 | <https://www.tigerdata.com/docs/deploy/self-hosted/backup-and-restore/logical-backup> | `storage/backup.sh` |
 | <https://www.tigerdata.com/docs/reference/timescaledb/hypertables/create_hypertable/> | `storage/migrations/20261029120200_timescale_hypertables.sql` |
