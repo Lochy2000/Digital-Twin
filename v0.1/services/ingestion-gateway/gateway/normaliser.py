@@ -14,7 +14,11 @@ Steps, always in this order:
   2. scale          raw number * scale                   2152 * 0.01 -> 21.52
   3. unit           raw unit -> point unit (QUDT)        DEG_F -> DEG_C
   4. tidy number    round off floating-point noise       21.333333333333336 -> 21.3333
-  5. times          both times to UTC text ending in Z
+  5. times          both times to UTC text ending in Z, and say who set sensor_time
+                    (time_source: "device" or "gateway")
+
+It also stamps the site (from gateway config), so site + point identifies the reading
+(message v2, step 2i).
 
 If any step can't be done (a word not in the map, text where a number should be, an
 unknown unit), it raises NormaliseError and the reading goes to quarantine.
@@ -31,6 +35,10 @@ Sources:
   - Output shape: v0.1/contracts/canonical_message.schema.json (SenML-like: https://datatracker.ietf.org/doc/rfc8428/)
   - Two times, sensor_time (event time) and ingest_time (processing time):
       https://ci.apache.org/projects/flink/flink-docs-master/docs/concepts/time/
+  - No device time = "roughly now" (SenML, RFC 8428 section 4.5.3), recorded as time_source "gateway":
+      https://www.rfc-editor.org/rfc/rfc8428
+  - site + point as the identity (SenML: base name + name "must result in a globally unique
+    identifier", RFC 8428 section 4.2): same link as above
 """
 from __future__ import annotations
 
@@ -58,7 +66,7 @@ def _is_number(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)   # True is an int in Python
 
 
-def normalise(record: RawRecord, mapping: PointMapping, ingest_time: datetime) -> dict:
+def normalise(record: RawRecord, mapping: PointMapping, ingest_time: datetime, site: str) -> dict:
     value = record.value
     raw_unit = record.unit or mapping.raw_unit         # the message's own unit wins (see above)
 
@@ -85,15 +93,18 @@ def normalise(record: RawRecord, mapping: PointMapping, ingest_time: datetime) -
         # 4. Tidy: remove floating-point noise. Whole numbers stay as written (int stays int).
         value = round(value, DECIMALS) if isinstance(value, float) else value
 
-    # 5. Times. No device time -> use the time we received it (see contracts schema).
-    sensor_time = record.time if record.time is not None else ingest_time
+    # 5. Times. No device time -> use the time we received it, and say so (time_source).
+    from_device = record.time is not None
+    sensor_time = record.time if from_device else ingest_time
 
     return {
-        "v": 1,
+        "v": 2,
+        "site": site,
         "point": mapping.point_id,
         "value": value,
         "unit": mapping.unit,
         "sensor_time": to_utc_text(sensor_time),
         "ingest_time": to_utc_text(ingest_time),
+        "time_source": "device" if from_device else "gateway",
         "source": f"{record.source}:{record.device}",
     }

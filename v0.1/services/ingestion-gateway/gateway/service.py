@@ -8,12 +8,18 @@ What it does:
   - for each message, runs gateway/pipeline.py and publishes the results
   - announces itself on  dt/v1/status/ingestion_gateway  (online, with "offline" as Last Will)
 
+Protocol: MQTT 5 (step 2j). v0.1's design leans on MQTT 5 features (shared subscriptions,
+request/response), so the gateway speaks it too. In MQTT 5, "keep my session while I'm away"
+is clean_start=False PLUS a Session Expiry Interval above 0; with no interval the session
+ends at disconnect (HiveMQ, MQTT 5 Essentials part 4).
+
 Not losing data when something restarts (the "small buffer" in v0.1/README.md):
   - Broker down: paho keeps QoS 1 messages it couldn't send yet and sends them after it
-    reconnects (paho-mqtt 2.1.0, Client.publish). Capped by MAX_QUEUED so memory can't run away.
-  - Gateway down: the gateway uses a persistent session (clean_session=False), so the broker
-    keeps raw QoS 1 messages for it while it's away (Mosquitto: max_queued_messages, default
-    1000 per client) and delivers them when it's back.
+    reconnects (paho-mqtt 2.1.0, Client.publish). Capped by MAX_QUEUED so memory can't run away;
+    if the cap is hit, paho refuses the message (MQTT_ERR_QUEUE_SIZE) and we log an ERROR.
+  - Gateway down: the broker keeps raw QoS 1 messages for our session (SESSION_EXPIRY) and
+    delivers them when we're back. How many it keeps is the broker's max_queued_messages, and
+    whether they survive a BROKER restart is its persistence setting (broker/mosquitto.conf).
 
 Settings (environment variables):
     BROKER_HOST       default localhost
@@ -27,7 +33,9 @@ Settings (environment variables):
 Sources:
   - paho-mqtt 2.x callbacks (on_connect(client, userdata, flags, reason_code, properties), ...):
       https://eclipse.dev/paho/files/paho.mqtt.python/html/migrations.html
-  - Mosquitto max_queued_messages, persistent clients:  https://mosquitto.org/man/mosquitto-conf-5.html
+  - Mosquitto max_queued_messages, persistence:  https://mosquitto.org/man/mosquitto-conf-5.html
+  - MQTT 5 clean start + session expiry (replaces clean_session):
+      https://www.hivemq.com/blog/mqtt5-session-message-expiry/
   - Last Will, retained status, QoS 1, persistent sessions:  MQTT spec
       https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html
   - Topics and status rules:  v0.1/contracts/topics.md
@@ -42,14 +50,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import paho.mqtt.client as mqtt
+from paho.mqtt.packettypes import PacketTypes
+from paho.mqtt.properties import Properties
 
 from .mapper import Mapper
-from .pipeline import Pipeline, kv
+from .pipeline import Outgoing, Pipeline, kv
 
 CLIENT_ID = "ingestion_gateway"                        # lowercase + "_" only (topics.md rule 2)
 STATUS_TOPIC = f"dt/v1/status/{CLIENT_ID}"
 SUBSCRIPTION = "raw/#"
 MAX_QUEUED = 10_000                                    # outgoing messages held while the broker is away
+SESSION_EXPIRY = 7 * 24 * 3600                         # seconds the broker keeps our session while we're away
 
 log = logging.getLogger("gateway")
 
@@ -65,8 +76,25 @@ def parse_enabled(text: str) -> dict[str, bool]:
     return out
 
 
+def send(client: mqtt.Client, o: Outgoing) -> None:
+    """Publish one message and say so if it couldn't even be queued (it would be lost)."""
+    info = client.publish(o.topic, json.dumps(o.payload), qos=o.qos, retain=o.retain)
+    if info.rc == mqtt.MQTT_ERR_QUEUE_SIZE:
+        # paho refuses new messages once MAX_QUEUED are waiting: this one is LOST.
+        log.error(kv("publish_dropped", topic=o.topic, reason="outgoing queue full",
+                     max_queued=MAX_QUEUED, point=o.payload.get("point")))
+    elif info.rc not in (mqtt.MQTT_ERR_SUCCESS, mqtt.MQTT_ERR_NO_CONN):
+        # NO_CONN is normal while reconnecting: paho keeps the message and sends it later.
+        log.warning(kv("publish_problem", topic=o.topic, rc=mqtt.error_string(info.rc)))
+
+
 def build_pipeline() -> Pipeline:
-    model_dir = Path(os.getenv("MODEL_DIR", Path(__file__).resolve().parents[3]))
+    # Do not calculate the source-tree fallback when MODEL_DIR is configured.
+    # The container installs this module at /app/gateway/service.py, where parents[3]
+    # does not exist, even though Compose correctly supplies MODEL_DIR=/model.
+    configured_model_dir = os.getenv("MODEL_DIR")
+    model_dir = (Path(configured_model_dir) if configured_model_dir
+                 else Path(__file__).resolve().parents[3])
     mapper = Mapper.from_folder(model_dir, enabled=parse_enabled(os.getenv("GATEWAY_ENABLED", "")))
     for note in mapper.report:
         log.info(kv("mapper_note", note=note))
@@ -79,7 +107,7 @@ def main() -> None:
                         format="%(asctime)s %(levelname)s %(message)s")
     pipeline = build_pipeline()     # a broken model or mapping stops us here, before connecting
 
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, clean_session=False)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, protocol=mqtt.MQTTv5)
     client.max_queued_messages_set(MAX_QUEUED)
     client.will_set(STATUS_TOPIC, "offline", qos=1, retain=True)
 
@@ -96,15 +124,17 @@ def main() -> None:
         log.warning(kv("disconnected", reason=str(reason_code)))
 
     def on_message(client, userdata, msg):
-        try:
-            outgoing = pipeline.process(msg.topic, msg.payload, datetime.now(timezone.utc))
-        except Exception:                                   # a bug must not stop the gateway
-            log.exception(kv("pipeline_error", topic=msg.topic))
-            return
+        # pipeline.process never raises: a bug quarantines the message (stage=internal).
+        outgoing = pipeline.process(msg.topic, msg.payload, datetime.now(timezone.utc))
         for o in outgoing:
-            client.publish(o.topic, json.dumps(o.payload), qos=o.qos, retain=o.retain)
+            send(client, o)
 
     client.on_connect, client.on_disconnect, client.on_message = on_connect, on_disconnect, on_message
+
+    def connect_properties() -> Properties:
+        props = Properties(PacketTypes.CONNECT)
+        props.SessionExpiryInterval = SESSION_EXPIRY
+        return props
 
     def stop(*_):
         client.publish(STATUS_TOPIC, "offline", qos=1, retain=True)
@@ -113,7 +143,8 @@ def main() -> None:
 
     host, port = os.getenv("BROKER_HOST", "localhost"), int(os.getenv("BROKER_PORT", "1883"))
     log.info(kv("connecting", host=host, port=port))
-    client.connect_async(host, port)          # don't fail if the broker isn't up yet...
+    # Don't fail if the broker isn't up yet... (clean_start=False: always resume our session)
+    client.connect_async(host, port, clean_start=False, properties=connect_properties())
     try:
         client.loop_forever(retry_first_connection=True)    # ...keep trying, and reconnect if it drops
     except KeyboardInterrupt:

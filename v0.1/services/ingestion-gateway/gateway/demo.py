@@ -45,7 +45,7 @@ def main():
                 print(f"  {raw:30} -> QUARANTINE: unknown point")
                 continue
             try:
-                n = normalise(r, m, ingest)
+                n = normalise(r, m, ingest, site="site1")
             except NormaliseError as e:
                 print(f"  {raw:30} -> QUARANTINE: {e}")
                 continue

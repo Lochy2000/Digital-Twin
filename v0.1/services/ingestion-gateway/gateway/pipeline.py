@@ -4,7 +4,8 @@ Pipeline: one raw MQTT message in -> the messages to publish out, plus log lines
     raw/{source}/{device}/...
         decode -> map -> normalise -> validate
             -> dt/v1/telemetry/{site}/{equipment}/{point}   canonical message (GOOD / SUSPECT / BAD)
-            -> dt/v1/quarantine/{source}                    anything that couldn't be turned into one
+            -> dt/v1/quarantine/{source}                    anything that couldn't be turned into one,
+                                                            including a message that hit a gateway bug
 
 This file knows nothing about MQTT connections; it only decides WHAT to publish. That
 keeps it testable without a broker. gateway/service.py does the connecting and sending.
@@ -12,6 +13,7 @@ keeps it testable without a broker. gateway/service.py does the connecting and s
 Logging (one line per event, key=value "logfmt" style, easy to read and to search):
     INFO     every reading that isn't GOOD, with the validator's reasons
     WARNING  every quarantined message or field, with the reason
+    ERROR    a gateway bug (with the stack trace); the message is quarantined (stage=internal)
     DEBUG    every GOOD reading (off by default; set LOG_LEVEL=DEBUG to see them)
 
 Sources:
@@ -22,6 +24,9 @@ Sources:
   - Keep the original + add error context (Kafka Connect dead letter queue):
       https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html
   - logfmt:  https://brandur.org/logfmt
+  - A message that makes the code fail goes to the dead letter channel instead of being lost
+    (Kafka Connect errors.tolerance + DLQ, link above; EIP Dead Letter Channel):
+      https://www.enterpriseintegrationpatterns.com/patterns/messaging/DeadLetterChannel.html
 """
 from __future__ import annotations
 
@@ -80,11 +85,27 @@ class Pipeline:
         self.validator_options = validator_options    # e.g. max_age=None for a back-fill
 
     def process(self, topic: str, payload: bytes, now: datetime) -> list[Outgoing]:
+        """Never raises: a bug while processing quarantines the whole message (stage=internal)."""
+        try:
+            return self._process(topic, payload, now)
+        except Exception as e:                       # a bug must not lose the message (step 2j)
+            log.exception(kv("pipeline_error", topic=topic, error=repr(e)))
+            body = {"v": 2, "site": self.site, "stage": "internal",
+                    "reason": f"gateway error: {e!r} (see the gateway log; replay once fixed)",
+                    "topic": topic, "source": None, "device": None,
+                    "raw": payload.decode("utf-8", errors="replace"), "ingest_time": to_utc_text(now)}
+            try:
+                body["source"], body["device"] = parse_raw_topic(topic)
+            except DecodeError:
+                pass
+            return [Outgoing(quarantine_topic(body["source"]), body)]
+
+    def _process(self, topic: str, payload: bytes, now: datetime) -> list[Outgoing]:
         raw_text = payload.decode("utf-8", errors="replace")
         ingest = to_utc_text(now)
 
         def quarantine(stage, reason, source=None, device=None, record: RawRecord | None = None) -> Outgoing:
-            body = {"v": 1, "stage": stage, "reason": reason, "topic": topic,
+            body = {"v": 2, "site": self.site, "stage": stage, "reason": reason, "topic": topic,
                     "source": source, "device": device, "raw": raw_text, "ingest_time": ingest}
             if record is not None:
                 body["field"], body["value"] = record.field, record.value
@@ -113,12 +134,13 @@ class Pipeline:
 
             # 3. Normalise.
             try:
-                reading = normalise(r, mapping, now)
+                reading = normalise(r, mapping, now, self.site)
             except NormaliseError as e:
                 out.append(quarantine("normalise", str(e), source, device, r))
                 continue
 
-            # 4. Validate, then publish whatever the quality. BAD is stored, not dropped.
+            # 4. Validate, then publish whatever the quality. BAD is stored, not dropped,
+            #    and the message's qc list says why (message v2).
             message, verdict = with_quality(reading, mapping, **self.validator_options)
             line = kv("reading", point=message["point"], value=message["value"], unit=message["unit"],
                       quality=message["quality"], sensor_time=message["sensor_time"],

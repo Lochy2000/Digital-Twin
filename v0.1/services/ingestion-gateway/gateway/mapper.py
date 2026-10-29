@@ -37,6 +37,9 @@ Sources (what each part follows):
       https://pypi.org/p/ioos-qc
   - SPARQL in rdflib, including initBindings (used in _CANDIDATES):
       https://rdflib.readthedocs.io/en/latest/intro_to_sparql/
+  - Value kinds (dtteo:valueKind, step 2k): "measurement" = a gauge, "total" = a counter
+    ("a cumulative metric ... whose value can only increase or be reset to zero on restart"),
+    Prometheus metric types:  https://prometheus.io/docs/concepts/metric_types
 """
 from __future__ import annotations
 
@@ -54,6 +57,7 @@ from .units import UnitError, convert
 log = logging.getLogger(__name__)
 
 BRICK = "https://brickschema.org/schema/Brick#"
+VALUE_KINDS = ("measurement", "total", "state")      # dtteo:valueKind, step 2k
 
 
 @dataclass(frozen=True)
@@ -66,6 +70,16 @@ class PointMapping:
     # Plausible ranges, both already converted to the point's unit (step 2g, used by the validator):
     fail_span: tuple[float, float] | None = None     # what the SENSOR can measure (device type)
     suspect_span: tuple[float, float] | None = None  # what we EXPECT at this point (asset model)
+
+
+@dataclass(frozen=True)
+class PointInfo:
+    """What the asset model says about one stored point. Used later to fill the database's
+    series table (decisions/ADR-002); the gateway itself only needs PointMapping."""
+    point_id: str             # e.g. "unit1.energy"
+    unit: str | None          # e.g. "KiloW-HR"
+    brick_class: str          # e.g. "brick:Electric_Energy_Sensor"
+    kind: str                 # "measurement" / "total" / "state"
 
 
 @dataclass(frozen=True)
@@ -107,12 +121,15 @@ PREFIX schema: <http://schema.org/>
 PREFIX ssn-system: <http://www.w3.org/ns/ssn/systems/>
 """
 
-# Every point that can be stored: it has a time-series ID. Unit is optional.
+# Every point that can be stored: it has a time-series ID. Unit is optional; kind is
+# required (checked in _Builder). Class: the point's Brick class (first one if several).
 _POINTS = _PREFIXES + """
-SELECT ?point ?point_id ?unit WHERE {
+SELECT ?point ?point_id ?unit ?kind ?cls WHERE {
     ?point ref:hasExternalReference ?ts .
     ?ts a ref:TimeseriesReference ; ref:hasTimeseriesId ?point_id .
     OPTIONAL { ?point brick:hasUnit ?unit }
+    OPTIONAL { ?point dtteo:valueKind ?kind }
+    OPTIONAL { ?point a ?cls . FILTER(STRSTARTS(STR(?cls), STR(brick:))) }
 }"""
 
 # Step 2g ranges. Both use schema:minValue / maxValue / unitCode, the shape the W3C SSN
@@ -216,8 +233,10 @@ class Mapper:
     def __init__(self, table: dict[tuple[str, str, str], PointMapping],
                  bindings: dict[tuple[str, str], Binding] | None = None,
                  report: list[str] | None = None,
-                 skipped: dict[tuple[str, str, str], str] | None = None):
+                 skipped: dict[tuple[str, str, str], str] | None = None,
+                 points: dict[str, PointInfo] | None = None):
         self._table = table
+        self._points = points or {}     # point_id -> PointInfo, every stored point in the model
         self._bindings = bindings or {}
         self.report = report or []      # notes for people: skipped optional values, disabled devices
         self._skipped = skipped or {}   # (source, device, field) -> why it isn't mapped (optional, no point)
@@ -253,6 +272,10 @@ class Mapper:
         """The installed device's binding (enabled or not), or None if it isn't bound."""
         return self._bindings.get((source, device))
 
+    def points(self) -> list[PointInfo]:
+        """Every point in the asset model that can be stored, sorted by ID."""
+        return [self._points[k] for k in sorted(self._points)]
+
     def __len__(self) -> int:
         return len(self._table)
 
@@ -272,9 +295,20 @@ class _Builder:
         self.report: list[str] = []
         self.skipped: dict[tuple[str, str, str], str] = {}
 
-        # point IRI -> (point_id, unit)
-        self.points = {row.point: (str(row.point_id), _local_name(row.unit))
-                       for row in graph.query(_POINTS)}
+        # point IRI -> (point_id, unit); point_id -> PointInfo
+        self.points: dict = {}
+        self.point_info: dict[str, PointInfo] = {}
+        for row in graph.query(_POINTS):
+            point_id = str(row.point_id)
+            kind = str(row.kind) if row.kind is not None else None
+            if kind not in VALUE_KINDS:
+                # Storage needs to know how to summarise every point (ADR-002), so refuse now.
+                raise MappingError(f"{point_id}: dtteo:valueKind must be one of {', '.join(VALUE_KINDS)}"
+                                   f" (got {kind!r}); see mappings/dtteo_onboarding.ttl")
+            self.points[row.point] = (point_id, _local_name(row.unit))
+            if point_id not in self.point_info or row.cls is not None:
+                self.point_info[point_id] = PointInfo(point_id, _local_name(row.unit),
+                                                      _short(row.cls) if row.cls is not None else "?", kind)
         self.value_maps: dict = {}
         for row in graph.query(_VALUE_MAPS):
             self.value_maps.setdefault(row.owner, {})[str(row["from"])] = str(row.to)
@@ -287,7 +321,7 @@ class _Builder:
         self._add_bindings()
         self._check_one_source_per_point()
         log.info("mapper loaded %d field mappings, %d bindings", len(self.table), len(self.bindings))
-        return Mapper(self.table, self.bindings, self.report, self.skipped)
+        return Mapper(self.table, self.bindings, self.report, self.skipped, self.point_info)
 
     # --- shared ---------------------------------------------------------------------
     def _mapping(self, point, raw_unit, scale, owner, where: str) -> PointMapping:
@@ -487,4 +521,7 @@ if __name__ == "__main__":
         print("\nNotes:")
         for line in m.report:
             print(f"  - {line}")
-    print(f"\nOK: {len(m)} field mappings.")
+    print(f"\n{'point':26} {'kind':12} {'unit':9} class")
+    for p in m.points():
+        print(f"{p.point_id:26} {p.kind:12} {p.unit or '-':9} {p.brick_class}")
+    print(f"\nOK: {len(m)} field mappings, {len(m.points())} points.")

@@ -9,14 +9,22 @@ the gateway can't understand at all go to quarantine earlier; that's a different
 The checks are the stateless ones from QARTOD, the US IOOS quality-control standard for
 real-time sensor data, as implemented in the ioos_qc library:
 
-    check            QARTOD test            result if it fails
+    qc test name     QARTOD test            result if it fails
     ---------------  ---------------------  ------------------------------------------
-    sensor range     gross range, fail      BAD      the sensor can't measure this
-    expected range   gross range, suspect   SUSPECT  possible, but not what we expect here
-    future time      impossible date        BAD      a reading from the future
-    stale time       data reception         BAD      older than max_age when it arrived
+    sensor_range     gross range, fail      BAD      the sensor can't measure this
+    expected_range   gross range, suspect   SUSPECT  possible, but not what we expect here
+    future_time      impossible date        BAD      a reading from the future
+    late_arrival     data reception         SUSPECT  older than max_age when it arrived
 
-Each check gives a QARTOD flag; the worst one wins (FAIL > SUSPECT > GOOD, the same
+late_arrival is SUSPECT, not FAIL as in ioos_qc's data_reception_test (step 2j). That test
+asks "is this stream current?", which ioos_qc says is "intended for data centers or streams".
+Here, a late reading is usually our own delay (e.g. the broker replaying messages queued while
+the gateway was down): the value is still a real measurement, so it is kept usable for history
+and flagged. Whether it is too old to drive the LIVE twin is the twin's call (its
+LIVE / COASTING / STALE state), not the gateway's ("translate and check, never interpret").
+
+Each check gives a QARTOD flag; every flag is reported in the message's `qc` list (message v2,
+step 2i), and the worst one wins (FAIL > SUSPECT > GOOD, the same
 order as ioos_qc's qartod_compare). Ranges come from the mapper (sensor range from the
 device type, expected range from the asset model), already in the point's unit.
 
@@ -50,13 +58,28 @@ QUALITY = {PASS: "GOOD", SUSPECT_FLAG: "SUSPECT", FAIL: "BAD"}
 FUTURE_TOLERANCE = timedelta(seconds=60)   # device clocks drift; QARTOD flags ANY future time,
                                            # we allow a minute of clock difference first
 MAX_AGE = timedelta(hours=6)               # ioos_qc data_reception_test default (fail_span=6 hours).
-                                           # Fine for live data; a CSV back-fill would need it off.
+                                           # A CSV back-fill turns it off (max_age=None).
+
+
+@dataclass(frozen=True)
+class Check:
+    test: str                   # qc test name, e.g. "expected_range"
+    flag: int                   # QARTOD flag: SUSPECT_FLAG or FAIL
+    reason: str                 # plain English, e.g. "40.0 is outside the expected range 5.0..35.0"
+
+    def as_qc(self) -> dict:
+        """The shape used in the canonical message's `qc` list."""
+        return {"test": self.test, "flag": QUALITY[self.flag], "reason": self.reason}
 
 
 @dataclass(frozen=True)
 class Verdict:
     quality: str                # "GOOD" / "SUSPECT" / "BAD"
-    reasons: tuple[str, ...]    # why it isn't GOOD (empty if GOOD); for logs, not the message
+    checks: tuple[Check, ...]   # every check that flagged the reading (empty if GOOD)
+
+    @property
+    def reasons(self) -> tuple[str, ...]:
+        return tuple(c.reason for c in self.checks)
 
 
 def _time(text: str) -> datetime:
@@ -70,7 +93,7 @@ def _is_number(v) -> bool:
 def validate(reading: dict, mapping: PointMapping,
              future_tolerance: timedelta = FUTURE_TOLERANCE,
              max_age: timedelta | None = MAX_AGE) -> Verdict:
-    flags: list[tuple[int, str]] = []
+    flags: list[Check] = []
     value = reading["value"]
 
     # Gross range test. Only for numbers: words like "cool" were already checked by the value map.
@@ -78,24 +101,29 @@ def validate(reading: dict, mapping: PointMapping,
         if mapping.fail_span:
             lo, hi = mapping.fail_span
             if not lo <= value <= hi:
-                flags.append((FAIL, f"{value} is outside the sensor's range {lo}..{hi}"))
+                flags.append(Check("sensor_range", FAIL, f"{value} is outside the sensor's range {lo}..{hi}"))
         if mapping.suspect_span:
             lo, hi = mapping.suspect_span
             if not lo <= value <= hi:
-                flags.append((SUSPECT_FLAG, f"{value} is outside the expected range {lo}..{hi}"))
+                flags.append(Check("expected_range", SUSPECT_FLAG, f"{value} is outside the expected range {lo}..{hi}"))
 
     # Time tests: compare the device's time with when we received it.
     sensor, ingest = _time(reading["sensor_time"]), _time(reading["ingest_time"])
     if sensor > ingest + future_tolerance:
-        flags.append((FAIL, f"sensor_time is {sensor - ingest} in the future"))
+        flags.append(Check("future_time", FAIL, f"sensor_time is {sensor - ingest} in the future"))
     if max_age is not None and ingest - sensor > max_age:
-        flags.append((FAIL, f"reading was {ingest - sensor} old when it arrived (limit {max_age})"))
+        flags.append(Check("late_arrival", SUSPECT_FLAG,
+                           f"reading was {ingest - sensor} old when it arrived (limit {max_age})"))
 
-    worst = max((f for f, _ in flags), default=PASS)
-    return Verdict(QUALITY[worst], tuple(reason for _, reason in flags))
+    worst = max((c.flag for c in flags), default=PASS)
+    return Verdict(QUALITY[worst], tuple(flags))
 
 
 def with_quality(reading: dict, mapping: PointMapping, **kwargs) -> tuple[dict, Verdict]:
-    """The reading plus its quality: a complete canonical message (contracts/canonical_message.schema.json)."""
+    """The reading plus its quality (and qc list if not GOOD): a complete canonical message
+    (contracts/canonical_message.schema.json)."""
     verdict = validate(reading, mapping, **kwargs)
-    return {**reading, "quality": verdict.quality}, verdict
+    message = {**reading, "quality": verdict.quality}
+    if verdict.checks:
+        message["qc"] = [c.as_qc() for c in verdict.checks]
+    return message, verdict
