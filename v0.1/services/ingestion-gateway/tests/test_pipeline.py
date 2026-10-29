@@ -53,6 +53,26 @@ def test_acme_message_becomes_telemetry_and_quarantine(pipeline):
     assert json.loads(q["raw"])["tempF"] == 70.4           # original kept for replay
 
 
+def test_messages_carry_site_and_time_source(pipeline):
+    out = {o.topic: o.payload for o in run(pipeline, *sample("acme"))}
+    t = out["dt/v1/telemetry/site1/unit1/zone_air_temp"]
+    assert (t["v"], t["site"], t["time_source"]) == (2, "site1", "device")
+    assert out["dt/v1/quarantine/acme"]["site"] == "site1"
+
+
+def test_gateway_bug_quarantines_the_message_instead_of_losing_it(pipeline, monkeypatch, caplog):
+    # Step 2j: any unexpected error -> stage "internal", original kept for replay.
+    def boom(*_):
+        raise RuntimeError("simulated bug")
+    monkeypatch.setattr(pipeline, "_process", boom)
+    with caplog.at_level(logging.ERROR, logger="gateway"):
+        [q] = run(pipeline, "raw/acme/acme_hvac_0001/telemetry", b'{"tempF": 70}')
+    assert q.topic == "dt/v1/quarantine/acme"
+    assert q.payload["stage"] == "internal" and "simulated bug" in q.payload["reason"]
+    assert q.payload["raw"] == '{"tempF": 70}'
+    assert any(r.message.startswith("pipeline_error") for r in caplog.records)
+
+
 def test_topic_follows_the_contract():
     assert telemetry_topic("site1", "unit1.zone_air_temp") == "dt/v1/telemetry/site1/unit1/zone_air_temp"
 
@@ -96,6 +116,7 @@ def test_bad_reading_is_published_not_quarantined(pipeline, caplog):
                      {"ts": 1792006418428, "tempF": 200.0, "op_state": 1})
     assert t.topic == "dt/v1/telemetry/site1/unit1/zone_air_temp"
     assert t.payload["quality"] == "SUSPECT"
+    assert t.payload["qc"][0]["test"] == "expected_range"   # the reason travels with the data
     # The log line says why (what you asked for: logs explain each message).
     assert any("quality=SUSPECT" in r.message and "expected range" in r.message for r in caplog.records)
 

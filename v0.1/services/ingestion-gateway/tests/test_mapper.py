@@ -131,7 +131,7 @@ def test_rule3_two_enabled_devices_on_one_point_is_rejected():
 def test_two_matching_points_must_be_placed(tmp_path):
     ttl = """
         :zone1 brick:hasPoint :zone_temp2 .
-        :zone_temp2 a brick:Zone_Air_Temperature_Sensor ;
+        :zone_temp2 a brick:Zone_Air_Temperature_Sensor ; dtteo:valueKind "measurement" ;
             ref:hasExternalReference [ a ref:TimeseriesReference ; ref:hasTimeseriesId "zone1.temp2" ] .
     """
     with pytest.raises(MappingError, match="dtteo:place"):
@@ -157,3 +157,31 @@ def test_same_field_mapped_to_two_points_is_rejected(tmp_path):
     with pytest.raises(MappingError, match="mapped to both"):
         with_extra(tmp_path, ':supply_temp ref:hasExternalReference [ a dtteo:RawFieldReference ; '
                              'dtteo:source "acme" ; dtteo:device "acme_hvac_0001" ; dtteo:field "tempF" ] .')
+
+
+# --- Step 2k: value kinds and the energy point ---------------------------------------------
+
+def test_every_point_has_a_kind_and_energy_is_a_total():
+    m = Mapper.from_folder(V01)
+    kinds = {p.point_id: p.kind for p in m.points()}
+    assert kinds["unit1.energy"] == "total"
+    assert kinds["unit1.mode_status"] == "state"
+    assert kinds["unit1.zone_air_temp"] == "measurement"
+    assert "weather1.outside_air_temp" in kinds          # renamed from site1.outside_air_temp
+
+
+def test_sdm120_energy_register_now_maps_to_kwh():
+    pm = Mapper.from_folder(V01).lookup("modbus", "sdm120_unit1", "InputRegister:72")
+    assert (pm.point_id, pm.unit, pm.raw_unit) == ("unit1.energy", "KiloW-HR", "KiloW-HR")
+
+
+def test_point_without_a_kind_is_refused(tmp_path):
+    extra = tmp_path / "extra.ttl"
+    extra.write_text("""
+        @prefix brick: <https://brickschema.org/schema/Brick#> .
+        @prefix ref: <https://brickschema.org/schema/Brick/ref#> . @prefix : <urn:dtteo:site1#> .
+        :humidity a brick:Zone_Air_Humidity_Sensor ;
+            ref:hasExternalReference [ a ref:TimeseriesReference ; ref:hasTimeseriesId "unit1.zone_humidity" ] .
+    """)
+    with pytest.raises(MappingError, match="unit1.zone_humidity: dtteo:valueKind must be one of"):
+        Mapper.from_files(V01 / "dtteo_asset_model.ttl", mapping_files(V01) + [extra])

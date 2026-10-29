@@ -24,8 +24,9 @@ ZONE = PointMapping("unit1.zone_air_temp", "DEG_C", None, None,
 
 
 def reading(value, sensor_time=T0, ingest_time=T0, point="unit1.zone_air_temp"):
-    return {"v": 1, "point": point, "value": value, "unit": "DEG_C",
-            "sensor_time": sensor_time, "ingest_time": ingest_time, "source": "test:dev1"}
+    return {"v": 2, "site": "site1", "point": point, "value": value, "unit": "DEG_C",
+            "sensor_time": sensor_time, "ingest_time": ingest_time, "time_source": "device",
+            "source": "test:dev1"}
 
 
 # --- Gross range test -----------------------------------------------------------------
@@ -70,9 +71,28 @@ def test_reading_from_the_future_is_bad():
     assert v.quality == "BAD" and "future" in v.reasons[0]
 
 
-def test_stale_reading_is_bad():
+def test_late_reading_is_suspect_not_bad():
+    # Step 2j: a late reading is still a real measurement (e.g. replayed after a gateway
+    # outage), so it is flagged SUSPECT, not BAD. See the validator header.
     v = validate(reading(21.0, sensor_time="2026-10-19T01:00:00.000Z"), ZONE)   # 7 h old
-    assert v.quality == "BAD" and "old" in v.reasons[0]
+    assert v.quality == "SUSPECT" and "old" in v.reasons[0]
+    assert v.checks[0].test == "late_arrival"
+
+
+# --- qc list in the message (step 2i) --------------------------------------------------
+
+def test_good_reading_has_no_qc():
+    message, _ = with_quality(reading(21.4), ZONE)
+    assert message["quality"] == "GOOD" and "qc" not in message
+
+
+def test_every_flag_is_listed_in_qc():
+    message, _ = with_quality(reading(130.0), ZONE)        # outside both ranges
+    assert message["quality"] == "BAD"
+    assert [(q["test"], q["flag"]) for q in message["qc"]] == [("sensor_range", "BAD"),
+                                                              ("expected_range", "SUSPECT")]
+    validator = Draft202012Validator(SCHEMA, format_checker=FormatChecker())
+    assert not list(validator.iter_errors(message))
 
 
 def test_stale_check_can_be_turned_off_for_back_fills():
@@ -125,6 +145,6 @@ def test_full_pipeline_gives_valid_canonical_messages(mapper):
             m = mapper.lookup(r.source, r.device, r.field)
             if m is None:
                 continue
-            message, verdict = with_quality(normalise(r, m, ingest), m)
+            message, verdict = with_quality(normalise(r, m, ingest, "site1"), m)
             assert message["quality"] == "GOOD", verdict.reasons
             assert not list(validator.iter_errors(message)), message

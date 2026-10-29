@@ -37,7 +37,7 @@ def run(mapper, sample):
     for r in decode(s["topic"], json.dumps(s["payload"]).encode()):
         m = mapper[sample].lookup(r.source, r.device, r.field)
         if m:
-            out[m.point_id] = normalise(r, m, INGEST)
+            out[m.point_id] = normalise(r, m, INGEST, "site1")
     return out
 
 
@@ -103,20 +103,20 @@ def rec(value, time=INGEST):
 def test_word_not_in_value_map_is_refused():
     m = PointMapping("unit1.mode_status", None, None, None, {"HEATING": "heat", "COOLING": "cool"})
     with pytest.raises(NormaliseError, match="not in the value map"):
-        normalise(rec("OFF"), m, INGEST)
+        normalise(rec("OFF"), m, INGEST, "site1")
 
 
 @pytest.mark.parametrize("bad", ["21.5", None, True, [21.5]])
 def test_non_numbers_are_refused_for_numeric_points(bad):
     m = PointMapping("unit1.zone_air_temp", "DEG_C", None, None)
     with pytest.raises(NormaliseError, match="expected a number"):
-        normalise(rec(bad), m, INGEST)
+        normalise(rec(bad), m, INGEST, "site1")
 
 
 def test_wrong_kind_of_unit_is_refused():
     m = PointMapping("unit1.zone_air_temp", "DEG_C", "KiloW", None)
     with pytest.raises(NormaliseError, match="can't convert"):
-        normalise(rec(5.0), m, INGEST)
+        normalise(rec(5.0), m, INGEST, "site1")
 
 
 # --- Smaller behaviours -----------------------------------------------------------------
@@ -124,10 +124,16 @@ def test_wrong_kind_of_unit_is_refused():
 def test_scale_is_applied_first():
     # The D-04 diagram's example: a device that sends 2152 meaning 21.52 °C
     m = PointMapping("unit1.zone_air_temp", "DEG_C", None, Decimal("0.01"))
-    assert normalise(rec(2152), m, INGEST)["value"] == 21.52
+    assert normalise(rec(2152), m, INGEST, "site1")["value"] == 21.52
 
 
 def test_missing_device_time_uses_ingest_time():
     m = PointMapping("unit1.zone_air_temp", "DEG_C", None, None)
-    out = normalise(rec(21.0, time=None), m, INGEST)
+    out = normalise(rec(21.0, time=None), m, INGEST, "site1")
     assert out["sensor_time"] == out["ingest_time"] == "2026-10-14T19:33:38.900Z"
+    assert out["time_source"] == "gateway"                 # step 2i: says the time is ours
+
+
+def test_device_time_is_marked_as_device_and_site_is_stamped(mapper):
+    t = run(mapper, "acme")["unit1.zone_air_temp"]
+    assert t["time_source"] == "device" and t["site"] == "site1" and t["v"] == 2

@@ -45,7 +45,7 @@ def end_to_end(mapper, topic, payload):
     for r in decode(topic, payload, mapper):
         m = mapper.lookup(r.source, r.device, r.field)
         if m:
-            out[m.point_id] = normalise(r, m, INGEST)
+            out[m.point_id] = normalise(r, m, INGEST, "site1")
     return out
 
 
@@ -129,7 +129,8 @@ def test_sdm120_power_register_ends_up_as_kilowatts(mapper):
     p = out["unit1.power"]
     assert (p["value"], p["unit"]) == (1.1505, "KiloW")                  # 1150.5 W
     assert p["sensor_time"] == "2026-10-18T10:22:00.000Z"                # the poller's read time
-    assert set(out) == {"unit1.power"}                                   # the rest have no point yet
+    assert set(out) == {"unit1.power", "unit1.energy"}                   # the rest have no point yet
+    assert (out["unit1.energy"]["value"], out["unit1.energy"]["unit"]) == (2902.25, "KiloW-HR")   # step 2k
 
 
 def test_sdm120_other_registers_are_decoded_then_quarantined(mapper):
