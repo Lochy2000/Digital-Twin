@@ -18,6 +18,7 @@
 # The database starts with the stack; "migrate" applies storage/migrations, then exits.
 #   docker compose logs migrate                  did the migrations apply?
 #   docker compose logs -f historian             what's being stored (a summary a minute)
+#   http://localhost:3000                        Grafana (admin / GRAFANA_ADMIN_PASSWORD in .env)
 #   docker compose run --rm backup               one backup into v0.1/backups/
 #   docker compose exec timescaledb psql -U dtteo_owner -d dtteo     SQL prompt
 
@@ -136,6 +137,27 @@ services:
       - ./contracts:/contracts:ro
     restart: unless-stopped
 
+  grafana:
+    # Dashboards (stage 3c). Open http://localhost:3000 and log in as admin.
+    # "grafana/grafana" is Grafana's recommended image ("grafana/grafana-oss" stops updating from
+    # 12.4.0): https://grafana.com/docs/grafana/v13.2/setup-grafana/configure-docker/
+    image: grafana/grafana:13.2.5
+    container_name: v01-grafana
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"        # this PC only. For other lab PCs: "3000:3000", after setting a real admin password
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_ANALYTICS_REPORTING_ENABLED: "false"      # don't send usage statistics to Grafana Labs
+      GRAFANA_DB_PASSWORD: ${GRAFANA_DB_PASSWORD}  # read by grafana/provisioning/datasources/dtteo.yaml
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    restart: unless-stopped
+
   backup:
     # Not started by "up". Run on demand:  docker compose run --rm backup
     # Files land in v0.1/backups/ (git-ignored). No off-PC copy yet (no backup device).
@@ -160,3 +182,4 @@ services:
 volumes:
   mosquitto-data:
   timescale-data:
+  grafana-data:

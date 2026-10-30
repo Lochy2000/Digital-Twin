@@ -1,0 +1,261 @@
+{
+  "uid": "dtteo-overview",
+  "title": "DT-TEO overview",
+  "tags": [
+    "dt-teo"
+  ],
+  "timezone": "browser",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "editable": true,
+  "templating": {
+    "list": [
+      {
+        "name": "point",
+        "label": "Measurement points",
+        "type": "query",
+        "datasource": {
+          "uid": "dtteo-db"
+        },
+        "query": "SELECT point_id FROM series WHERE kind = 'measurement' ORDER BY 1",
+        "definition": "SELECT point_id FROM series WHERE kind = 'measurement' ORDER BY 1",
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Measurements (every reading)",
+      "description": "Raw readings of the chosen measurement points (BAD left out). Choose points at the top.",
+      "datasource": {
+        "uid": "dtteo-db"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "uid": "dtteo-db"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "time_series",
+          "rawSql": "SELECT r.sensor_time AS time, s.point_id AS metric, r.value_num AS value\nFROM readings r JOIN series s USING (series_id)\nWHERE s.point_id IN ($point) AND r.quality <> 'BAD' AND $__timeFilter(r.sensor_time)\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Measurements (hourly mean)",
+      "description": "From the summary_1h continuous aggregate: better for weeks or months.",
+      "datasource": {
+        "uid": "dtteo-db"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "uid": "dtteo-db"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "time_series",
+          "rawSql": "SELECT m.bucket AS time, s.point_id AS metric, m.mean AS value\nFROM summary_1h m JOIN series s USING (series_id)\nWHERE s.point_id IN ($point) AND $__timeFilter(m.bucket)\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Energy used per hour",
+      "description": "From the total_1h view: how much each meter total went up per hour (meter resets allowed for).",
+      "datasource": {
+        "uid": "dtteo-db"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "showPoints": "auto"
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "uid": "dtteo-db"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "time_series",
+          "rawSql": "SELECT t.bucket AS time, s.point_id AS metric, t.increase AS value\nFROM total_1h t JOIN series s USING (series_id)\nWHERE $__timeFilter(t.bucket)\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "state-timeline",
+      "title": "Mode",
+      "description": "unit1.mode_status: the unit's reported mode over time.",
+      "datasource": {
+        "uid": "dtteo-db"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "mergeValues": true,
+        "showValue": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "uid": "dtteo-db"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "SELECT r.sensor_time AS time, r.value_text AS mode\nFROM readings r JOIN series s USING (series_id)\nWHERE s.point_id = 'unit1.mode_status' AND r.quality <> 'BAD' AND $__timeFilter(r.sensor_time)\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "bargauge",
+      "title": "Readings by quality",
+      "description": "GOOD / SUSPECT / BAD counts in the time range.",
+      "datasource": {
+        "uid": "dtteo-db"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 8,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "uid": "dtteo-db"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "SELECT quality, count(*) AS readings\nFROM readings\nWHERE $__timeFilter(sensor_time)\nGROUP BY quality\nORDER BY quality"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Latest quarantine",
+      "description": "Messages that couldn't be turned into readings, newest first.",
+      "datasource": {
+        "uid": "dtteo-db"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 16,
+        "w": 16,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "uid": "dtteo-db"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "SELECT ingest_time AS time, stage, source, device, field, reason\nFROM quarantine\nWHERE $__timeFilter(ingest_time)\nORDER BY ingest_time DESC\nLIMIT 50"
+        }
+      ]
+    }
+  ]
+}

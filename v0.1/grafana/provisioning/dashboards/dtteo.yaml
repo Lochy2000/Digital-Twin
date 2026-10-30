@@ -1,0 +1,10 @@
+# Loads every dashboard JSON file in /etc/grafana/dashboards (= v0.1/grafana/dashboards).
+# allowUiUpdates: false -> the file is the source of truth. To keep a change made in Grafana,
+# export the dashboard JSON (Share -> Export) over the file in grafana/dashboards/.
+apiVersion: 1
+providers:
+  - name: DT-TEO
+    type: file
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards

@@ -18,15 +18,17 @@ Design and reasons: `decisions/ADR-002-database-layout.md`. These notes record w
 |---|---|---|
 | `..120000_series_and_readings` | `series`, `readings` | No |
 | `..120100_quarantine` | `quarantine` | No |
-| `..120200_timescale_hypertables` | Makes `readings` and `quarantine` hypertables | **Yes** (the only one) |
+| `..120200_timescale_hypertables` | Makes `readings` and `quarantine` hypertables | **Yes** |
 | `..120300_roles_and_grants` | `dtteo_writer` (historian), `dtteo_reader` (Grafana, SELECT only) | No |
+| `..140000_summary_views` | `total_15m`, `total_1h`, `state_spans` (stage 3c) | No |
+| `..140100_summaries_timescale` | `summary_15m`, `summary_1h` (stage 3c) | **Yes** |
 
 ### First run (Windows, from `v0.1`)
 
 ```bat
 copy .env.example .env          :: then edit the three passwords (letters and digits)
 docker compose up -d
-docker compose logs migrate     :: expect "Applied: ..." four times
+docker compose logs migrate     :: expect one "Applied: ..." per migration file (6 after stage 3c)
 docker compose exec timescaledb psql -U dtteo_owner -d dtteo -c "\dt"
 ```
 
@@ -70,3 +72,32 @@ Docker Hub isn't reachable from the build environment, so TimescaleDB itself cou
 ### Next: stage 3b, the historian
 
 Subscribes to the canonical and quarantine topics and writes them here (ADR-002 section 7).
+
+---
+
+## 2026-10-29 · Stage 3c: summaries and a first Grafana dashboard
+
+### Summaries (ADR-002 section 5)
+
+| Name | Kind of point | Gives | How |
+|---|---|---|---|
+| `summary_15m`, `summary_1h` | measurement | mean, min, max, count per bucket | TimescaleDB continuous aggregates (`..140100_summaries_timescale.sql`). Re-summarise the last 7 days on a schedule; "real-time" mode adds the newest readings when queried |
+| `total_15m`, `total_1h` | total (kWh) | how much it went up per bucket | Plain view (`..140000_summary_views.sql`). A drop counts as a meter reset, as Prometheus does |
+| `state_spans` | state (mode) | each state with its start and end time | Plain view |
+
+BAD readings are left out of all of them. Readings older than 7 days that arrive late (a CSV back-fill) need one manual refresh: `CALL refresh_continuous_aggregate('summary_1h', '<from>', '<to>');`
+
+### Grafana
+
+`http://localhost:3000`, user `admin`, password `GRAFANA_ADMIN_PASSWORD` from `.env` (add that line to your existing `.env`; without it the password is `admin` and Grafana asks you to change it). Only reachable from this PC.
+
+- The database connection and the **DT-TEO overview** dashboard are created automatically from `grafana/` (Grafana "provisioning").
+- Panels: measurements (every reading, and hourly mean), energy used per hour, mode timeline, readings by quality, latest quarantine. "Measurement points" at the top chooses what's plotted.
+- Grafana logs in as `grafana` (SELECT only).
+- The JSON file is the master copy: changes made in Grafana can't be saved over it. To keep one, export the dashboard JSON over `grafana/dashboards/dtteo-overview.json`.
+
+### Checked
+
+On PostgreSQL 16: the views apply and roll back; a meter going 100.0 → 101.0, then reset to 0.2 → 0.7, gives **1.0 kWh** then **0.7 kWh** per hour; mode spans are right; BAD readings are left out; every dashboard query (except the hourly mean, which needs TimescaleDB) runs as the `grafana` login.
+
+**Still to check on your PC** (TimescaleDB and Grafana images couldn't be pulled in the build environment): the continuous-aggregate migration, and that Grafana loads the dashboard.

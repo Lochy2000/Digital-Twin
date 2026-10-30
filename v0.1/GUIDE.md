@@ -6,7 +6,7 @@
 - Step-by-step build notes: [`services/ingestion-gateway/NOTES.md`](services/ingestion-gateway/NOTES.md)
 - Every source used, and which file uses it: [`SOURCES.md`](SOURCES.md)
 
-*Last updated 29 October 2026 (after stage 3b).*
+*Last updated 29 October 2026 (after stage 3c).*
 
 ---
 
@@ -32,7 +32,8 @@ Data from devices and files comes **in**. The platform turns it into **one stand
 | Time-series store (PostgreSQL 18 + TimescaleDB) | Keeps every reading | **Built** (`storage/`, [ADR-002](decisions/ADR-002-database-layout.md)) |
 | Historian | Writes messages into the store | **Built** (`services/historian/`) |
 | Simulated plant, twin engine, scenario worker | Physics model, live twin, what-if runs | Later stages |
-| API, dashboards | For the engineer and ML work | Later stages |
+| Grafana dashboard | Readings, hourly means, energy per hour, mode, quality, quarantine | **Built** (`grafana/`, http://localhost:3000) |
+| API | For the UI and ML work | Later stages |
 
 ---
 
@@ -174,7 +175,7 @@ All commands are run in Windows `cmd`, from `v0.1\services\ingestion-gateway` wi
 | See sample messages go through the pipeline | `python -m gateway.demo` |
 | Run the live stack (broker + gateway + Acme) | from `v0.1`: `docker compose --profile acme up --build` |
 | First time with the database | from `v0.1`: `copy .env.example .env`, set the passwords, then `docker compose up -d` (details: `storage/NOTES.md`) |
-| See what's being stored | `docker compose logs -f historian` |
+| See what's being stored | `docker compose logs -f historian`, or Grafana at http://localhost:3000 |
 | Back up the database | from `v0.1`: `docker compose run --rm backup` |
 | Wipe the broker queue and the database (clean start) | from `v0.1`: `docker compose down -v` |
 | Watch messages / gateway log | `docker compose exec mosquitto mosquitto_sub -v -t "dt/v1/#"` · `docker compose logs -f gateway` |
@@ -199,6 +200,7 @@ v0.1/
 ├── config/retention.yaml        how long stored data is kept
 ├── decisions/                   ADR-001 (database), ADR-002 (database layout)
 ├── storage/                     database migrations, first-start users, backup script
+├── grafana/                     data source + dashboard, loaded automatically
 ├── contracts/                   message formats and topic rules (the "agreements")
 ├── mappings/
 │   ├── types/                   one file per device model
