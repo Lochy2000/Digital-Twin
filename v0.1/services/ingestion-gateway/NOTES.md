@@ -916,3 +916,19 @@ Every other point ID is `<equipment>.<point>`. This one used the site, so its to
 ### Next: stage 3, storage
 
 The database layout is proposed in `decisions/ADR-002-database-layout.md`. Build starts once it's agreed.
+
+---
+
+## 2026-10-31 · Step 2l: known optional fields are counted, not quarantined
+
+Acme sends humidity (`rh`) every 3 s. Its device type marks it optional and the asset model has no humidity point, so every message put one row in quarantine: noise that buried real problems, and at that rate about 29,000 rows a day.
+
+Now a field that is **optional in its device type, has no point, and comes from an enabled device** is skipped and counted (`Pipeline.take_skipped()`); `service.py` logs the counts once a minute:
+
+```
+optional_fields_skipped last=60s counts={"acme/acme_hvac_0001/rh": 31} why="optional in the device type, no point in the asset model"
+```
+
+Unknown fields, unbound devices and disabled devices still go to quarantine. Add the point to the asset model and the field is mapped on the next start. Pattern: EIP Message Filter ("If the message content does not match the criteria, the message is discarded", https://www.enterpriseintegrationpatterns.com/Filter.html).
+
+Checked: 120 tests pass; live (broker + gateway + Acme, 66 s): 66 readings, 0 quarantine messages, one count line.

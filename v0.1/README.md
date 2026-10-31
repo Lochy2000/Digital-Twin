@@ -1,6 +1,6 @@
 # DT-TEO v0.1: Digital Twin Foundation
 
-**Status:** proposal and prototyping · **Last updated:** 28 October 2026
+**Status:** proposal and prototyping · **Last updated:** 31 October 2026
 
 **New here?** Start with [`GUIDE.md`](GUIDE.md): a short guide to what is built so far and how to use it. This README is the full design.
 
@@ -314,9 +314,9 @@ A useful lesson from the literature: a [2026 review of operational twins](https:
 
 This shows how v0.1 runs on **one lab PC** using Docker Compose. Docker Compose starts several containers together from one file. It is drawn as a [C4 deployment diagram](https://c4model.com/diagrams/deployment): machines and runtime environments are nested boxes, with the services inside them.
 
-- **Only three ports are open to the outside** (highlighted): MQTT `1883` for devices, Grafana `3000` for the engineer and the API `8000` for the ML workstation.
+- **Only three ports are open to the outside** (highlighted): MQTT `1883` for devices, Grafana `3000` for the engineer and the API `8000` for the ML workstation (not built yet). For now Grafana is reachable from the lab PC only (`127.0.0.1:3000`), until logins are in place.
 - **The database is not exposed.** It uses port `5432` *inside* the project only. Inside Compose, services find each other by name, e.g. `timescaledb:5432` ([Docker Compose networking](https://docs.docker.com/compose/how-tos/networking/)).
-- **The broker requires a login.** Since Mosquitto 2.0, a broker that accepts connections from other machines refuses anonymous clients by default ([Mosquitto 2.0 migration notes](https://mosquitto.org/documentation/migrating-to-2-0/)), so the ESP8266 needs a username and password.
+- **The broker requires a login** (being added now; anonymous access was allowed while building the pipeline). Since Mosquitto 2.0, a broker that accepts connections from other machines refuses anonymous clients by default ([Mosquitto 2.0 migration notes](https://mosquitto.org/documentation/migrating-to-2-0/)), so the ESP8266 needs a username and password.
 - **Scaling:** the scenario worker can have extra copies added. The twin engine stays as one instance because it holds live state in memory.
 
 ### Storage: decided
@@ -380,7 +380,6 @@ These are deliberately **not** in v0.1:
 
 - What controller or interface will Botanic's own unit expose (Modbus, BACnet, proprietary)? This decides which adapter matters most.
 - What are the real unit's inputs, outputs and modes? These will replace the placeholder in `dtteo_asset_model.ttl` and the simulated plant.
-- Database layout (ADR-002): confirm the proposal before the historian is built.
 - Should ESP8266 firmware be written in ESPHome (simpler) or Arduino (more control over messages)?
 - When should the command path design (D-08) start?
 

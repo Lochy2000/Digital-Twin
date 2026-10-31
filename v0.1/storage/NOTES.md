@@ -101,3 +101,11 @@ BAD readings are left out of all of them. Readings older than 7 days that arrive
 On PostgreSQL 16: the views apply and roll back; a meter going 100.0 → 101.0, then reset to 0.2 → 0.7, gives **1.0 kWh** then **0.7 kWh** per hour; mode spans are right; BAD readings are left out; every dashboard query (except the hourly mean, which needs TimescaleDB) runs as the `grafana` login.
 
 **Still to check on your PC** (TimescaleDB and Grafana images couldn't be pulled in the build environment): the continuous-aggregate migration, and that Grafana loads the dashboard.
+
+---
+
+## 2026-10-31 · Quick fixes after the first full run
+
+- **Dashboard:** "Readings by quality" shows GOOD / SUSPECT / BAD as three labelled numbers (Grafana's default colour rule had turned any count over 80 red). "Hourly mean" includes any hourly bucket that overlaps the time range (buckets are stamped at the start of the hour). Mode colours: heat orange, cool blue, off grey.
+- **Smoke test:** `python tools\smoke_test.py` (from `v0.1`, stack running) checks migrations, the reading path, the quarantine path, the summaries and Grafana, then deletes its test rows. First run on the lab PC, 31 Oct 2026: all 6 checks passed.
+- Grafana is pinned to 13.2.5 (changed from 13.2.6 on the lab PC).
