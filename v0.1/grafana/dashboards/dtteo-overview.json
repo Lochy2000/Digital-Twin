@@ -80,7 +80,7 @@
       "id": 2,
       "type": "timeseries",
       "title": "Measurements (hourly mean)",
-      "description": "From the summary_1h continuous aggregate: better for weeks or months.",
+      "description": "From the summary_1h continuous aggregate (one point per hour, stamped at the start of the hour; the current hour includes readings so far). Better for weeks or months.",
       "datasource": {
         "uid": "dtteo-db"
       },
@@ -95,7 +95,7 @@
           "custom": {
             "drawStyle": "line",
             "fillOpacity": 0,
-            "showPoints": "never"
+            "showPoints": "always"
           }
         },
         "overrides": []
@@ -109,7 +109,7 @@
           "editorMode": "code",
           "rawQuery": true,
           "format": "time_series",
-          "rawSql": "SELECT m.bucket AS time, s.point_id AS metric, m.mean AS value\nFROM summary_1h m JOIN series s USING (series_id)\nWHERE s.point_id IN ($point) AND $__timeFilter(m.bucket)\nORDER BY 1"
+          "rawSql": "SELECT m.bucket AS time, s.point_id AS metric, m.mean AS value\nFROM summary_1h m JOIN series s USING (series_id)\nWHERE s.point_id IN ($point)\n  AND m.bucket > $__timeFrom()::timestamptz - INTERVAL '1 hour'   -- bucket overlaps the range\n  AND m.bucket <= $__timeTo()::timestamptz\nORDER BY 1"
         }
       ]
     },
@@ -166,7 +166,31 @@
         "h": 8
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "heat": {
+                  "color": "orange",
+                  "index": 0
+                },
+                "cool": {
+                  "color": "blue",
+                  "index": 1
+                },
+                "off": {
+                  "color": "gray",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
         "overrides": []
       },
       "options": {
@@ -188,9 +212,9 @@
     },
     {
       "id": 5,
-      "type": "bargauge",
+      "type": "stat",
       "title": "Readings by quality",
-      "description": "GOOD / SUSPECT / BAD counts in the time range.",
+      "description": "How many readings in the time range were GOOD, SUSPECT or BAD.",
       "datasource": {
         "uid": "dtteo-db"
       },
@@ -201,17 +225,74 @@
         "h": 8
       },
       "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GOOD"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SUSPECT"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "BAD"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
-        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "values": true
-        }
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "vertical"
       },
       "targets": [
         {
@@ -222,7 +303,7 @@
           "editorMode": "code",
           "rawQuery": true,
           "format": "table",
-          "rawSql": "SELECT quality, count(*) AS readings\nFROM readings\nWHERE $__timeFilter(sensor_time)\nGROUP BY quality\nORDER BY quality"
+          "rawSql": "SELECT count(*) FILTER (WHERE quality = 'GOOD')    AS \"GOOD\",\n       count(*) FILTER (WHERE quality = 'SUSPECT') AS \"SUSPECT\",\n       count(*) FILTER (WHERE quality = 'BAD')     AS \"BAD\"\nFROM readings\nWHERE $__timeFilter(sensor_time)"
         }
       ]
     },
