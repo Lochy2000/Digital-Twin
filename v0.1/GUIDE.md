@@ -172,6 +172,7 @@ All commands are run in Windows `cmd`, from `v0.1\services\ingestion-gateway` wi
 | I want to… | Do this |
 |---|---|
 | Check everything still works | `python -m pytest` |
+| Check the running stack end to end | from `v0.1`, after `docker compose up -d`: `python tools\smoke_test.py` (sends a test reading, checks it's stored, cleans up) |
 | See every field → point mapping, and warnings | `python -m gateway.mapper` |
 | See sample messages go through the pipeline | `python -m gateway.demo` |
 | Run the live stack (broker + gateway + Acme) | from `v0.1`: `docker compose --profile acme up --build` |

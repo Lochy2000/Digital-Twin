@@ -6,6 +6,7 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | Source | Cited in |
 |---|---|
 | <http://localhost:3000> | `docker-compose.yml` |
+| <http://localhost:3000/api/health> | `tools/smoke_test.py` |
 | <https://brandur.org/logfmt> | `services/ingestion-gateway/gateway/pipeline.py` |
 | <https://brickschema.readthedocs.io/en/stable/> | `dtteo_asset_model.ttl` |
 | <https://buildingmotif.readthedocs.io/en/latest/guides/ingress-bacnet-to-brick.html> | `mappings/dtteo_onboarding.ttl` |
@@ -27,10 +28,12 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://github.com/ioos/ioos_qc> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/validator.py` |
 | <https://github.com/python/cpython/blob/main/Doc/library/zoneinfo.rst> | `services/ingestion-gateway/gateway/decoders/tasmota.py`, `services/ingestion-gateway/requirements.txt` |
 | <https://grafana.com/docs/grafana/latest/datasources/postgres/configure/> | `storage/migrations/20261029120300_roles_and_grants.sql` |
+| <https://grafana.com/docs/grafana/v13.2/developer-resources/api-reference/http-api/api-legacy/other/> | `tools/smoke_test.py` |
 | <https://grafana.com/docs/grafana/v13.2/setup-grafana/configure-docker/> | `docker-compose.yml` |
 | <https://json-schema.org/draft/2020-12/schema> | `contracts/check_examples.py` |
 | <https://mosquitto.org/documentation/persistence/sqlite/> | `broker/mosquitto.conf` |
 | <https://mosquitto.org/man/mosquitto-conf-5.html> | `broker/mosquitto.conf`, `services/ingestion-gateway/gateway/service.py` |
+| <https://mosquitto.org/man/mosquitto_pub-1.html> | `tools/smoke_test.py` |
 | <https://prometheus.io/docs/concepts/metric_types> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://prometheus.io/docs/prometheus/latest/querying/functions/> | `storage/migrations/20261029140000_summary_views.sql` |
 | <https://psycopg.org/psycopg3/docs/advanced/pipeline.html> | `services/historian/historian/store.py` |
@@ -56,6 +59,7 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html> | `mappings/dtteo_onboarding.ttl`, `mappings/types/eastron_sdm120.ttl`, `services/ingestion-gateway/gateway/decoders/modbus.py`, `services/ingestion-gateway/gateway/mapper.py` |
 | <https://wcm-cce.cldnet.analog.com/media/cn/technical-documentation/data-sheets/2812.pdf> | `mappings/types/tasmota_ds18b20.ttl` |
 | <https://www.aggsoft.com/serial-data-logger/tutorials/modbus-data-logging/eastron-sdm120.htm> | `mappings/types/eastron_sdm120.ttl` |
+| <https://www.enterpriseintegrationpatterns.com/Filter.html> | `services/ingestion-gateway/gateway/pipeline.py` |
 | <https://www.enterpriseintegrationpatterns.com/patterns/messaging/DeadLetterChannel.html> | `services/ingestion-gateway/gateway/pipeline.py` |
 | <https://www.enterpriseintegrationpatterns.com/patterns/messaging/InvalidMessageChannel.html> | `services/ingestion-gateway/gateway/decoders/__init__.py`, `services/ingestion-gateway/gateway/pipeline.py` |
 | <https://www.enterpriseintegrationpatterns.com/patterns/messaging/Normalizer.html> | `services/ingestion-gateway/gateway/normaliser.py` |
@@ -69,4 +73,4 @@ Design documents (README.md, mappings/DESIGN.md, NOTES.md files) have their own 
 | <https://www.tigerdata.com/docs/reference/timescaledb/hypertables/create_hypertable/> | `storage/migrations/20261029120200_timescale_hypertables.sql` |
 | <https://www.tigerdata.com/docs/use-timescale/latest/continuous-aggregates/real-time-aggregates> | `storage/migrations/20261029140100_summaries_timescale.sql` |
 | <https://www.w3.org/TR/vocab-ssn/> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
-| <https://www.w3.org/TR/wot-thing-description11/#thing-model> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py` |
+| <https://www.w3.org/TR/wot-thing-description11/#thing-model> | `mappings/dtteo_onboarding.ttl`, `services/ingestion-gateway/gateway/mapper.py`, `services/ingestion-gateway/gateway/pipeline.py` |
