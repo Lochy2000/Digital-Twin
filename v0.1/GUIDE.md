@@ -142,6 +142,7 @@ More: [`mappings/DESIGN.md`](mappings/DESIGN.md) (design and sources) · [`mappi
 | SUSPECT (late) | Arrived more than 6 h after it was measured (e.g. replayed after an outage): still a real reading | Telemetry topic, flagged |
 | BAD | Outside what the **sensor can measure**, or a time in the future | Telemetry topic, flagged |
 | Quarantine | Couldn't be read, mapped or converted, or hit a gateway bug | `dt/v1/quarantine/{source}` |
+| Skipped (counted) | A field its device type marks optional, with no point in the asset model (e.g. Acme's humidity) | Not published; counted in the gateway log once a minute |
 
 The checks follow QARTOD, the US IOOS standard for real-time sensor data quality, as implemented in [ioos_qc](https://github.com/ioos/ioos_qc) (one deliberate difference: late readings are SUSPECT, not BAD; see the validator header). The reasons travel in the message's `qc` list and appear in the gateway log.
 

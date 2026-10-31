@@ -43,21 +43,36 @@ def sample(name):
     return s["topic"], s["payload"]
 
 
-def test_acme_message_becomes_telemetry_and_quarantine(pipeline):
+def test_acme_message_becomes_telemetry_and_known_optional_field_is_counted(pipeline):
+    pipeline.take_skipped()                                # start the count from zero
     out = {o.topic: o.payload for o in run(pipeline, *sample("acme"))}
     assert out["dt/v1/telemetry/site1/unit1/zone_air_temp"]["value"] == 21.3333
     assert out["dt/v1/telemetry/site1/unit1/mode_status"]["value"] == "cool"
-    q = out["dt/v1/quarantine/acme"]                       # humidity: no point
-    assert (q["stage"], q["field"], q["value"]) == ("map", "rh", 54.0)
-    assert "no brick:Zone_Air_Humidity_Sensor point" in q["reason"]   # says exactly what is missing
-    assert json.loads(q["raw"])["tempF"] == 70.4           # original kept for replay
+    # Step 2l: humidity is optional in the Acme type and unit1 has no humidity point, so it is
+    # counted, not quarantined (it's already reported at start-up).
+    assert "dt/v1/quarantine/acme" not in out
+    assert pipeline.take_skipped() == {"acme/acme_hvac_0001/rh": 1}
+    assert pipeline.take_skipped() == {}                   # the count resets
+
+
+def test_unknown_field_is_still_quarantined_with_the_original(pipeline):
+    [t, q] = run(pipeline, "raw/acme/acme_hvac_0001/telemetry", {"ts": 1792006418428, "tempF": 70.4, "co2": 410})
+    assert q.topic == "dt/v1/quarantine/acme" and q.payload["field"] == "co2"
+    assert json.loads(q.payload["raw"])["tempF"] == 70.4   # original kept for replay
+
+
+def test_optional_field_of_a_disabled_device_is_still_quarantined(pipeline):
+    out = run(pipeline, *sample("borealis"))               # Borealis is off by default
+    humidity = [o for o in out if o.payload.get("field") == "humidity"]
+    assert humidity and "disabled" in humidity[0].payload["reason"]
 
 
 def test_messages_carry_site_and_time_source(pipeline):
     out = {o.topic: o.payload for o in run(pipeline, *sample("acme"))}
     t = out["dt/v1/telemetry/site1/unit1/zone_air_temp"]
     assert (t["v"], t["site"], t["time_source"]) == (2, "site1", "device")
-    assert out["dt/v1/quarantine/acme"]["site"] == "site1"
+    [q] = run(pipeline, "raw/acme/acme_hvac_0001/telemetry", {"ts": 1792006418428, "co2": 410})
+    assert q.payload["site"] == "site1"
 
 
 def test_gateway_bug_quarantines_the_message_instead_of_losing_it(pipeline, monkeypatch, caplog):
@@ -123,9 +138,9 @@ def test_bad_reading_is_published_not_quarantined(pipeline, caplog):
 
 def test_quarantine_is_logged_with_reason(pipeline, caplog):
     with caplog.at_level(logging.WARNING, logger="gateway"):
-        run(pipeline, *sample("acme"))
+        run(pipeline, "raw/acme/acme_hvac_0001/telemetry", {"ts": 1792006418428, "co2": 410})
     [line] = [r.message for r in caplog.records if r.message.startswith("quarantine")]
-    assert "stage=map" in line and "field=rh" in line and "reason=" in line
+    assert "stage=map" in line and "field=co2" in line and "reason=" in line
 
 
 def test_logfmt_quotes_values_with_spaces():

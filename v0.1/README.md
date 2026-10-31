@@ -172,7 +172,7 @@ The validator checks each reading: is it within what the sensor can measure, wit
 
 Readings that can't be processed aren't dropped. They go to a separate **quarantine topic** where they can be inspected later, with the original message and the reason (`contracts/quarantine_message.schema.json`). Three cases send a reading there:
 - the message **can't be read** at all (e.g. not valid JSON);
-- an **unknown point**: a field nobody has mapped yet;
+- an **unknown point**: a field nobody has mapped yet (a field the device type marks *optional* and the asset model deliberately has no point for is counted in the gateway log instead, once a minute);
 - a value that **can't be converted** (e.g. a mode word not in the value map).
 
 A reading that was understood but fails a validator check is **not** quarantined: it is published with quality `SUSPECT` or `BAD`, and a `qc` list saying which check flagged it, so nothing is lost and the flag can be revisited (steps 2g, 2i). A fourth case, a bug in the gateway itself, also quarantines the message (stage `internal`) rather than losing it (step 2j).

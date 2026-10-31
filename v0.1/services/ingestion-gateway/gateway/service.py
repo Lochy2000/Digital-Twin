@@ -46,6 +46,7 @@ import json
 import logging
 import os
 import signal
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -123,11 +124,19 @@ def main() -> None:
     def on_disconnect(client, userdata, flags, reason_code, properties):
         log.warning(kv("disconnected", reason=str(reason_code)))
 
+    last_report = {"t": time.monotonic()}
+
     def on_message(client, userdata, msg):
         # pipeline.process never raises: a bug quarantines the message (stage=internal).
         outgoing = pipeline.process(msg.topic, msg.payload, datetime.now(timezone.utc))
         for o in outgoing:
             send(client, o)
+        if time.monotonic() - last_report["t"] >= 60:          # once a minute, if anything was skipped
+            counts = pipeline.take_skipped()
+            if counts:
+                log.info(kv("optional_fields_skipped", last="60s", counts=counts,
+                            why="optional in the device type, no point in the asset model"))
+            last_report["t"] = time.monotonic()
 
     client.on_connect, client.on_disconnect, client.on_message = on_connect, on_disconnect, on_message
 

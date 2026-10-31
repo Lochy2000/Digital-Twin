@@ -42,7 +42,11 @@ def main():
             raw = f"{r.field} = {r.value}"
             m = mapper.lookup(r.source, r.device, r.field)
             if m is None:
-                print(f"  {raw:30} -> QUARANTINE: unknown point")
+                b = mapper.binding(r.source, r.device)
+                if b and b.enabled and mapper.why_unmapped(r.source, r.device, r.field):
+                    print(f"  {raw:30} -> skipped: optional, no point in the asset model")
+                else:
+                    print(f"  {raw:30} -> QUARANTINE: unknown point")
                 continue
             try:
                 n = normalise(r, m, ingest, site="site1")

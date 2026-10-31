@@ -6,6 +6,8 @@ Pipeline: one raw MQTT message in -> the messages to publish out, plus log lines
             -> dt/v1/telemetry/{site}/{equipment}/{point}   canonical message (GOOD / SUSPECT / BAD)
             -> dt/v1/quarantine/{source}                    anything that couldn't be turned into one,
                                                             including a message that hit a gateway bug
+            (fields the device type marks OPTIONAL and the asset model has no point for are
+             counted, not quarantined: see "Known optional fields" below)
 
 This file knows nothing about MQTT connections; it only decides WHAT to publish. That
 keeps it testable without a broker. gateway/service.py does the connecting and sending.
@@ -14,7 +16,16 @@ Logging (one line per event, key=value "logfmt" style, easy to read and to searc
     INFO     every reading that isn't GOOD, with the validator's reasons
     WARNING  every quarantined message or field, with the reason
     ERROR    a gateway bug (with the stack trace); the message is quarantined (stage=internal)
-    DEBUG    every GOOD reading (off by default; set LOG_LEVEL=DEBUG to see them)
+    DEBUG    every GOOD reading, every skipped optional field (off by default; LOG_LEVEL=DEBUG)
+
+Known optional fields (step 2l): a device type can mark a value optional ("an installed unit may
+not have this value", WoT tm:optional). If the asset model has no point for it, the mapper already
+reports it once at start-up. Quarantining it on every message as well would fill the quarantine
+table with something already known (Acme's humidity: every 3 s). So it is filtered out and
+counted (take_skipped(); service.py logs the counts once a minute). This is the EIP Message Filter:
+"If the message content does not match the criteria, the message is discarded." Unknown fields,
+fields of disabled bindings, and unbound devices still go to quarantine. Add the point to the asset
+model and the field is mapped on the next start.
 
 Sources:
   - Topics and QoS:  v0.1/contracts/topics.md
@@ -24,6 +35,8 @@ Sources:
   - Keep the original + add error context (Kafka Connect dead letter queue):
       https://docs.confluent.io/platform/current/installation/configuration/connect/sink-connect-configs.html
   - logfmt:  https://brandur.org/logfmt
+  - Message Filter:  https://www.enterpriseintegrationpatterns.com/Filter.html
+  - Optional values (tm:optional):  https://www.w3.org/TR/wot-thing-description11/#thing-model
   - A message that makes the code fail goes to the dead letter channel instead of being lost
     (Kafka Connect errors.tolerance + DLQ, link above; EIP Dead Letter Channel):
       https://www.enterpriseintegrationpatterns.com/patterns/messaging/DeadLetterChannel.html
@@ -33,6 +46,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -83,6 +97,7 @@ class Pipeline:
         self.mapper = mapper
         self.site = site
         self.validator_options = validator_options    # e.g. max_age=None for a back-fill
+        self.skipped: Counter = Counter()             # (source, device, field) -> how many skipped
 
     def process(self, topic: str, payload: bytes, now: datetime) -> list[Outgoing]:
         """Never raises: a bug while processing quarantines the whole message (stage=internal)."""
@@ -129,6 +144,10 @@ class Pipeline:
             # 2. Map. Say WHY a field has no point, so the log tells you what to fix.
             mapping = self.mapper.lookup(r.source, r.device, r.field)
             if mapping is None:
+                if self._known_optional(r):            # known and deliberately not mapped: count it
+                    self.skipped[(r.source, r.device, r.field)] += 1
+                    log.debug(kv("optional_field_skipped", source=r.source, device=r.device, field=r.field))
+                    continue
                 out.append(quarantine("map", self._why_unmapped(r), source, device, r))
                 continue
 
@@ -148,6 +167,17 @@ class Pipeline:
             (log.debug if verdict.quality == "GOOD" else log.info)(line)
             out.append(Outgoing(telemetry_topic(self.site, message["point"]), message))
         return out
+
+    def take_skipped(self) -> dict[str, int]:
+        """Counts of skipped optional fields since the last call, as {"acme/acme_hvac_0001/rh": 20}; resets."""
+        counts = {f"{s}/{d}/{f}": n for (s, d, f), n in sorted(self.skipped.items())}
+        self.skipped.clear()
+        return counts
+
+    def _known_optional(self, r: RawRecord) -> bool:
+        """Optional in the device type, no point in the asset model, and the device is enabled."""
+        binding = self.mapper.binding(r.source, r.device)
+        return bool(binding and binding.enabled and self.mapper.why_unmapped(r.source, r.device, r.field))
 
     def _why_unmapped(self, r: RawRecord) -> str:
         binding = self.mapper.binding(r.source, r.device)
