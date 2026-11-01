@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 800" width="1290" height="800" role="img" aria-label="D-12: the database with example rows. The series table holds each site and point once; readings rows point to it by series_id and hold the value, both times, quality, qc reasons and time source. Readings is split into weekly chunks. Quarantine holds messages that could not become readings. Summaries are worked out from readings.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap');
+    .bg { fill: #FFFFFF; }
+    .tbl { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .hdr { fill: #F3F4F4; stroke: #141618; stroke-width: 1; }
+    .row { stroke: #D5D8DA; stroke-width: 1; }
+    .hl { fill: #E8F3F2; }
+    .side { fill: #FFFFFF; stroke: #596064; stroke-width: 1; stroke-dasharray: 5 4; }
+    .chunk { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .conn { fill: none; stroke: #141618; stroke-width: 1.25; }
+    .conn.acc { stroke: #0E6E68; stroke-width: 1.75; }
+    .head { fill: #141618; }
+    .head.acc { fill: #0E6E68; }
+    .title { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #141618; }
+    .tname { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 13px; font-weight: 500; fill: #141618; }
+    .tdesc { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; fill: #596064; }
+    .col { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 10.5px; font-weight: 500; fill: #596064; }
+    .cell { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 10.5px; fill: #141618; }
+    .cell.dim { fill: #9AA0A4; }
+    .cell.acc { fill: #0E6E68; font-weight: 500; }
+    .desc { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; fill: #596064; }
+    .lbl { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; font-weight: 500; fill: #141618; }
+    .acc-t { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; font-weight: 600; fill: #0E6E68; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" class="head"/></marker>
+    <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" class="head acc"/></marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1290" height="800"/>
+  <text class="title" x="24" y="34">D-12 · The database, with example rows</text>
+
+  <!-- series -->
+  <text class="tname" x="24" y="76">series</text>
+  <text class="tdesc" x="84" y="76">each site + point once (copied from the asset model)</text>
+  <rect class="tbl" x="24" y="86" width="372" height="146" rx="2"/>
+  <rect class="hdr" x="24" y="86" width="372" height="24" rx="2"/>
+  <text class="col" x="34" y="102">series_id</text><text class="col" x="104" y="102">site</text><text class="col" x="150" y="102">point_id</text><text class="col" x="290" y="102">unit</text><text class="col" x="350" y="102">kind</text>
+  <text class="cell" x="34" y="128">2</text><text class="cell" x="104" y="128">site1</text><text class="cell" x="150" y="128">unit1.energy</text><text class="cell" x="290" y="128">KiloW-HR</text><text class="cell" x="350" y="128">total</text>
+  <line class="row" x1="24" y1="136" x2="396" y2="136"/>
+  <text class="cell" x="34" y="154">5</text><text class="cell" x="104" y="154">site1</text><text class="cell" x="150" y="154">unit1.mode_status</text><text class="cell dim" x="290" y="154">–</text><text class="cell" x="350" y="154">state</text>
+  <line class="row" x1="24" y1="162" x2="396" y2="162"/>
+  <rect class="hl" x="25" y="163" width="370" height="25"/>
+  <text class="cell acc" x="34" y="180">8</text><text class="cell" x="104" y="180">site1</text><text class="cell" x="150" y="180">unit1.zone_air_temp</text><text class="cell" x="290" y="180">DEG_C</text><text class="cell" x="350" y="180">meas.</text>
+  <line class="row" x1="24" y1="188" x2="396" y2="188"/>
+  <text class="cell dim" x="34" y="210">… 10 rows: one per point in dtteo_asset_model.ttl</text>
+  <text class="desc" x="24" y="252"><tspan x="24">The number (series_id) is what every reading row</tspan><tspan x="24" dy="15">stores, instead of repeating the names each time.</tspan></text>
+
+  <!-- readings -->
+  <text class="tname" x="440" y="76">readings</text>
+  <text class="tdesc" x="514" y="76">one row per reading (a TimescaleDB hypertable)</text>
+  <rect class="tbl" x="440" y="86" width="826" height="146" rx="2"/>
+  <rect class="hdr" x="440" y="86" width="826" height="24" rx="2"/>
+  <text class="col" x="450" y="102">series_id</text><text class="col" x="522" y="102">sensor_time</text><text class="col" x="620" y="102">ingest_time</text><text class="col" x="718" y="102">value</text><text class="col" x="800" y="102">quality</text><text class="col" x="866" y="102">qc</text><text class="col" x="1150" y="102">time_source</text>
+  <rect class="hl" x="441" y="111" width="824" height="25"/>
+  <text class="cell acc" x="450" y="128">8</text><text class="cell" x="522" y="128">10:22:00.000</text><text class="cell" x="620" y="128">10:22:00.001</text><text class="cell" x="718" y="128">21.6667</text><text class="cell" x="800" y="128">GOOD</text><text class="cell dim" x="866" y="128">–</text><text class="cell" x="1150" y="128">device</text>
+  <line class="row" x1="440" y1="136" x2="1266" y2="136"/>
+  <text class="cell" x="450" y="154">5</text><text class="cell" x="522" y="154">10:22:00.000</text><text class="cell" x="620" y="154">10:22:00.001</text><text class="cell" x="718" y="154">heat</text><text class="cell" x="800" y="154">GOOD</text><text class="cell dim" x="866" y="154">–</text><text class="cell" x="1150" y="154">device</text>
+  <line class="row" x1="440" y1="162" x2="1266" y2="162"/>
+  <text class="cell" x="450" y="180">8</text><text class="cell" x="522" y="180">10:22:03.000</text><text class="cell" x="620" y="180">10:22:03.001</text><text class="cell" x="718" y="180">93.3333</text><text class="cell" x="800" y="180">SUSPECT</text><text class="cell" x="866" y="180">[{"test":"expected_range", "flag":…}]</text><text class="cell" x="1150" y="180">device</text>
+  <line class="row" x1="440" y1="188" x2="1266" y2="188"/>
+  <text class="cell" x="450" y="206">2</text><text class="cell" x="522" y="206">10:22:00.000</text><text class="cell" x="620" y="206">10:22:00.012</text><text class="cell" x="718" y="206">2902.25</text><text class="cell" x="800" y="206">GOOD</text><text class="cell dim" x="866" y="206">–</text><text class="cell" x="1150" y="206">device</text>
+  <text class="cell dim" x="450" y="224">(value is one of three columns: value_num 21.6667 · value_text heat · value_bool true/false; the others stay empty)</text>
+
+  <!-- series_id link -->
+  <path class="conn acc" d="M440 124 H420 V175 H398" marker-end="url(#aa)"/>
+  <text class="desc" x="440" y="252"><tspan x="440">Unique together: series_id + sensor_time. A copy the broker sends twice has the same pair, so the second</tspan><tspan x="440" dy="15">is skipped (INSERT … ON CONFLICT DO NOTHING). 93.3333 °C came from 200 °F: understood, kept, flagged.</tspan></text>
+
+  <!-- chunks -->
+  <text class="lbl" x="440" y="312">Behind the scenes: split into chunks by sensor_time (TimescaleDB's default: 7 days each; dates illustrative)</text>
+  <rect class="chunk" x="440" y="324" width="150" height="40" rx="2"/><text class="cell" x="452" y="348">12 – 19 Oct</text>
+  <rect class="chunk" x="600" y="324" width="150" height="40" rx="2"/><text class="cell" x="612" y="348">19 – 26 Oct</text>
+  <rect class="chunk" x="760" y="324" width="150" height="40" rx="2"/><text class="cell" x="772" y="348">26 Oct – 2 Nov</text>
+  <rect class="chunk" x="920" y="324" width="150" height="40" rx="2" style="stroke:#0E6E68;stroke-width:1.5"/><text class="cell acc" x="932" y="348">2 – 9 Nov  ← new rows</text>
+  <text class="desc" x="440" y="384">A query for one day only opens the chunk that holds it; old chunks can later be compressed or dropped whole.</text>
+
+  <!-- quarantine -->
+  <text class="tname" x="24" y="440">quarantine</text>
+  <text class="tdesc" x="112" y="440">what couldn't become a reading, with the reason and the original</text>
+  <rect class="tbl" x="24" y="450" width="620" height="96" rx="2"/>
+  <rect class="hdr" x="24" y="450" width="620" height="24" rx="2"/>
+  <text class="col" x="34" y="466">ingest_time</text><text class="col" x="134" y="466">stage</text><text class="col" x="190" y="466">field</text><text class="col" x="240" y="466">reason</text><text class="col" x="500" y="466">raw</text>
+  <text class="cell" x="34" y="492">10:22:05.012</text><text class="cell" x="134" y="492">map</text><text class="cell" x="190" y="492">co2</text><text class="cell" x="240" y="492">field 'co2' is not in device</text><text class="cell" x="500" y="492">{"ts":…,"co2":410}</text>
+  <text class="cell" x="240" y="506">type acme_hvac</text>
+  <line class="row" x1="24" y1="514" x2="644" y2="514"/>
+  <text class="cell" x="34" y="534">10:31:40.207</text><text class="cell" x="134" y="534">store</text><text class="cell dim" x="190" y="534">–</text><text class="cell" x="240" y="534">no series for site1/unit9.x</text><text class="cell" x="500" y="534">{"v":2,…}</text>
+  <text class="desc" x="24" y="566"><tspan x="24">stage = where it failed: decode, map, normalise, internal (gateway), or store (historian).</tspan><tspan x="24" dy="15">raw keeps the original message, so it can be replayed once the cause is fixed.</tspan></text>
+
+  <!-- summaries -->
+  <text class="tname" x="700" y="440">worked out from readings</text>
+  <rect class="tbl" x="700" y="450" width="566" height="62" rx="2"/>
+  <text class="cell" x="712" y="470">summary_1h</text><text class="desc" x="800" y="470">measurements · kept up to date by TimescaleDB (continuous aggregate)</text>
+  <text class="cell" x="712" y="494">series 8 · 10:00 · mean 21.4 · min 18.2 · max 24.1 · n 1,200</text>
+  <rect class="tbl" x="700" y="520" width="566" height="62" rx="2"/>
+  <text class="cell" x="712" y="540">total_1h</text><text class="desc" x="780" y="540">meter totals · plain view, worked out when asked (meter resets allowed for)</text>
+  <text class="cell" x="712" y="564">series 2 · 10:00 · increase 1.0 kWh</text>
+  <rect class="tbl" x="700" y="590" width="566" height="62" rx="2"/>
+  <text class="cell" x="712" y="610">state_spans</text><text class="desc" x="804" y="610">modes · plain view</text>
+  <text class="cell" x="712" y="634">series 5 · heat · 10:00:00 → 10:30:00 (30 min)</text>
+  <text class="desc" x="700" y="672">BAD readings are left out of all three. Grafana's panels read these and readings.</text>
+
+  <!-- who can do what -->
+  <rect class="side" x="24" y="640" width="620" height="112" rx="2"/>
+  <text class="lbl" x="38" y="662">Who can do what (database logins)</text>
+  <text class="cell" x="38" y="684">dtteo_owner</text><text class="desc" x="150" y="684">owns the tables: migrations (dbmate) and backups</text>
+  <text class="cell" x="38" y="704">historian</text><text class="desc" x="150" y="704">adds readings and quarantine rows, updates series; can't delete</text>
+  <text class="cell" x="38" y="724">grafana</text><text class="desc" x="150" y="724">reads only (SELECT); can't change anything</text>
+  <text class="desc" x="38" y="742">Passwords come from .env. The database has no port open to the network.</text>
+
+  <text class="desc" x="700" y="742">Example values: as the gateway and historian produce them from the test messages (Acme, SDM120 sample).</text>
+</svg>

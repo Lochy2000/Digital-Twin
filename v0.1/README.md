@@ -33,6 +33,7 @@ There is no real building or site in this stage. Data comes from a simulated pla
 |---|---|
 | `README.md` | This document |
 | `GUIDE.md` | Short, practical guide to what is built and how to use it |
+| `HOW_IT_WORKS.md` | Walkthrough of every part, Docker, every file, measurements and a review |
 | `decisions/` | Architecture decision records (ADRs): ADR-001 time-series store (accepted), ADR-002 database layout (proposed) |
 | `config/retention.yaml` | How long each kind of stored data is kept (ADR-001 section 9) |
 | `architecture.png` | Reference table of standard IoT architecture layers |
@@ -45,6 +46,7 @@ There is no real building or site in this stage. Data comes from a simulated pla
 | `diagrams/deployment_images.png` | D-06 · how v0.1 runs on one lab PC |
 | `diagrams/what_if.png` | D-07 · how a scenario run works without touching the live twin |
 | `diagrams/onboarding.png` | D-09 · how a device type, a binding and the asset model give each field its point |
+| `diagrams/docker_anatomy.png`, `reading_timeline.png`, `database_rows.png` | D-10 to D-12 · Docker, a reading's timing, the database with example rows (explained in `HOW_IT_WORKS.md`) |
 | `diagrams/normalizer.png`, `invalid_message.png`, `logical_components.png`, `device_registery.png`, `MQTT_5_Request_Response.png` | Reference images from external docs, credited where they are used |
 
 ---

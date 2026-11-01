@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 800" width="1290" height="800" role="img" aria-label="D-10: how Docker runs one of our services, using the historian as the example. A Dockerfile recipe is built into a read-only layered image; docker compose up starts a container from it, with environment settings from .env, read-only files from the v0.1 folder, and the Compose network. Data that must survive lives in named volumes.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap');
+    .bg { fill: #FFFFFF; }
+    .box { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .side { fill: #FFFFFF; stroke: #596064; stroke-width: 1; stroke-dasharray: 5 4; }
+    .layer { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .layer.ours { fill: #E8F3F2; stroke: #0E6E68; stroke-width: 1.5; }
+    .shade { fill: #F3F4F4; stroke: #141618; stroke-width: 1; }
+    .conn { fill: none; stroke: #141618; stroke-width: 1.25; }
+    .conn.acc { stroke: #0E6E68; stroke-width: 1.75; }
+    .dash { fill: none; stroke: #596064; stroke-width: 1; stroke-dasharray: 4 3; }
+    .head { fill: #141618; }
+    .head.acc { fill: #0E6E68; }
+    .title { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #141618; }
+    .h { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; fill: #141618; }
+    .name { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12.5px; font-weight: 600; fill: #141618; }
+    .desc { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; fill: #596064; }
+    .lbl { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; font-weight: 500; fill: #141618; }
+    .code { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 11px; fill: #141618; }
+    .code.dim { fill: #596064; }
+    .acc-t { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 11px; fill: #0E6E68; font-weight: 500; }
+    .cmd { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 11px; font-weight: 500; fill: #0E6E68; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" class="head"/></marker>
+    <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" class="head acc"/></marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1290" height="800"/>
+  <text class="title" x="24" y="34">D-10 · How Docker runs one of our services (the historian as the example)</text>
+
+  <!-- 1. Recipe -->
+  <text class="h" x="24" y="78">1 · Recipe</text>
+  <text class="desc" x="24" y="96">services/historian/Dockerfile (written by us)</text>
+  <rect class="box" x="24" y="108" width="318" height="200" rx="2"/>
+  <text class="code" x="38" y="132">FROM python:3.11-slim</text>
+  <text class="code" x="38" y="156">COPY historian/requirements.txt .</text>
+  <text class="code" x="38" y="174">RUN pip install -r requirements.txt</text>
+  <text class="code" x="38" y="198">COPY ingestion-gateway/gateway/ gateway/</text>
+  <text class="code" x="38" y="216">COPY historian/historian/ historian/</text>
+  <text class="code dim" x="38" y="240">ENV MODEL_DIR=/model CONTRACTS_DIR=…</text>
+  <text class="code dim" x="38" y="258">USER historian</text>
+  <text class="code" x="38" y="282">CMD python -m historian.service</text>
+  <text class="desc" x="24" y="330"><tspan x="24">A list of steps. Each FROM / COPY / RUN</tspan><tspan x="24" dy="16">line becomes one layer of the image.</tspan></text>
+
+  <line class="conn acc" x1="350" y1="200" x2="420" y2="200" marker-end="url(#aa)"/>
+  <text class="cmd" x="350" y="190">build</text>
+
+  <!-- 2. Image: a stack of read-only layers -->
+  <text class="h" x="430" y="78">2 · Image</text>
+  <text class="desc" x="430" y="96">v01-historian (read-only, built once)</text>
+  <rect class="layer ours" x="430" y="110" width="300" height="42" rx="2"/>
+  <text class="name" x="444" y="129">historian/</text><text class="desc" x="530" y="129">our code: store.py, service.py</text>
+  <text class="code dim" x="444" y="145">COPY</text>
+  <rect class="layer ours" x="430" y="160" width="300" height="42" rx="2"/>
+  <text class="name" x="444" y="179">gateway/</text><text class="desc" x="530" y="179">reused to read the asset model</text>
+  <text class="code dim" x="444" y="195">COPY</text>
+  <rect class="layer" x="430" y="210" width="300" height="42" rx="2"/>
+  <text class="name" x="444" y="229">Python packages</text><text class="desc" x="560" y="229">psycopg, paho-mqtt, …</text>
+  <text class="code dim" x="444" y="245">RUN pip install</text>
+  <rect class="shade" x="430" y="260" width="300" height="48" rx="2"/>
+  <text class="name" x="444" y="280">python:3.11-slim</text><text class="desc" x="570" y="280">Debian Linux + Python</text>
+  <text class="code dim" x="444" y="297">FROM: downloaded from Docker Hub</text>
+  <text class="desc" x="430" y="330"><tspan x="430">Our code is the thin top. Change it and only those</tspan><tspan x="430" dy="16">layers rebuild: that's why rebuilds take seconds.</tspan></text>
+
+  <rect class="side" x="430" y="372" width="300" height="104" rx="2"/>
+  <text class="lbl" x="444" y="392">Ready-made images, used as they are:</text>
+  <text class="code" x="444" y="412">eclipse-mosquitto:2.0.22</text>
+  <text class="code" x="444" y="428">timescale/timescaledb:2.31.0-pg18</text>
+  <text class="code" x="444" y="444">grafana/grafana:13.2.5</text>
+  <text class="code" x="444" y="460">ghcr.io/amacneil/dbmate:2.37.0</text>
+
+  <line class="conn acc" x1="738" y1="200" x2="808" y2="200" marker-end="url(#aa)"/>
+  <text class="cmd" x="742" y="190">up</text>
+
+  <!-- 3. Container -->
+  <text class="h" x="818" y="78">3 · Container</text>
+  <text class="desc" x="818" y="96">v01-historian (the image, running)</text>
+  <rect class="box" x="818" y="110" width="448" height="198" rx="2"/>
+  <rect class="layer" x="834" y="124" width="416" height="34" rx="2"/>
+  <text class="desc" x="848" y="145">Writable layer: anything written here is lost when the container is removed</text>
+  <rect class="layer ours" x="834" y="166" width="416" height="54" rx="2"/>
+  <text class="name" x="848" y="187">Running process</text>
+  <text class="acc-t" x="848" y="207">python -m historian.service</text>
+  <rect class="shade" x="834" y="228" width="416" height="64" rx="2"/>
+  <text class="lbl" x="848" y="248">The image's layers underneath (read-only)</text>
+  <text class="desc" x="848" y="268"><tspan x="848">Several containers can start from one image; each gets</tspan><tspan x="848" dy="15">its own writable layer.</tspan></text>
+
+  <!-- What docker-compose.yml plugs into the container -->
+  <text class="h" x="818" y="350">What docker-compose.yml plugs in</text>
+
+  <rect class="box" x="818" y="364" width="448" height="70" rx="2"/>
+  <text class="name" x="832" y="383">Settings (environment variables, passwords from .env)</text>
+  <text class="code" x="832" y="402">BROKER_HOST=mosquitto</text>
+  <text class="code" x="832" y="420">DATABASE_URL=postgresql://historian:•••@timescaledb:5432/dtteo</text>
+
+  <rect class="box" x="818" y="444" width="448" height="88" rx="2"/>
+  <text class="name" x="832" y="463">Files from your v0.1 folder (bind mounts, read-only)</text>
+  <text class="code" x="832" y="482">./dtteo_asset_model.ttl</text><text class="code" x="1010" y="482">→  /model/dtteo_asset_model.ttl</text>
+  <text class="code" x="832" y="500">./mappings/</text><text class="code" x="1010" y="500">→  /model/mappings/</text>
+  <text class="code" x="832" y="518">./contracts/</text><text class="code" x="1010" y="518">→  /contracts/</text>
+
+  <rect class="box" x="818" y="542" width="448" height="70" rx="2"/>
+  <text class="name" x="832" y="561">Compose network (containers find each other by name)</text>
+  <text class="code" x="832" y="580">mosquitto:1883</text><text class="code" x="960" y="580">timescaledb:5432</text>
+  <text class="desc" x="832" y="598">Inside only. Ports open to the PC: 1883 (MQTT), 127.0.0.1:3000 (Grafana)</text>
+
+  <!-- Named volumes: data that outlives containers -->
+  <text class="h" x="24" y="560">Data that must survive: named volumes</text>
+  <text class="desc" x="24" y="578">Kept by Docker, outside every container. "docker compose down" keeps them; "down -v" deletes them.</text>
+  <g>
+    <path class="box" d="M24 606 v62 a70 12 0 0 0 140 0 v-62"/>
+    <ellipse class="box" cx="94" cy="606" rx="70" ry="12"/>
+    <text class="name" x="94" y="640" text-anchor="middle">timescale-data</text>
+    <text class="code dim" x="94" y="657" text-anchor="middle">/var/lib/postgresql</text>
+    <text class="desc" x="94" y="700" text-anchor="middle">every reading</text>
+  </g>
+  <g>
+    <path class="box" d="M204 606 v62 a70 12 0 0 0 140 0 v-62"/>
+    <ellipse class="box" cx="274" cy="606" rx="70" ry="12"/>
+    <text class="name" x="274" y="640" text-anchor="middle">mosquitto-data</text>
+    <text class="code dim" x="274" y="657" text-anchor="middle">/mosquitto/data</text>
+    <text class="desc" x="274" y="700" text-anchor="middle">queued messages</text>
+  </g>
+  <g>
+    <path class="box" d="M384 606 v62 a70 12 0 0 0 140 0 v-62"/>
+    <ellipse class="box" cx="454" cy="606" rx="70" ry="12"/>
+    <text class="name" x="454" y="640" text-anchor="middle">grafana-data</text>
+    <text class="code dim" x="454" y="657" text-anchor="middle">/var/lib/grafana</text>
+    <text class="desc" x="454" y="700" text-anchor="middle">Grafana's settings</text>
+  </g>
+  <text class="desc" x="24" y="740"><tspan x="24">The historian has no volume: it keeps nothing itself. If its container is deleted and recreated, nothing is lost,</tspan><tspan x="24" dy="16">because unacknowledged messages wait in mosquitto-data and stored readings are in timescale-data.</tspan></text>
+</svg>

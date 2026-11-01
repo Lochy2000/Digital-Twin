@@ -5,6 +5,7 @@
 - Full design and reasoning: [`README.md`](README.md)
 - Step-by-step build notes: [`services/ingestion-gateway/NOTES.md`](services/ingestion-gateway/NOTES.md)
 - Every source used, and which file uses it: [`SOURCES.md`](SOURCES.md)
+- Walkthrough of every part, Docker, every file, measurements and a review: [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md)
 
 *Last updated 29 October 2026 (after stage 3c).*
 
@@ -216,7 +217,7 @@ v0.1/
 ├── services/historian/          broker -> database (tests + NOTES.md)
 ├── testing/vendors/             the two made-up vendors
 ├── tools/list_sources.py        builds SOURCES.md
-└── diagrams/                    all diagrams (D-01 to D-07, D-09)
+└── diagrams/                    all diagrams (D-01 to D-07, D-09 to D-12)
 ```
 
 ---
@@ -235,3 +236,15 @@ v0.1/
 | Brick | The vocabulary for building equipment and sensors |
 | QUDT | The vocabulary for units |
 | QARTOD | The sensor data quality standard the validator follows |
+
+---
+
+## 12. Next stages
+
+Agreed order (31 Oct 2026). Each step stops for a check before the next.
+
+| # | Stage | Steps |
+|---|---|---|
+| 1 | **Broker logins and access rules** | (a) Mosquitto: no anonymous access; password file; access rules from `contracts/topics.md` (each device writes only its own `raw/<name>/...`; only the gateway writes `dt/v1/telemetry/...`; services read only what they need). (b) Logins for the gateway, historian, test publishers and smoke test, from `.env`. (c) Check: smoke test passes; no-login client refused; a device can't publish canonical data. Update D-06, README, notes |
+| 2 | **Stage 4: simulated plant and twin engine** | A physics-based plant (RC thermal model, deliberately a bit different from the twin) publishing realistic readings, including energy; then the twin engine (predict, compare, residual) |
+| Later | Detection and alerts, what-if worker, API, Modbus poller, CSV importer, command path | See README "Later phases" |

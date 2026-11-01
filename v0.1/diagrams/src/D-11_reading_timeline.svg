@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 640" width="1290" height="640" role="img" aria-label="D-11: the life of one reading on a time scale, measured over 300 readings. The device publishes; the gateway receives it after about 1 ms and publishes the canonical message at about 3 ms; the historian holds it in a batch and commits it to the database at a median of 605 ms, then acknowledges it to the broker.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap');
+    .bg { fill: #FFFFFF; }
+    .lane { stroke: #D5D8DA; stroke-width: 1; }
+    .axis { stroke: #141618; stroke-width: 1; }
+    .tick { stroke: #141618; stroke-width: 1; }
+    .conn { fill: none; stroke: #141618; stroke-width: 1.25; }
+    .conn.ret { stroke-dasharray: 4 3; }
+    .conn.acc { stroke: #0E6E68; stroke-width: 1.75; }
+    .head { fill: #141618; }
+    .head.acc { fill: #0E6E68; }
+    .work { fill: #FFFFFF; stroke: #141618; stroke-width: 1; }
+    .wait { fill: #F3F4F4; stroke: #596064; stroke-width: 1; stroke-dasharray: 4 3; }
+    .done { fill: #0E6E68; }
+    .title { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #141618; }
+    .who { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; fill: #141618; }
+    .whod { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; fill: #596064; }
+    .lbl { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; font-weight: 500; fill: #141618; }
+    .desc { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; fill: #596064; }
+    .code { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 10.5px; fill: #141618; }
+    .tk { font-family: 'IBM Plex Mono', Consolas, Menlo, monospace; font-size: 10.5px; fill: #596064; }
+    .acc-t { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11.5px; font-weight: 600; fill: #0E6E68; }
+    .big { font-family: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; fill: #141618; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" class="head"/></marker>
+    <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" class="head acc"/></marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1290" height="640"/>
+  <text class="title" x="24" y="34">D-11 · Life of one reading, with measured times</text>
+
+  <!-- Time axis: 0-5 ms zoomed (x 190-640, 90 px per ms), break, then 5-1100 ms (x 700-1250) -->
+  <line class="axis" x1="190" y1="92" x2="640" y2="92"/>
+  <line class="axis" x1="700" y1="92" x2="1250" y2="92"/>
+  <text class="tk" x="652" y="96">//</text>
+  <g>
+    <line class="tick" x1="190" y1="88" x2="190" y2="96"/><text class="tk" x="190" y="80" text-anchor="middle">0</text>
+    <line class="tick" x1="280" y1="88" x2="280" y2="96"/><text class="tk" x="280" y="80" text-anchor="middle">1 ms</text>
+    <line class="tick" x1="370" y1="88" x2="370" y2="96"/><text class="tk" x="370" y="80" text-anchor="middle">2 ms</text>
+    <line class="tick" x1="460" y1="88" x2="460" y2="96"/><text class="tk" x="460" y="80" text-anchor="middle">3 ms</text>
+    <line class="tick" x1="550" y1="88" x2="550" y2="96"/><text class="tk" x="550" y="80" text-anchor="middle">4 ms</text>
+    <line class="tick" x1="640" y1="88" x2="640" y2="96"/><text class="tk" x="640" y="80" text-anchor="middle">5 ms</text>
+    <line class="tick" x1="823" y1="88" x2="823" y2="96"/><text class="tk" x="823" y="80" text-anchor="middle">250 ms</text>
+    <line class="tick" x1="948" y1="88" x2="948" y2="96"/><text class="tk" x="948" y="80" text-anchor="middle">500 ms</text>
+    <line class="tick" x1="1074" y1="88" x2="1074" y2="96"/><text class="tk" x="1074" y="80" text-anchor="middle">750 ms</text>
+    <line class="tick" x1="1199" y1="88" x2="1199" y2="96"/><text class="tk" x="1199" y="80" text-anchor="middle">1 s</text>
+  </g>
+  <text class="desc" x="415" y="60" text-anchor="middle">zoomed in: the first 5 milliseconds</text>
+  <text class="desc" x="975" y="60" text-anchor="middle">then up to 1.1 seconds</text>
+
+  <!-- Lanes -->
+  <line class="lane" x1="24" y1="140" x2="1266" y2="140"/>
+  <line class="lane" x1="24" y1="230" x2="1266" y2="230"/>
+  <line class="lane" x1="24" y1="320" x2="1266" y2="320"/>
+  <line class="lane" x1="24" y1="410" x2="1266" y2="410"/>
+  <line class="lane" x1="24" y1="500" x2="1266" y2="500"/>
+  <text class="who" x="24" y="135">Device</text><text class="whod" x="24" y="155">Acme test publisher</text>
+  <text class="who" x="24" y="225">Broker</text><text class="whod" x="24" y="245">Mosquitto</text>
+  <text class="who" x="24" y="315">Gateway</text><text class="whod" x="24" y="335">ingestion-gateway</text>
+  <text class="who" x="24" y="405">Historian</text><text class="whod" x="24" y="425">historian</text>
+  <text class="who" x="24" y="495">Database</text><text class="whod" x="24" y="515">TimescaleDB</text>
+
+  <!-- 0 ms: device publishes -->
+  <line class="conn" x1="192" y1="140" x2="192" y2="228" marker-end="url(#a)"/>
+  <line class="conn ret" x1="208" y1="230" x2="208" y2="143" marker-end="url(#a)"/>
+  <text class="code" x="218" y="166">PUBLISH raw/acme/…  (QoS 1, ts = 0)</text>
+  <text class="desc" x="218" y="186">dashed: PUBACK, the broker has it</text>
+
+  <!-- ~1 ms: gateway receives -->
+  <line class="conn" x1="280" y1="230" x2="280" y2="318" marker-end="url(#a)"/>
+  <text class="lbl" x="288" y="262">received: 1 ms</text>
+  <text class="desc" x="288" y="278">ingest_time stamped</text>
+  <!-- gateway work -->
+  <rect class="work" x="284" y="298" width="168" height="48" rx="2"/>
+  <text class="code" x="292" y="315">decode · map ·</text>
+  <text class="code" x="292" y="329">normalise · validate</text>
+  <text class="desc" x="292" y="342">71 µs of work</text>
+
+  <!-- ~3 ms: gateway publishes canonical -->
+  <line class="conn" x1="460" y1="320" x2="460" y2="232" marker-end="url(#a)"/>
+  <text class="lbl" x="468" y="262">out: 3 ms</text>
+  <text class="code" x="468" y="278">dt/v1/telemetry/…</text>
+
+  <!-- broker delivers to historian -->
+  <path class="conn" d="M610 230 V390" marker-end="url(#a)"/>
+  <text class="desc" x="560" y="372">delivered</text>
+
+  <!-- historian waits in the batch (spans the break) -->
+  <rect class="wait" x="560" y="392" width="80" height="36" rx="2"/>
+  <rect class="wait" x="700" y="392" width="300" height="36" rx="2"/>
+  <text class="desc" x="566" y="414">in batch …</text>
+  <text class="desc" x="710" y="414">… until 1 s has passed or 500 messages are waiting</text>
+
+  <!-- ~605 ms median: commit -->
+  <line class="conn acc" x1="1001" y1="410" x2="1001" y2="494" marker-end="url(#aa)"/>
+  <rect class="done" x="995" y="494" width="12" height="12"/>
+  <text class="acc-t" x="1012" y="458">INSERT … ON CONFLICT DO NOTHING</text>
+  <text class="acc-t" x="1012" y="474">COMMIT</text>
+  <text class="big" x="1012" y="530">stored: median 605 ms</text>
+  <text class="desc" x="1012" y="547">95 % within 1,010 ms · max 1,014 ms</text>
+
+  <!-- then ack to the broker -->
+  <path class="conn acc" d="M1018 410 V232" marker-end="url(#aa)"/>
+  <text class="acc-t" x="1026" y="300">PUBACK only after COMMIT</text>
+  <text class="desc" x="1026" y="316"><tspan x="1026">Crash before this? The broker sends it</tspan><tspan x="1026" dy="15">again; the duplicate is skipped.</tspan></text>
+
+  <text class="desc" x="24" y="600">Measured 1 Nov 2026 on the build PC (Mosquitto 2.0, PostgreSQL 16, gateway and historian as Python processes): 300 readings at 5 a second.</text>
+  <text class="desc" x="24" y="617">The database step is almost all the historian's 1-second batch window, by design. The lab PC with TimescaleDB will differ slightly.</text>
+</svg>

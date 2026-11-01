@@ -38,6 +38,8 @@ Each requirement comes from a project document or from what the gateway already 
 
 This is an estimate, assuming one row per reading and plain PostgreSQL row overheads (a 23-byte row header and a 4-byte pointer per row, from the [PostgreSQL page layout docs](https://access.crunchydata.com/documentation/postgresql11/11.4/storage-page-layout.html)). That works out at about 88 bytes per row including the index, with no compression.
 
+> **Measured, 1 Nov 2026:** the actual `readings` row (ADR-002) takes **141 bytes** including its index on plain PostgreSQL 16 (100,000 rows), because it carries more than this estimate assumed (ingest time, source, quality, time source). The volumes below are therefore about 1.6× larger: the feasibility rig is ~0.75 GB a year. The conclusion is unchanged. Details: [`HOW_IT_WORKS.md`](../HOW_IT_WORKS.md) §6.
+
 | Case | Points × interval | Rows per second | Rows per year | Size per year |
 |---|---|---|---|---|
 | Feasibility rig | 10 × 60 s | 0.2 | 5 million | ~0.5 GB |
