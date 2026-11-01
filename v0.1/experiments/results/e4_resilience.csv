@@ -1,0 +1,9 @@
+scenario,outage_s,sent,stored,lost,lost_pct,lost_sent_during_outage,duplicate_rows,redelivered_skipped,recovery_s,all_services_up_after
+historian stopped (SIGTERM),60,1200,1200,0,0.0,0,0,0,1.8,True
+historian crashed (SIGKILL),60,1200,1200,0,0.0,0,0,0,1.8,True
+gateway crashed (SIGKILL),60,1200,1200,0,0.0,0,0,0,1.8,True
+database stopped,60,1200,1200,0,0.0,0,0,0,2.5,True
+broker restarted cleanly (SIGTERM),15,750,750,0,0.0,0,0,24,16.2,True
+broker crashed (SIGKILL),15,750,747,3,0.4,3,0,0,16.2,True
+site network down (device to broker),60,1200,1200,0,0.0,0,0,0,4.5,True
+broker crashed while historian away,30,900,323,577,64.11,551,0,0,-55.2,True

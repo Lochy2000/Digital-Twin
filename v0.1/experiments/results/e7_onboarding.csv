@@ -1,0 +1,6 @@
+device_type,decoder,config_lines,decoder_python_lines
+acme_hvac,acme,23,35
+borealis_hvac,borealis,20,42
+tasmota_ds18b20,tasmota,17,95
+eastron_sdm120,modbus,37,80
+tasmota_bme280 (added in this experiment),tasmota (existing),31,0

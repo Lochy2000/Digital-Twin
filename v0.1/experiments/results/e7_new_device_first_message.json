@@ -1,0 +1,32 @@
+{
+  "out": [
+    {
+      "topic": "dt/v1/telemetry/site1/unit1/zone_air_temp",
+      "point": "unit1.zone_air_temp",
+      "value": 21.7,
+      "quality": "GOOD",
+      "stage": null,
+      "field": null
+    },
+    {
+      "topic": "dt/v1/quarantine/tasmota",
+      "point": null,
+      "value": 10.3,
+      "quality": null,
+      "stage": "map",
+      "field": "BME280.DewPoint"
+    },
+    {
+      "topic": "dt/v1/quarantine/tasmota",
+      "point": null,
+      "value": "hPa",
+      "quality": null,
+      "stage": "map",
+      "field": "PressureUnit"
+    }
+  ],
+  "counted_not_mapped": {
+    "tasmota/tasmota_zone1_bme/BME280.Humidity": 1,
+    "tasmota/tasmota_zone1_bme/BME280.Pressure": 1
+  }
+}

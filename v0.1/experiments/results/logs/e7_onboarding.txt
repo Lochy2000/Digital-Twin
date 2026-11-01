@@ -1,0 +1,34 @@
+2026-11-01T13:46:50Z E7
+quarantine stage=map topic=raw/tasmota/tasmota_zone1_bme/tele/SENSOR field=BME280.DewPoint value=10.3 reason="field 'BME280.DewPoint' is not in device type tasmota_bme280 (add it to the type)"
+quarantine stage=map topic=raw/tasmota/tasmota_zone1_bme/tele/SENSOR field=PressureUnit value=hPa reason="field 'PressureUnit' is not in device type tasmota_bme280 (add it to the type)"
+{'device_type': 'acme_hvac', 'decoder': 'acme', 'config_lines': 23, 'decoder_python_lines': 35}
+{'device_type': 'borealis_hvac', 'decoder': 'borealis', 'config_lines': 20, 'decoder_python_lines': 42}
+{'device_type': 'tasmota_ds18b20', 'decoder': 'tasmota', 'config_lines': 17, 'decoder_python_lines': 95}
+{'device_type': 'eastron_sdm120', 'decoder': 'modbus', 'config_lines': 37, 'decoder_python_lines': 80}
+{'device_type': 'tasmota_bme280 (added in this experiment)', 'decoder': 'tasmota (existing)', 'config_lines': 31, 'decoder_python_lines': 0}
+[
+ {
+  "topic": "dt/v1/telemetry/site1/unit1/zone_air_temp",
+  "point": "unit1.zone_air_temp",
+  "value": 21.7,
+  "quality": "GOOD",
+  "stage": null,
+  "field": null
+ },
+ {
+  "topic": "dt/v1/quarantine/tasmota",
+  "point": null,
+  "value": 10.3,
+  "quality": null,
+  "stage": "map",
+  "field": "BME280.DewPoint"
+ },
+ {
+  "topic": "dt/v1/quarantine/tasmota",
+  "point": null,
+  "value": "hPa",
+  "quality": null,
+  "stage": "map",
+  "field": "PressureUnit"
+ }
+] {'tasmota/tasmota_zone1_bme/BME280.Humidity': 1, 'tasmota/tasmota_zone1_bme/BME280.Pressure': 1}

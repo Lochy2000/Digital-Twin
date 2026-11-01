@@ -34,6 +34,7 @@ There is no real building or site in this stage. Data comes from a simulated pla
 | `README.md` | This document |
 | `GUIDE.md` | Short, practical guide to what is built and how to use it |
 | `HOW_IT_WORKS.md` | Walkthrough of every part, Docker, every file, measurements and a review |
+| `experiments/FINDINGS.md` | Experiments E1–E7 (1 Nov 2026): what the pipeline can and can't do, measured against RR 1, with charts and the scripts to repeat them |
 | `decisions/` | Architecture decision records (ADRs): ADR-001 time-series store (accepted), ADR-002 database layout (proposed) |
 | `config/retention.yaml` | How long each kind of stored data is kept (ADR-001 section 9) |
 | `architecture.png` | Reference table of standard IoT architecture layers |

@@ -29,6 +29,7 @@ Settings (environment variables):
     CONTRACTS_DIR               folder with the *.schema.json contracts (default: v0.1/contracts)
     BATCH_SIZE / BATCH_SECONDS  default 500 / 1.0
     LOG_LEVEL                   default INFO (DEBUG logs every batch)
+    MQTT_USERNAME / MQTT_PASSWORD   broker login (default username: historian; read-only, broker/acl.conf)
 
 Sources:
   - MQTT 5 session (clean start + expiry), as the gateway: https://www.hivemq.com/blog/mqtt5-session-message-expiry/
@@ -163,6 +164,8 @@ def main() -> None:
     connection = {"n": 0}
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, protocol=mqtt.MQTTv5)
     client.manual_ack_set(True)
+    if os.getenv("MQTT_PASSWORD"):                          # the broker refuses anonymous clients
+        client.username_pw_set(os.getenv("MQTT_USERNAME", CLIENT_ID), os.environ["MQTT_PASSWORD"])
     client.will_set(STATUS_TOPIC, "offline", qos=1, retain=True)
     batcher = Batcher(store, client.ack, lambda: connection["n"],
                       int(os.getenv("BATCH_SIZE", "500")), float(os.getenv("BATCH_SECONDS", "1.0")))

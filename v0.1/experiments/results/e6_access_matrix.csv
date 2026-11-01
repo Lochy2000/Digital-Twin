@@ -1,0 +1,23 @@
+login,password,action,topic,rules_say,observed,detail,as_expected
+(none),(none),connect,,deny,denied,Not authorized,True
+acme_hvac_0001,wrong,connect,,deny,denied,Not authorized,True
+stranger,wrong,connect,,deny,denied,Not authorized,True
+acme_hvac_0001,right,publish,raw/acme/acme_hvac_0001/telemetry,allow,allowed,delivered,True
+acme_hvac_0001,right,publish,dt/v1/status/acme_hvac_0001,allow,allowed,delivered,True
+acme_hvac_0001,right,publish,raw/borealis/site4_hvac_01/data,deny,denied,dropped by broker,True
+acme_hvac_0001,right,publish,dt/v1/telemetry/site1/unit1/zone_air_temp,deny,denied,dropped by broker,True
+acme_hvac_0001,right,publish,dt/v1/status/ingestion_gateway,deny,denied,dropped by broker,True
+acme_hvac_0001,right,subscribe,dt/v1/telemetry/site1/unit1/zone_air_temp,deny,denied,not received,True
+acme_hvac_0001,right,subscribe,raw/borealis/site4_hvac_01/data,deny,denied,not received,True
+site4_hvac_01,right,publish,raw/borealis/site4_hvac_01/data,allow,allowed,delivered,True
+site4_hvac_01,right,publish,raw/acme/acme_hvac_0001/telemetry,deny,denied,dropped by broker,True
+ingestion_gateway,right,publish,dt/v1/telemetry/site1/unit1/zone_air_temp,allow,allowed,delivered,True
+ingestion_gateway,right,publish,dt/v1/quarantine/acme,allow,allowed,delivered,True
+ingestion_gateway,right,publish,raw/acme/acme_hvac_0001/telemetry,deny,denied,dropped by broker,True
+ingestion_gateway,right,subscribe,raw/acme/acme_hvac_0001/telemetry,allow,allowed,received,True
+historian,right,subscribe,dt/v1/telemetry/site1/unit1/zone_air_temp,allow,allowed,received,True
+historian,right,publish,dt/v1/telemetry/site1/unit1/zone_air_temp,deny,denied,dropped by broker,True
+historian,right,subscribe,raw/acme/acme_hvac_0001/telemetry,deny,denied,not received,True
+engineer,right,subscribe,raw/acme/acme_hvac_0001/telemetry,allow,allowed,received,True
+engineer,right,publish,dt/v1/telemetry/site1/unit1/zone_air_temp,deny,denied,dropped by broker,True
+site4_hvac_01,right,connect,,allow,allowed,Success,True

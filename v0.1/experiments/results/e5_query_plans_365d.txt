@@ -1,0 +1,190 @@
+--- Measurements (every reading), 1 point (365 d)
+Gather Merge (actual time=1108.798..1242.028 rows=525600 loops=1)
+  Workers Planned: 2
+  Workers Launched: 2
+  Buffers: shared hit=16329 read=52964, temp read=3219 written=3228
+  ->  Sort (actual time=1081.637..1099.915 rows=175200 loops=3)
+        Sort Key: r.sensor_time
+        Sort Method: external merge  Disk: 8464kB
+        Buffers: shared hit=16329 read=52964, temp read=3219 written=3228
+        Worker 0:  Sort Method: external merge  Disk: 9016kB
+        Worker 1:  Sort Method: external merge  Disk: 8272kB
+        ->  Hash Join (actual time=15.849..997.594 rows=175200 loops=3)
+              Hash Cond: (r.series_id = s.series_id)
+              Buffers: shared hit=16255 read=52964
+              ->  Parallel Seq Scan on readings r (actual time=15.709..753.881 rows=1752000 loops=3)
+                    Filter: ((quality <> 'BAD'::text) AND (sensor_time <= '2026-11-01 00:00:00+00'::timestamp with time zone) AND (sensor_time >= ('2026-11-01 00:00:00+00'::timestamp with time zone - '365 days'::interval)))
+                    Buffers: shared hit=16194 read=52964
+              ->  Hash (actual time=0.046..0.047 rows=1 loops=3)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=3
+                    ->  Seq Scan on series s (actual time=0.036..0.038 rows=1 loops=3)
+                          Filter: (point_id = 'unit1.zone_air_temp'::text)
+                          Rows Removed by Filter: 9
+                          Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=4
+Planning Time: 0.291 ms
+Execution Time: 1268.790 ms
+
+--- Measurements (every reading), all 8 points (365 d)
+Gather Merge (actual time=1449.606..2225.458 rows=3679200 loops=1)
+  Workers Planned: 2
+  Workers Launched: 2
+  Buffers: shared hit=16310 read=52983, temp read=42950 written=43027
+  ->  Sort (actual time=1418.667..1564.192 rows=1226400 loops=3)
+        Sort Key: r.sensor_time
+        Sort Method: external merge  Disk: 62008kB
+        Buffers: shared hit=16310 read=52983, temp read=42950 written=43027
+        Worker 0:  Sort Method: external merge  Disk: 51208kB
+        Worker 1:  Sort Method: external merge  Disk: 58600kB
+        ->  Hash Join (actual time=181.546..983.080 rows=1226400 loops=3)
+              Hash Cond: (r.series_id = s.series_id)
+              Buffers: shared hit=16236 read=52983
+              ->  Parallel Seq Scan on readings r (actual time=181.381..724.479 rows=1752000 loops=3)
+                    Filter: ((quality <> 'BAD'::text) AND (sensor_time <= '2026-11-01 00:00:00+00'::timestamp with time zone) AND (sensor_time >= ('2026-11-01 00:00:00+00'::timestamp with time zone - '365 days'::interval)))
+                    Buffers: shared hit=16175 read=52983
+              ->  Hash (actual time=0.049..0.050 rows=7 loops=3)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=3
+                    ->  Seq Scan on series s (actual time=0.037..0.040 rows=7 loops=3)
+                          Filter: (point_id = ANY ('{unit1.zone_air_temp,unit1.cool_cmd,unit1.heat_cmd,unit1.power,unit1.supply_air_temp,unit1.zone_setpoint,weather1.outside_air_temp}'::text[]))
+                          Rows Removed by Filter: 3
+                          Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=4
+Planning Time: 0.240 ms
+Execution Time: 2396.126 ms
+
+--- Hourly mean, all 8 points (raw, no continuous aggregate) (365 d)
+Finalize GroupAggregate (actual time=1734.332..2182.716 rows=61320 loops=1)
+  Group Key: (date_bin('01:00:00'::interval, r.sensor_time, '2000-01-01 00:00:00+00'::timestamp with time zone)), s.point_id
+  Buffers: shared hit=16296 read=52977, temp read=42951 written=43028
+  ->  Gather Merge (actual time=1734.281..2157.798 rows=67885 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=16296 read=52977, temp read=42951 written=43028
+        ->  Partial GroupAggregate (actual time=1699.646..1948.585 rows=22628 loops=3)
+              Group Key: (date_bin('01:00:00'::interval, r.sensor_time, '2000-01-01 00:00:00+00'::timestamp with time zone)), s.point_id
+              Buffers: shared hit=16296 read=52977, temp read=42951 written=43028
+              ->  Sort (actual time=1699.577..1822.887 rows=1226400 loops=3)
+                    Sort Key: (date_bin('01:00:00'::interval, r.sensor_time, '2000-01-01 00:00:00+00'::timestamp with time zone)), s.point_id
+                    Sort Method: external merge  Disk: 54992kB
+                    Buffers: shared hit=16296 read=52977, temp read=42951 written=43028
+                    Worker 0:  Sort Method: external merge  Disk: 56792kB
+                    Worker 1:  Sort Method: external merge  Disk: 60040kB
+                    ->  Hash Join (actual time=249.259..1090.897 rows=1226400 loops=3)
+                          Hash Cond: (r.series_id = s.series_id)
+                          Buffers: shared hit=16206 read=52977
+                          ->  Parallel Seq Scan on readings r (actual time=249.137..806.817 rows=1752000 loops=3)
+                                Filter: ((quality <> 'BAD'::text) AND (sensor_time <= '2026-11-01 00:00:00+00'::timestamp with time zone) AND (sensor_time >= ('2026-11-01 00:00:00+00'::timestamp with time zone - '365 days'::interval)))
+                                Buffers: shared hit=16181 read=52977
+                          ->  Hash (actual time=0.057..0.059 rows=7 loops=3)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                Buffers: shared hit=3
+                                ->  Seq Scan on series s (actual time=0.046..0.049 rows=7 loops=3)
+                                      Filter: (point_id = ANY ('{unit1.zone_air_temp,unit1.cool_cmd,unit1.heat_cmd,unit1.power,unit1.supply_air_temp,unit1.zone_setpoint,weather1.outside_air_temp}'::text[]))
+                                      Rows Removed by Filter: 3
+                                      Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=4
+Planning Time: 0.273 ms
+Execution Time: 2193.232 ms
+
+--- Energy used per hour (total_1h view) (365 d)
+Sort (actual time=1178.641..1179.041 rows=8760 loops=1)
+  Sort Key: (date_bin('01:00:00'::interval, t.sensor_time, '2000-01-01 00:00:00+00'::timestamp with time zone))
+  Sort Method: quicksort  Memory: 864kB
+  Buffers: shared hit=3 read=71174, temp read=4900 written=4919
+  ->  Hash Join (actual time=1090.217..1177.355 rows=8760 loops=1)
+        Hash Cond: (t.series_id = s.series_id)
+        Buffers: shared hit=3 read=71174, temp read=4900 written=4919
+        ->  GroupAggregate (actual time=1075.448..1161.248 rows=8760 loops=1)
+              Group Key: t.series_id, (date_bin('01:00:00'::interval, t.sensor_time, '2000-01-01 00:00:00+00'::timestamp with time zone))
+              Buffers: shared hit=2 read=71174, temp read=4900 written=4919
+              ->  Incremental Sort (actual time=1075.363..1116.237 rows=525599 loops=1)
+                    Sort Key: t.series_id, (date_bin('01:00:00'::interval, t.sensor_time, '2000-01-01 00:00:00+00'::timestamp with time zone))
+                    Presorted Key: t.series_id
+                    Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 28kB  Peak Memory: 28kB
+                    Pre-sorted Groups: 1  Sort Method: external merge  Average Disk: 21680kB  Peak Disk: 21680kB
+                    Buffers: shared hit=2 read=71174, temp read=4900 written=4919
+                    ->  Subquery Scan on t (actual time=620.614..980.289 rows=525599 loops=1)
+                          Filter: ((CASE WHEN (t.prev IS NULL) THEN NULL::double precision WHEN (t.value_num >= t.prev) THEN (t.value_num - t.prev) ELSE t.value_num END IS NOT NULL) AND (date_bin('01:00:00'::interval, t.sensor_time, '2000-01-01 00:00:00+00'::timestamp with time zone) <= '2026-11-01 00:00:00+00'::timestamp with time zone) AND (date_bin('01:00:00'::interval, t.sensor_time, '2000-01-01 00:00:00+00'::timestamp with time zone) >= ('2026-11-01 00:00:00+00'::timestamp with time zone - '365 days'::interval)))
+                          Rows Removed by Filter: 1
+                          Buffers: shared hit=2 read=71174, temp read=2190 written=2199
+                          ->  WindowAgg (actual time=620.597..854.085 rows=525600 loops=1)
+                                Buffers: shared hit=2 read=71174, temp read=2190 written=2199
+                                ->  Incremental Sort (actual time=620.481..675.476 rows=525600 loops=1)
+                                      Sort Key: r.series_id, r.sensor_time
+                                      Presorted Key: r.series_id
+                                      Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 28kB  Peak Memory: 28kB
+                                      Pre-sorted Groups: 1  Sort Method: external merge  Average Disk: 17520kB  Peak Disk: 17520kB
+                                      Buffers: shared hit=2 read=71174, temp read=2190 written=2199
+                                      ->  Nested Loop (actual time=40.316..534.001 rows=525600 loops=1)
+                                            Buffers: shared hit=2 read=71174
+                                            ->  Index Scan using series_pkey on series s_1 (actual time=0.017..0.028 rows=1 loops=1)
+                                                  Filter: (kind = 'total'::text)
+                                                  Rows Removed by Filter: 9
+                                                  Buffers: shared hit=2
+                                            ->  Bitmap Heap Scan on readings r (actual time=40.291..484.058 rows=525600 loops=1)
+                                                  Recheck Cond: (series_id = s_1.series_id)
+                                                  Rows Removed by Index Recheck: 2258966
+                                                  Filter: ((value_num IS NOT NULL) AND (quality <> 'BAD'::text))
+                                                  Heap Blocks: exact=36133 lossy=33025
+                                                  Buffers: shared read=71174
+                                                  ->  Bitmap Index Scan on readings_series_id_sensor_time_key (actual time=34.075..34.075 rows=525600 loops=1)
+                                                        Index Cond: (series_id = s_1.series_id)
+                                                        Buffers: shared read=2016
+        ->  Hash (actual time=14.751..14.752 rows=10 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 9kB
+              Buffers: shared hit=1
+              ->  Seq Scan on series s (actual time=14.716..14.721 rows=10 loops=1)
+                    Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=3 read=1
+Planning Time: 0.357 ms
+Execution Time: 1186.658 ms
+
+--- Mode (365 d)
+Gather Merge (actual time=897.271..982.512 rows=525600 loops=1)
+  Workers Planned: 2
+  Workers Launched: 2
+  Buffers: shared hit=16329 read=52964, temp read=1462 written=1468
+  ->  Sort (actual time=873.405..887.790 rows=175200 loops=3)
+        Sort Key: r.sensor_time
+        Sort Method: external merge  Disk: 3912kB
+        Buffers: shared hit=16329 read=52964, temp read=1462 written=1468
+        Worker 0:  Sort Method: external merge  Disk: 3776kB
+        Worker 1:  Sort Method: external merge  Disk: 4008kB
+        ->  Hash Join (actual time=14.448..825.252 rows=175200 loops=3)
+              Hash Cond: (r.series_id = s.series_id)
+              Buffers: shared hit=16255 read=52964
+              ->  Parallel Seq Scan on readings r (actual time=14.330..631.664 rows=1752000 loops=3)
+                    Filter: ((quality <> 'BAD'::text) AND (sensor_time <= '2026-11-01 00:00:00+00'::timestamp with time zone) AND (sensor_time >= ('2026-11-01 00:00:00+00'::timestamp with time zone - '365 days'::interval)))
+                    Buffers: shared hit=16194 read=52964
+              ->  Hash (actual time=0.041..0.042 rows=1 loops=3)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=3
+                    ->  Seq Scan on series s (actual time=0.033..0.034 rows=1 loops=3)
+                          Filter: (point_id = 'unit1.mode_status'::text)
+                          Rows Removed by Filter: 9
+                          Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=4
+Planning Time: 0.336 ms
+Execution Time: 1007.082 ms
+
+--- Readings by quality (365 d)
+Finalize Aggregate (actual time=727.000..736.427 rows=1 loops=1)
+  Buffers: shared hit=16204 read=52954
+  ->  Gather (actual time=726.640..736.411 rows=3 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=16204 read=52954
+        ->  Partial Aggregate (actual time=701.116..701.117 rows=1 loops=3)
+              Buffers: shared hit=16204 read=52954
+              ->  Parallel Seq Scan on readings (actual time=8.758..518.805 rows=1752000 loops=3)
+                    Filter: ((sensor_time <= '2026-11-01 00:00:00+00'::timestamp with time zone) AND (sensor_time >= ('2026-11-01 00:00:00+00'::timestamp with time zone - '365 days'::interval)))
+                    Buffers: shared hit=16204 read=52954
+Planning Time: 0.112 ms
+Execution Time: 737.460 ms

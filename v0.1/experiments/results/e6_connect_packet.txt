@@ -1,0 +1,2 @@
+Bytes of one MQTT CONNECT packet as seen on the network (printable characters; '.' = other bytes):
+.1..MQTT...<..acme_hvac_0001..acme_hvac_0001..devpw

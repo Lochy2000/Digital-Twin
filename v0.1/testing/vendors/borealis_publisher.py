@@ -65,6 +65,9 @@ def to_borealis_payload(temp_c, humidity, mode):
 
 def main():
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID)
+    # Log in as the device (broker/acl.conf: a device may only publish under its own name).
+    if os.getenv("MQTT_PASSWORD"):
+        client.username_pw_set(os.getenv("MQTT_USERNAME", DEVICE_SLUG), os.environ["MQTT_PASSWORD"])
     client.will_set(STATUS_TOPIC, "offline", qos=1, retain=True)
     client.connect(BROKER_HOST, BROKER_PORT)
     client.loop_start()

@@ -9,8 +9,8 @@
 # (mappings/bindings/site1.ttl). To run Borealis instead, tell the gateway too:
 #   GATEWAY_ENABLED="acme_hvac_0001=off,site4_hvac_01=on" docker compose --profile borealis up --build
 #
-# Watch what's on the broker:
-#   docker compose exec mosquitto mosquitto_sub -v -t "raw/#" -t "dt/v1/#"
+# Watch what's on the broker (every client logs in; "engineer" is the read-only login):
+#   docker compose exec mosquitto mosquitto_sub -u engineer -P <MQTT_ENGINEER_PASSWORD> -v -t "raw/#" -t "dt/v1/#"
 # Watch the gateway's log (one line per quarantined field / non-GOOD reading):
 #   docker compose logs -f gateway
 #
@@ -30,8 +30,18 @@ services:
     container_name: v01-mosquitto
     ports:
       - "1883:1883"
+    # broker/start.sh builds the password file from these and copies the access rules, then
+    # starts Mosquitto (broker/mosquitto.conf: no anonymous clients).
+    entrypoint: ["/bin/sh", "/mosquitto/broker/start.sh"]
+    environment:
+      MQTT_GATEWAY_PASSWORD: ${MQTT_GATEWAY_PASSWORD:?add the MQTT_ lines from .env.example to .env}
+      MQTT_HISTORIAN_PASSWORD: ${MQTT_HISTORIAN_PASSWORD:?add the MQTT_ lines from .env.example to .env}
+      MQTT_DEVICE_PASSWORD: ${MQTT_DEVICE_PASSWORD:?add the MQTT_ lines from .env.example to .env}
+      MQTT_ENGINEER_PASSWORD: ${MQTT_ENGINEER_PASSWORD:?add the MQTT_ lines from .env.example to .env}
     volumes:
       - ./broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./broker/acl.conf:/mosquitto/broker/acl.conf:ro
+      - ./broker/start.sh:/mosquitto/broker/start.sh:ro
       - mosquitto-data:/mosquitto/data      # queued messages survive a restart (broker/mosquitto.conf)
     restart: unless-stopped
 
@@ -44,6 +54,8 @@ services:
       - GATEWAY_SITE=site1
       - GATEWAY_ENABLED=${GATEWAY_ENABLED:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - MQTT_USERNAME=ingestion_gateway
+      - MQTT_PASSWORD=${MQTT_GATEWAY_PASSWORD}
     volumes:
       - ./dtteo_asset_model.ttl:/model/dtteo_asset_model.ttl:ro
       - ./mappings:/model/mappings:ro
@@ -57,6 +69,8 @@ services:
     depends_on: [mosquitto]
     environment:
       - BROKER_HOST=mosquitto
+      - MQTT_USERNAME=acme_hvac_0001             # its device slug (broker/acl.conf)
+      - MQTT_PASSWORD=${MQTT_DEVICE_PASSWORD}
     restart: unless-stopped
 
   borealis:
@@ -67,6 +81,8 @@ services:
     depends_on: [mosquitto]
     environment:
       - BROKER_HOST=mosquitto
+      - MQTT_USERNAME=site4_hvac_01
+      - MQTT_PASSWORD=${MQTT_DEVICE_PASSWORD}
     restart: unless-stopped
 
   # --- Storage (stage 3, decisions/ADR-002) -------------------------------------------------
@@ -128,6 +144,8 @@ services:
         condition: service_completed_successfully     # tables exist before we write
     environment:
       BROKER_HOST: mosquitto
+      MQTT_USERNAME: historian
+      MQTT_PASSWORD: ${MQTT_HISTORIAN_PASSWORD}
       DATABASE_URL: postgresql://historian:${HISTORIAN_DB_PASSWORD}@timescaledb:5432/dtteo
       HISTORIAN_SITE: site1
       LOG_LEVEL: ${LOG_LEVEL:-INFO}

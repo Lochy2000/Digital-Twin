@@ -1,0 +1,11 @@
+fault,samples,flagged,flagged_pct,GOOD,SUSPECT,BAD,by_test,kind
+clean,2840,0,0.0,2840,0,0,-,false alarms on clean data
+"spike (+6 C, inside expected range)",20,0,0.0,20,0,0,-,detection
+dropout read as 0.0 C,10,10,100.0,0,10,0,expected_range,detection
+"spike (+20 C, outside expected range)",10,10,100.0,0,10,0,expected_range,detection
+slow drift (+3 C over 1 day),960,0,0.0,960,0,0,-,detection
+step / rate of change (+7 C for 1 h),120,0,0.0,120,0,0,-,detection
+flat line (stuck 2 h),360,0,0.0,360,0,0,-,detection
+DS18B20 power-on reset value (85 C),10,10,100.0,0,10,0,expected_range,detection
+outside sensor range (130 C),10,10,100.0,0,0,10,"sensor_range,expected_range",detection
+clean (Tasmota),10,0,0.0,10,0,0,-,false alarms on clean data

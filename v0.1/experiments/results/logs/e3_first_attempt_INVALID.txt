@@ -1,0 +1,11 @@
+2026-11-01T13:20:35Z e3
+{'run': 'e3-r1-250', 'offered_msg_s': 250.0, 'stored_msg_s': 250.2, 'lost': 0, 'drain_s': 1.06, 'p50_ms': 593, 'p95_ms': 1042, 'p99_ms': 1084, 'max_ms': 1119}
+{'run': 'e3-r1-500', 'offered_msg_s': 500.0, 'stored_msg_s': 512.6, 'lost': 0, 'drain_s': 0.1, 'p50_ms': 350, 'p95_ms': 575, 'p99_ms': 606, 'max_ms': 652}
+{'run': 'e3-r1-1000', 'offered_msg_s': 1000.0, 'stored_msg_s': 546.7, 'lost': 0, 'drain_s': 0.1, 'p50_ms': 158, 'p95_ms': 331, 'p99_ms': 357, 'max_ms': 386}
+{'run': 'e3-r1-2000', 'offered_msg_s': 2000.0, 'stored_msg_s': 448.0, 'lost': 0, 'drain_s': 0.19, 'p50_ms': -25273, 'p95_ms': 461, 'p99_ms': 564, 'max_ms': 616}
+{'run': 'e3-r1-4000', 'offered_msg_s': 4000.1, 'stored_msg_s': 485.3, 'lost': 23380, 'drain_s': 4.48, 'p50_ms': 2337, 'p95_ms': 9743, 'p99_ms': 10139, 'max_ms': 10355}
+{'run': 'e3-r2-250', 'offered_msg_s': 250.0, 'stored_msg_s': 250.1, 'lost': 0, 'drain_s': 1.06, 'p50_ms': 595, 'p95_ms': 1046, 'p99_ms': 1091, 'max_ms': 1130}
+{'run': 'e3-r2-500', 'offered_msg_s': 500.0, 'stored_msg_s': 512.9, 'lost': 0, 'drain_s': 0.08, 'p50_ms': 343, 'p95_ms': 568, 'p99_ms': 598, 'max_ms': 626}
+{'run': 'e3-r2-1000', 'offered_msg_s': 1000.0, 'stored_msg_s': 547.3, 'lost': 0, 'drain_s': 0.09, 'p50_ms': 152, 'p95_ms': 326, 'p99_ms': 351, 'max_ms': 393}
+{'run': 'e3-r2-2000', 'offered_msg_s': 2000.0, 'stored_msg_s': 448.4, 'lost': 0, 'drain_s': 0.1, 'p50_ms': -25258, 'p95_ms': 424, 'p99_ms': 520, 'max_ms': 601}
+{'run': 'e3-r2-4000', 'offered_msg_s': 3999.7, 'stored_msg_s': 516.7, 'lost': 18668, 'drain_s': 6.52, 'p50_ms': 3992, 'p95_ms': 11518, 'p99_ms': 12230, 'max_ms': 12413}

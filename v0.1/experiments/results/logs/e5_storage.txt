@@ -1,0 +1,26 @@
+2026-11-01T13:46:50Z E5
+{'rows': 5256000, 'points': 10, 'fill_seconds': 41.0, 'table_bytes': 566730752, 'index_bytes': 166060032, 'total_bytes': 732790784, 'bytes_per_reading': 139.4, 'table_bytes_per_reading': 107.8, 'index_bytes_per_reading': 31.6}
+{'range': '24 h', 'query': 'Measurements (every reading), 1 point', 'rows_returned': 1440, 'median_ms': 3.1, 'max_ms': 5.5, 'first_ms': 5.5}
+{'range': '24 h', 'query': 'Measurements (every reading), all 8 points', 'rows_returned': 10080, 'median_ms': 19.5, 'max_ms': 21.4, 'first_ms': 20.6}
+{'range': '24 h', 'query': 'Hourly mean, all 8 points (raw, no continuous aggregate)', 'rows_returned': 168, 'median_ms': 8.0, 'max_ms': 8.4, 'first_ms': 8.4}
+{'range': '24 h', 'query': 'Energy used per hour (total_1h view)', 'rows_returned': 24, 'median_ms': 792.7, 'max_ms': 3534.3, 'first_ms': 3534.3}
+{'range': '24 h', 'query': 'Mode', 'rows_returned': 1440, 'median_ms': 2.8, 'max_ms': 4.9, 'first_ms': 2.6}
+{'range': '24 h', 'query': 'Readings by quality', 'rows_returned': 1, 'median_ms': 455.0, 'max_ms': 569.0, 'first_ms': 481.3}
+{'range': '7 d', 'query': 'Measurements (every reading), 1 point', 'rows_returned': 10140, 'median_ms': 24.4, 'max_ms': 28.9, 'first_ms': 28.9}
+{'range': '7 d', 'query': 'Measurements (every reading), all 8 points', 'rows_returned': 70980, 'median_ms': 634.6, 'max_ms': 667.0, 'first_ms': 667.0}
+{'range': '7 d', 'query': 'Hourly mean, all 8 points (raw, no continuous aggregate)', 'rows_returned': 1183, 'median_ms': 510.7, 'max_ms': 570.9, 'first_ms': 510.7}
+{'range': '7 d', 'query': 'Energy used per hour (total_1h view)', 'rows_returned': 169, 'median_ms': 752.6, 'max_ms': 777.1, 'first_ms': 777.1}
+{'range': '7 d', 'query': 'Mode', 'rows_returned': 10140, 'median_ms': 13.5, 'max_ms': 14.8, 'first_ms': 13.5}
+{'range': '7 d', 'query': 'Readings by quality', 'rows_returned': 1, 'median_ms': 416.1, 'max_ms': 568.5, 'first_ms': 512.7}
+{'range': '30 d', 'query': 'Measurements (every reading), 1 point', 'rows_returned': 43260, 'median_ms': 76.8, 'max_ms': 87.9, 'first_ms': 87.9}
+{'range': '30 d', 'query': 'Measurements (every reading), all 8 points', 'rows_returned': 302820, 'median_ms': 1011.5, 'max_ms': 1069.5, 'first_ms': 1035.3}
+{'range': '30 d', 'query': 'Hourly mean, all 8 points (raw, no continuous aggregate)', 'rows_returned': 5047, 'median_ms': 582.0, 'max_ms': 755.5, 'first_ms': 630.4}
+{'range': '30 d', 'query': 'Energy used per hour (total_1h view)', 'rows_returned': 721, 'median_ms': 814.2, 'max_ms': 1041.2, 'first_ms': 769.6}
+{'range': '30 d', 'query': 'Mode', 'rows_returned': 43260, 'median_ms': 58.3, 'max_ms': 69.3, 'first_ms': 69.3}
+{'range': '30 d', 'query': 'Readings by quality', 'rows_returned': 1, 'median_ms': 435.6, 'max_ms': 504.4, 'first_ms': 435.6}
+{'range': '365 d', 'query': 'Measurements (every reading), 1 point', 'rows_returned': 525600, 'median_ms': 1545.9, 'max_ms': 1716.1, 'first_ms': 1373.9}
+{'range': '365 d', 'query': 'Measurements (every reading), all 8 points', 'rows_returned': 3679200, 'median_ms': 7451.7, 'max_ms': 8315.4, 'first_ms': 8315.4}
+{'range': '365 d', 'query': 'Hourly mean, all 8 points (raw, no continuous aggregate)', 'rows_returned': 61320, 'median_ms': 1866.7, 'max_ms': 2016.0, 'first_ms': 1866.7}
+{'range': '365 d', 'query': 'Energy used per hour (total_1h view)', 'rows_returned': 8760, 'median_ms': 925.3, 'max_ms': 1010.1, 'first_ms': 1010.1}
+{'range': '365 d', 'query': 'Mode', 'rows_returned': 525600, 'median_ms': 1200.5, 'max_ms': 1295.0, 'first_ms': 1155.5}
+{'range': '365 d', 'query': 'Readings by quality', 'rows_returned': 1, 'median_ms': 682.9, 'max_ms': 743.6, 'first_ms': 743.6}

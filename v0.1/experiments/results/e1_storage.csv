@@ -1,0 +1,8 @@
+case,expected,observed,pass
+200 messages sent twice,200 rows,200 rows,True
+200 messages in shuffled order,"200 rows, each at its own sensor time","200 rows, values match their times: True",True
+"100 messages, 50 without a temperature","50 rows, no zeros","50 rows, 0 zeros",True
+completeness reported per point,a completeness or gap view exists,none found in the database,False
+NaN and Infinity temperatures,"quarantined, or stored as BAD",stored NaN SUSPECT; stored Infinity SUSPECT,False
+"summary over those 60 readings (58 normal, NaN, Infinity)",mean of the 58 normal readings (21.1),"mean NaN, max NaN over 60 readings",False
+services still running after all bad input,yes,yes,True

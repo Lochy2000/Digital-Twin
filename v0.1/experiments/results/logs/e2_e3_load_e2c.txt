@@ -1,0 +1,3 @@
+2026-11-01T13:59:51Z e2c
+{'run': 'e2c-default', 'gw_out_p50_ms': 22.8, 'gw_out_p99_ms': 44.3, 'p99_ms': 1070}
+{'run': 'e2c-set_tcp_nodelay true', 'gw_out_p50_ms': 1.0, 'gw_out_p99_ms': 4.2, 'p99_ms': 1057}

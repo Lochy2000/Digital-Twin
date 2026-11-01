@@ -1,0 +1,24 @@
+2026-11-01T13:46:05Z E6
+{'login': '(none)', 'password': '(none)', 'action': 'connect', 'topic': '', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'Not authorized', 'as_expected': True}
+{'login': 'acme_hvac_0001', 'password': 'wrong', 'action': 'connect', 'topic': '', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'Not authorized', 'as_expected': True}
+{'login': 'stranger', 'password': 'wrong', 'action': 'connect', 'topic': '', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'Not authorized', 'as_expected': True}
+{'login': 'acme_hvac_0001', 'password': 'right', 'action': 'publish', 'topic': 'raw/acme/acme_hvac_0001/telemetry', 'rules_say': 'allow', 'observed': 'allowed', 'detail': 'delivered', 'as_expected': True}
+{'login': 'acme_hvac_0001', 'password': 'right', 'action': 'publish', 'topic': 'dt/v1/status/acme_hvac_0001', 'rules_say': 'allow', 'observed': 'allowed', 'detail': 'delivered', 'as_expected': True}
+{'login': 'acme_hvac_0001', 'password': 'right', 'action': 'publish', 'topic': 'raw/borealis/site4_hvac_01/data', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'dropped by broker', 'as_expected': True}
+{'login': 'acme_hvac_0001', 'password': 'right', 'action': 'publish', 'topic': 'dt/v1/telemetry/site1/unit1/zone_air_temp', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'dropped by broker', 'as_expected': True}
+{'login': 'acme_hvac_0001', 'password': 'right', 'action': 'publish', 'topic': 'dt/v1/status/ingestion_gateway', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'dropped by broker', 'as_expected': True}
+{'login': 'acme_hvac_0001', 'password': 'right', 'action': 'subscribe', 'topic': 'dt/v1/telemetry/site1/unit1/zone_air_temp', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'not received', 'as_expected': True}
+{'login': 'acme_hvac_0001', 'password': 'right', 'action': 'subscribe', 'topic': 'raw/borealis/site4_hvac_01/data', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'not received', 'as_expected': True}
+{'login': 'site4_hvac_01', 'password': 'right', 'action': 'publish', 'topic': 'raw/borealis/site4_hvac_01/data', 'rules_say': 'allow', 'observed': 'allowed', 'detail': 'delivered', 'as_expected': True}
+{'login': 'site4_hvac_01', 'password': 'right', 'action': 'publish', 'topic': 'raw/acme/acme_hvac_0001/telemetry', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'dropped by broker', 'as_expected': True}
+{'login': 'ingestion_gateway', 'password': 'right', 'action': 'publish', 'topic': 'dt/v1/telemetry/site1/unit1/zone_air_temp', 'rules_say': 'allow', 'observed': 'allowed', 'detail': 'delivered', 'as_expected': True}
+{'login': 'ingestion_gateway', 'password': 'right', 'action': 'publish', 'topic': 'dt/v1/quarantine/acme', 'rules_say': 'allow', 'observed': 'allowed', 'detail': 'delivered', 'as_expected': True}
+{'login': 'ingestion_gateway', 'password': 'right', 'action': 'publish', 'topic': 'raw/acme/acme_hvac_0001/telemetry', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'dropped by broker', 'as_expected': True}
+{'login': 'ingestion_gateway', 'password': 'right', 'action': 'subscribe', 'topic': 'raw/acme/acme_hvac_0001/telemetry', 'rules_say': 'allow', 'observed': 'allowed', 'detail': 'received', 'as_expected': True}
+{'login': 'historian', 'password': 'right', 'action': 'subscribe', 'topic': 'dt/v1/telemetry/site1/unit1/zone_air_temp', 'rules_say': 'allow', 'observed': 'allowed', 'detail': 'received', 'as_expected': True}
+{'login': 'historian', 'password': 'right', 'action': 'publish', 'topic': 'dt/v1/telemetry/site1/unit1/zone_air_temp', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'dropped by broker', 'as_expected': True}
+{'login': 'historian', 'password': 'right', 'action': 'subscribe', 'topic': 'raw/acme/acme_hvac_0001/telemetry', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'not received', 'as_expected': True}
+{'login': 'engineer', 'password': 'right', 'action': 'subscribe', 'topic': 'raw/acme/acme_hvac_0001/telemetry', 'rules_say': 'allow', 'observed': 'allowed', 'detail': 'received', 'as_expected': True}
+{'login': 'engineer', 'password': 'right', 'action': 'publish', 'topic': 'dt/v1/telemetry/site1/unit1/zone_air_temp', 'rules_say': 'deny', 'observed': 'denied', 'detail': 'dropped by broker', 'as_expected': True}
+{'login': 'site4_hvac_01', 'password': 'right', 'action': 'connect', 'topic': '', 'rules_say': 'allow', 'observed': 'allowed', 'detail': 'Success', 'as_expected': True}
+on the wire: .1..MQTT...<..acme_hvac_0001..acme_hvac_0001..devpw

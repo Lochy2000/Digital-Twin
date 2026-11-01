@@ -10,11 +10,14 @@ What it checks, in about 10 seconds:
   3. Quarantine path: a field nobody has mapped ends up in the quarantine table.
   4. Summaries: the TimescaleDB summary (summary_1h) and the energy view (total_1h) answer.
   5. Grafana: http://localhost:3000/api/health says the database is ok.
+  6. Broker logins: a client with no login is refused.
+  7. Access rules: a device can't publish canonical data (only the gateway may).
 Then it deletes its own two test rows, so no test data is left behind.
 
 It needs only Python (no extra packages): it reaches the broker and the database through
-"docker compose exec", so no database port has to be opened. It sends as the Acme test device,
-so Acme must be the enabled device (the default in mappings/bindings/site1.ttl).
+"docker compose exec", so no database port has to be opened. It sends as the Acme test device
+(login acme_hvac_0001, password MQTT_DEVICE_PASSWORD from .env), so Acme must be the enabled
+device (the default in mappings/bindings/site1.ttl). It watches with the read-only "engineer" login.
 
 Sources:
   - mosquitto_pub (sends one MQTT message): https://mosquitto.org/man/mosquitto_pub-1.html
@@ -31,6 +34,7 @@ import urllib.request
 from pathlib import Path
 
 V01 = Path(__file__).resolve().parents[1]
+BROKER = ["docker", "compose", "exec", "-T", "mosquitto"]     # where mosquitto_pub / _sub run
 TOPIC = "raw/acme/acme_hvac_0001/telemetry"
 WAIT_S = 15                      # the historian writes at least once a second; allow for start-up
 
@@ -44,8 +48,28 @@ def compose(*args: str) -> str:
     return out.stdout.strip()
 
 
+def env(name: str) -> str:
+    """A value from v0.1/.env (the same passwords Docker Compose uses)."""
+    for line in (V01 / ".env").read_text().splitlines():
+        if line.strip().startswith(name + "="):
+            return line.split("=", 1)[1].strip()
+    raise RuntimeError(f"{name} not found in .env (copy it from .env.example)")
+
+
+def login(user: str | None) -> list[str]:
+    passwords = {"acme_hvac_0001": "MQTT_DEVICE_PASSWORD", "engineer": "MQTT_ENGINEER_PASSWORD"}
+    return [] if user is None else ["-u", user, "-P", env(passwords[user])]
+
+
+def try_publish(topic: str, payload: dict, user: str | None = "acme_hvac_0001") -> subprocess.CompletedProcess:
+    return subprocess.run([*BROKER, "mosquitto_pub", *login(user), "-q", "1", "-t", topic, "-m", json.dumps(payload)],
+                          cwd=V01, capture_output=True, text=True)
+
+
 def publish(topic: str, payload: dict) -> None:
-    compose("mosquitto", "mosquitto_pub", "-q", "1", "-t", topic, "-m", json.dumps(payload))
+    out = try_publish(topic, payload)
+    if out.returncode != 0:
+        raise RuntimeError(out.stderr.strip() or out.stdout.strip())
 
 
 def sql(query: str) -> str:
@@ -113,6 +137,22 @@ def main() -> int:
         check("grafana", health.get("database") == "ok", f"version {health.get('version')}, database {health.get('database')}")
     except Exception as e:
         check("grafana", False, f"not reachable ({e})  -> docker compose logs grafana")
+
+    # 6. No login -> refused.
+    out = try_publish(TOPIC, {"ts": ts_ms, "tempF": 70.0}, user=None)
+    check("broker refuses clients with no login", out.returncode != 0,
+          "refused" if out.returncode != 0 else "ACCEPTED: check broker/mosquitto.conf (allow_anonymous false)")
+
+    # 7. A device publishing canonical data -> dropped by the access rules. The engineer login
+    #    watches the topic for 5 s; nothing must arrive.
+    denied_topic = "dt/v1/telemetry/site1/smoke/denied"
+    watcher = subprocess.Popen([*BROKER, "mosquitto_sub", *login("engineer"), "-t", denied_topic, "-C", "1", "-W", "5"],
+                               cwd=V01, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    time.sleep(1.5)                              # let the watcher subscribe first
+    try_publish(denied_topic, {"marker": marker})
+    got, _ = watcher.communicate(timeout=15)
+    check("a device can't publish canonical data", marker not in got,
+          "blocked by the access rules" if marker not in got else "IT GOT THROUGH: check broker/acl.conf")
 
     # Clean up our two test rows (as the owner; the historian's own login can't delete).
     sql(f"""DELETE FROM readings WHERE sensor_time = {sensor_time} AND series_id =

@@ -1,0 +1,21 @@
+group,case,expected,observed,detail
+time,no timestamp in message,"recorded as unknown, not substituted (RR 1 §5)",GOOD, time_source=gateway value=21.1111
+time,clock 1 day ahead,not GOOD,BAD,future_time time_source=device value=21.1111
+time,clock 30 min ahead,not GOOD,BAD,future_time time_source=device value=21.1111
+time,clock reset to 1970 (power loss),not GOOD (RR 1: flag readings after power loss),SUSPECT,late_arrival time_source=device value=21.1111
+time,clock 2 h behind,"not GOOD (wrong time looks like a fault, RR 1)",GOOD, time_source=device value=21.1111
+time,Tasmota local time 01:30 on 25 Oct (clocks go back: happens twice),flagged as ambiguous,QUARANTINE:decode,tasmota: local time 2026-10-25T01:30:00 happens twice (clocks went back); can't tell which
+format,not JSON,quarantined,QUARANTINE:decode,acme: payload is not JSON (Expecting value: line 1 column 1 (char 0))
+format,empty payload,quarantined,QUARANTINE:decode,acme: payload is not JSON (Expecting value: line 1 column 1 (char 0))
+format,JSON array instead of object,quarantined,QUARANTINE:decode,acme: expected a JSON object
+format,timestamp is text,quarantined,QUARANTINE:decode,acme: bad ts 'yesterday'
+format,temperature is text,quarantined,QUARANTINE:normalise,"expected a number for unit1.zone_air_temp, got 'hot'"
+format,temperature is a number in quotes,quarantined or converted,QUARANTINE:normalise,"expected a number for unit1.zone_air_temp, got '70.5'"
+format,temperature is null,quarantined,QUARANTINE:normalise,"expected a number for unit1.zone_air_temp, got None"
+format,temperature is true,quarantined,QUARANTINE:normalise,"expected a number for unit1.zone_air_temp, got True"
+format,temperature is NaN,quarantined or BAD,SUSPECT,expected_range time_source=device value=nan
+format,temperature is Infinity,quarantined or BAD,SUSPECT,expected_range time_source=device value=inf
+format,unknown mode code (op_state 9),quarantined,QUARANTINE:normalise,value 9 is not in the value map for unit1.mode_status
+format,field nobody mapped,quarantined,QUARANTINE:map,field 'fanRPM' is not in device type acme_hvac (add it to the type)
+format,device nobody bound,quarantined,QUARANTINE:map,device acme/acme_hvac_9999 is not bound (add it to mappings/bindings/)
+format,vendor nobody knows,quarantined,QUARANTINE:decode,no decoder for source 'zeta'

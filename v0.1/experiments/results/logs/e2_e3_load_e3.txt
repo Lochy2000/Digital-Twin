@@ -1,0 +1,17 @@
+2026-11-01T13:49:30Z e3
+{'run': 'e3-r1-250', 'offered_msg_s': 250.0, 'stored_msg_s': 263.0, 'lost': 0, 'drain_s': 0.09, 'p50_ms': 592, 'p95_ms': 1042, 'p99_ms': 1088, 'max_ms': 1131}
+{'run': 'e3-r1-500', 'offered_msg_s': 500.0, 'stored_msg_s': 512.9, 'lost': 0, 'drain_s': 0.12, 'p50_ms': 353, 'p95_ms': 579, 'p99_ms': 615, 'max_ms': 652}
+{'run': 'e3-r1-750', 'offered_msg_s': 750.0, 'stored_msg_s': 763.0, 'lost': 0, 'drain_s': 0.11, 'p50_ms': 277, 'p95_ms': 433, 'p99_ms': 522, 'max_ms': 643}
+{'run': 'e3-r1-1000', 'offered_msg_s': 1000.0, 'stored_msg_s': 1012.7, 'lost': 0, 'drain_s': 0.11, 'p50_ms': 226, 'p95_ms': 341, 'p99_ms': 384, 'max_ms': 535}
+{'run': 'e3-r1-1500', 'offered_msg_s': 1500.0, 'stored_msg_s': 1510.2, 'lost': 0, 'drain_s': 0.12, 'p50_ms': 188, 'p95_ms': 281, 'p99_ms': 367, 'max_ms': 432}
+{'run': 'e3-r1-2000', 'offered_msg_s': 1999.9, 'stored_msg_s': 2007.9, 'lost': 0, 'drain_s': 0.12, 'p50_ms': 267, 'p95_ms': 711, 'p99_ms': 781, 'max_ms': 825}
+{'run': 'e3-r1-3000', 'offered_msg_s': 3000.0, 'stored_msg_s': 1772.2, 'lost': 12465, 'drain_s': 7.17, 'p50_ms': 6772, 'p95_ms': 7758, 'p99_ms': 7821, 'max_ms': 7884}
+{'run': 'e3-r1-4000', 'offered_msg_s': 4000.0, 'stored_msg_s': 1985.3, 'lost': 17500, 'drain_s': 11.79, 'p50_ms': 8739, 'p95_ms': 11370, 'p99_ms': 11519, 'max_ms': 11790}
+{'run': 'e3-r2-250', 'offered_msg_s': 250.0, 'stored_msg_s': 250.4, 'lost': 0, 'drain_s': 1.06, 'p50_ms': 591, 'p95_ms': 1042, 'p99_ms': 1082, 'max_ms': 1122}
+{'run': 'e3-r2-500', 'offered_msg_s': 500.0, 'stored_msg_s': 512.4, 'lost': 0, 'drain_s': 0.12, 'p50_ms': 348, 'p95_ms': 573, 'p99_ms': 599, 'max_ms': 626}
+{'run': 'e3-r2-750', 'offered_msg_s': 750.0, 'stored_msg_s': 762.7, 'lost': 0, 'drain_s': 0.09, 'p50_ms': 261, 'p95_ms': 412, 'p99_ms': 435, 'max_ms': 485}
+{'run': 'e3-r2-1000', 'offered_msg_s': 1000.0, 'stored_msg_s': 1011.7, 'lost': 0, 'drain_s': 0.11, 'p50_ms': 221, 'p95_ms': 335, 'p99_ms': 358, 'max_ms': 416}
+{'run': 'e3-r2-1500', 'offered_msg_s': 1500.0, 'stored_msg_s': 1509.4, 'lost': 0, 'drain_s': 0.16, 'p50_ms': 191, 'p95_ms': 280, 'p99_ms': 323, 'max_ms': 383}
+{'run': 'e3-r2-2000', 'offered_msg_s': 1999.7, 'stored_msg_s': 1922.3, 'lost': 0, 'drain_s': 1.07, 'p50_ms': 1313, 'p95_ms': 1659, 'p99_ms': 1719, 'max_ms': 1768}
+{'run': 'e3-r2-3000', 'offered_msg_s': 3000.1, 'stored_msg_s': 1292.5, 'lost': 24881, 'drain_s': 7.37, 'p50_ms': 6748, 'p95_ms': 7750, 'p99_ms': 7825, 'max_ms': 7889}
+{'run': 'e3-r2-4000', 'offered_msg_s': 3999.7, 'stored_msg_s': 1603.4, 'lost': 27912, 'drain_s': 12.67, 'p50_ms': 10156, 'p95_ms': 12285, 'p99_ms': 12419, 'max_ms': 12723}

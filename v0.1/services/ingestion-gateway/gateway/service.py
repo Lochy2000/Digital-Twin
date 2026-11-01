@@ -29,6 +29,8 @@ Settings (environment variables):
     GATEWAY_ENABLED   optional on/off overrides for bindings, e.g.
                       "acme_hvac_0001=off,site4_hvac_01=on"  (to match the compose profile)
     LOG_LEVEL         default INFO  (DEBUG also logs every GOOD reading)
+    MQTT_USERNAME     broker login (default ingestion_gateway); MQTT_PASSWORD its password
+                      (broker/acl.conf: the only login allowed to publish dt/v1/telemetry/...)
 
 Sources:
   - paho-mqtt 2.x callbacks (on_connect(client, userdata, flags, reason_code, properties), ...):
@@ -110,6 +112,8 @@ def main() -> None:
 
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, protocol=mqtt.MQTTv5)
     client.max_queued_messages_set(MAX_QUEUED)
+    if os.getenv("MQTT_PASSWORD"):                          # the broker refuses anonymous clients
+        client.username_pw_set(os.getenv("MQTT_USERNAME", CLIENT_ID), os.environ["MQTT_PASSWORD"])
     client.will_set(STATUS_TOPIC, "offline", qos=1, retain=True)
 
     def on_connect(client, userdata, flags, reason_code, properties):
