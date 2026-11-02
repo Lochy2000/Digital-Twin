@@ -1,6 +1,6 @@
 # DT-TEO twin lab
 
-**Status:** started 1 November 2026 · research sandbox, nothing locked in
+**Status:** started 1 November 2026 · **sandbox**: a place to try things and see how they work. Nothing here is the actual version. Basic and simple on purpose, and every part swappable.
 
 The v0.1 pipeline (`../v0.1`) answers *"can we move sensor data reliably?"*. This folder works on the question the feasibility study actually rests on:
 
@@ -56,7 +56,7 @@ Each step ends with a check and a short entry in `NOTES.md` before the next one 
 | Step | What | Check / output |
 |---|---|---|
 | **L0** | Folder, plan, notes *(this step)* | This README |
-| **L1** | Model interface `step(state, inputs, dt) → state` (RR 1 §7) and the 1R1C twin model. Stepping uses the actual time between readings, not a fixed timer (project decision) | Unit tests against the equation solved by hand |
+| **L1** ✔ | Model interface `step(state, inputs, dt) → state` (RR 1 §7) and the 1R1C twin model. Stepping uses the actual time between readings, not a fixed timer (project decision) | 8 tests against answers worked out by hand; `demo_l1.py` draws a day |
 | **L2** | Plant simulator: 2R2C zone, a heat/cool unit with modes, capacity limits and efficiency (COP), outdoor temperature profile, unmeasured gains, sensor noise and rounding. Writes canonical-shape CSV | Plots look physically sensible. A cool-down curve has the expected time constant |
 | **L3** | Calibration: fit the 1R1C twin on one period (including an overnight cool-down, RR 1 §7), test on another | MAE and RMSE in kelvin. ASHRAE Guideline 14 NMBE and CV(RMSE), with the note that GL14 was written for whole-building energy |
 | **L4** | Observer and residual: open-loop vs Luenberger vs Kalman. Data gaps handled by LIVE / COASTING / STALE | Residual is near-white noise on healthy data. Behaviour during a 2 h data gap |
@@ -84,7 +84,8 @@ Each step ends with a check and a short entry in `NOTES.md` before the next one 
 twin-lab/
 ├── README.md        this plan
 ├── NOTES.md         build notes, one entry per step
-├── twinlab/         Python package: models, plant, observers, detectors   (from L1)
+├── demo_l1.py       runs the 1R1C model through one day and draws it
+├── twinlab/         Python package: model.py (interface), rc1.py (1R1C) ...
 ├── notebooks/       experiments that use the package and draw the figures (from L2)
 ├── tests/           pytest                                                (from L1)
 ├── data/            generated CSV, git-ignored except small samples       (from L2)
