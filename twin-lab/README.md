@@ -57,10 +57,10 @@ Each step ends with a check and a short entry in `NOTES.md` before the next one 
 |---|---|---|
 | **L0** | Folder, plan, notes *(this step)* | This README |
 | **L1** ✔ | Model interface `step(state, inputs, dt) → state` (RR 1 §7) and the 1R1C twin model. Stepping uses the actual time between readings, not a fixed timer (project decision) | 8 tests against answers worked out by hand; `demo_l1.py` draws a day |
-| **L2** | Plant simulator: 2R2C zone, a heat/cool unit with modes, capacity limits and efficiency (COP), outdoor temperature profile, unmeasured gains, sensor noise and rounding. Writes canonical-shape CSV | Plots look physically sensible. A cool-down curve has the expected time constant |
-| **L3** | Calibration: fit the 1R1C twin on one period (including an overnight cool-down, RR 1 §7), test on another | MAE and RMSE in kelvin. ASHRAE Guideline 14 NMBE and CV(RMSE), with the note that GL14 was written for whole-building energy |
+| **L2** ◐ | **Plant = BOPTEST** (v0.1 build plan §1a): the single-zone `bestest_air` test case (one room, fan coil heating and cooling) recorded to canonical-shape CSV. A detailed model the twin doesn't share, so the mismatch comes for free. Built and tested offline; first real run on Loch's PC | Point names confirmed with `--list`; CSV looks physically sensible |
+| **L3** | **The twin loop**, basic first: read the plant CSV, step the 1R1C model, compare, plot the residual (R and C guessed). Then calibration: fit R and C on one period (including an overnight cool-down, RR 1 §7), test on another | MAE and RMSE in kelvin. ASHRAE Guideline 14 NMBE and CV(RMSE), with the note that GL14 was written for whole-building energy |
 | **L4** | Observer and residual: open-loop vs Luenberger vs Kalman. Data gaps handled by LIVE / COASTING / STALE | Residual is near-white noise on healthy data. Behaviour during a 2 h data gap |
-| **L5** | Fault library and detectors: injected faults with known size and start time; EWMA, CUSUM, Z-score | Detection rate, false alarms per day, time to detect, per fault type and size (feasibility ref §6.3) |
+| **L5** | Fault library and detectors: injected faults with known size and start time; EWMA, CUSUM, Z-score. Sensor faults are added to BOPTEST readings; equipment faults need our own small simulator or the LBNL datasets, because BOPTEST's building can't be broken from outside | Detection rate, false alarms per day, time to detect, per fault type and size (feasibility ref §6.3) |
 | **L6** | **Detectability study.** Vary sensor noise, sampling interval, which sensors exist and fault size | The smallest fault each setup can detect. This is the evidence for or against the sparse-data premise |
 | **R1–R3** | Test rig (parallel track): spec after L2, so it measures what the model needs; build; record real cool-downs | Real data replaces the plant in L3–L5 |
 | **Hand-over** | Move the chosen model, observer and detector into v0.1 as the `twin-engine` service | Same results from the broker as from CSV |
@@ -85,7 +85,8 @@ twin-lab/
 ├── README.md        this plan
 ├── NOTES.md         build notes, one entry per step
 ├── demo_l1.py       runs the 1R1C model through one day and draws it
-├── twinlab/         Python package: model.py (interface), rc1.py (1R1C) ...
+├── run_boptest.py   records a BOPTEST building to CSV (L2)
+├── twinlab/         Python package: model.py (interface), rc1.py (1R1C), boptest.py (plant) ...
 ├── notebooks/       experiments that use the package and draw the figures (from L2)
 ├── tests/           pytest                                                (from L1)
 ├── data/            generated CSV, git-ignored except small samples       (from L2)
