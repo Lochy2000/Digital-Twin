@@ -28,6 +28,9 @@ def model_inputs(moment: dict) -> dict:
     return {
         "outside_temp_C": moment["weather1.outside_air_temp"],
         "unit_heat_W": unit_heat_W(moment),
+        # L3c: the heat sources L3b showed the model was missing
+        "internal_gain_W": 1000 * (moment["zone1.lighting_power"] + moment["zone1.plug_power"]),
+        "solar_W_m2": moment["weather1.solar_global"],
     }
 
 

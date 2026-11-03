@@ -6,9 +6,17 @@ The physics (heat balance on the zone):
 
     T      zone temperature (°C)
     T_out  outside temperature (°C)
-    Q      heat the unit puts in (W): positive = heating, negative = cooling
+    Q      all heat put into the zone (W), added up from:
+             Q_unit    the heat/cool unit: positive = heating, negative = cooling
+             Q_int     internal gains: lights, computers, machines (measured)
+             A * S     sunshine: S = sunshine (W/m2), A = effective window area (m2)
     R      thermal resistance (K/W): how hard it is for heat to escape
     C      thermal capacitance (J/K): how much heat the zone stores
+    A      effective sun-catching area (m2), a value to be fitted (L3d), like R and C
+
+Internal gains and sunshine are optional inputs (0 if not given), so the model
+still works where only the unit's heat is known. Added in L3c, after L3b showed
+that leaving them out starves the model of heat.
 
 How we step it forward
 ----------------------
@@ -34,14 +42,17 @@ from twinlab.model import Values
 
 
 class RC1:
-    inputs = ["outside_temp_C", "unit_heat_W"]
+    inputs = ["outside_temp_C", "unit_heat_W", "internal_gain_W", "solar_W_m2"]
     outputs = ["zone_temp_C"]
 
-    def __init__(self, R: float, C: float):
+    def __init__(self, R: float, C: float, solar_area_m2: float = 0.0):
         if R <= 0 or C <= 0:
             raise ValueError("R and C must be positive")
-        self.R = R  # K/W
-        self.C = C  # J/K
+        if solar_area_m2 < 0:
+            raise ValueError("solar area can't be negative")
+        self.R = R                          # K/W
+        self.C = C                          # J/K
+        self.solar_area_m2 = solar_area_m2  # m2
 
     @property
     def time_constant_s(self) -> float:
@@ -55,7 +66,10 @@ class RC1:
         if dt < 0:
             raise ValueError("dt can't be negative (readings out of order?)")
         T = state["zone_temp_C"]
-        T_balance = inputs["outside_temp_C"] + self.R * inputs["unit_heat_W"]
+        Q = (inputs["unit_heat_W"]
+             + inputs.get("internal_gain_W", 0.0)
+             + self.solar_area_m2 * inputs.get("solar_W_m2", 0.0))
+        T_balance = inputs["outside_temp_C"] + self.R * Q
         T_new = T_balance + (T - T_balance) * math.exp(-dt / self.time_constant_s)
         return {"zone_temp_C": T_new}
 

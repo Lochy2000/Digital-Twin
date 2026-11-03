@@ -68,3 +68,14 @@ def test_bad_values_are_refused():
         RC1(0, C)
     with pytest.raises(ValueError):
         RC1(R, C).step({"zone_temp_C": 18.0}, {"outside_temp_C": 5.0, "unit_heat_W": 0}, -1)
+
+
+def test_internal_gains_and_sun_add_heat_like_the_unit_does():
+    # 1 kW from the unit, or 400 W of lights + 200 W/m2 sun on 3 m2: same 1 kW in total,
+    # so both settle at the same balance temperature: 5 + 0.005 * 1000 = 10 °C.
+    m = RC1(R, C, solar_area_m2=3)
+    unit_only = m.step({"zone_temp_C": 5.0}, {"outside_temp_C": 5.0, "unit_heat_W": 1000}, 1e7)
+    gains = m.step({"zone_temp_C": 5.0}, {"outside_temp_C": 5.0, "unit_heat_W": 0,
+                                          "internal_gain_W": 400, "solar_W_m2": 200}, 1e7)
+    assert unit_only["zone_temp_C"] == pytest.approx(10.0)
+    assert gains["zone_temp_C"] == pytest.approx(10.0)

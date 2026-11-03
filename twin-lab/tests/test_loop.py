@@ -10,10 +10,11 @@ from twinlab.rc1 import RC1
 T0 = datetime(2026, 1, 15, tzinfo=timezone.utc)
 
 
-def moment(minutes, zone, outside, heat_kW, cool_kW=0.0):
+def moment(minutes, zone, outside, heat_kW, cool_kW=0.0, lights_kW=0.0, plugs_kW=0.0, sun=0.0):
     return {"time": T0 + timedelta(minutes=minutes), "unit1.zone_air_temp": zone,
             "weather1.outside_air_temp": outside, "unit1.heat_output": heat_kW,
-            "unit1.cool_power": cool_kW}
+            "unit1.cool_power": cool_kW, "zone1.lighting_power": lights_kW,
+            "zone1.plug_power": plugs_kW, "weather1.solar_global": sun}
 
 
 def test_net_heat_is_heating_minus_three_times_cooling_electricity():
@@ -22,7 +23,9 @@ def test_net_heat_is_heating_minus_three_times_cooling_electricity():
 
 
 def test_inputs_use_the_models_names():
-    assert model_inputs(moment(0, 20, -5, heat_kW=1.0)) == {"outside_temp_C": -5, "unit_heat_W": 1000}
+    m = moment(0, 20, -5, heat_kW=1.0, lights_kW=0.2, plugs_kW=0.1, sun=300)
+    assert model_inputs(m) == pytest.approx(
+        {"outside_temp_C": -5, "unit_heat_W": 1000, "internal_gain_W": 300, "solar_W_m2": 300})
 
 
 def test_one_prediction_per_moment_starting_from_the_first_measurement():
@@ -37,7 +40,7 @@ def test_matches_stepping_the_model_by_hand_with_uneven_gaps():
     m = RC1(R=0.02, C=3e6)
     moments = [moment(0, 15.0, -6, 0.5), moment(15, 0, -5, 1.0), moment(50, 0, -4, 0.0)]
     s = {"zone_temp_C": 15.0}
-    s = m.step(s, {"outside_temp_C": -6, "unit_heat_W": 500}, 15 * 60)    # inputs from moment 0
+    s = m.step(s, {"outside_temp_C": -6, "unit_heat_W": 500, "internal_gain_W": 0, "solar_W_m2": 0}, 15 * 60)
     s1 = s["zone_temp_C"]
-    s = m.step(s, {"outside_temp_C": -5, "unit_heat_W": 1000}, 35 * 60)   # inputs from moment 1
+    s = m.step(s, {"outside_temp_C": -5, "unit_heat_W": 1000, "internal_gain_W": 0, "solar_W_m2": 0}, 35 * 60)
     assert run_open_loop(m, moments) == pytest.approx([15.0, s1, s["zone_temp_C"]])

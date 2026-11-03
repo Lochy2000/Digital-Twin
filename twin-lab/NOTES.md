@@ -9,7 +9,7 @@ One entry per step, newest at the bottom. Each says what was done, why, and what
 | `README.md` | L0 | The plan and the ideas behind it |
 | `NOTES.md` | L0 | This file |
 | `twinlab/model.py` | L1 | The **interface**: what every model must have (`inputs`, `outputs`, `initial_state`, `step`, `predict`) |
-| `twinlab/rc1.py` | L1 | The **1R1C model**, the simple twin |
+| `twinlab/rc1.py` | L1, L3c | The **1R1C model**, the simple twin. L3c added internal gains and sunshine as inputs |
 | `tests/test_rc1.py` | L1 | 8 checks of the 1R1C model against hand-worked answers |
 | `demo_l1.py`, `demo_l1.png` | L1 | Runs the model through one day and draws it |
 | `twinlab/boptest.py` | L2 | Talks to **BOPTEST** and turns its readings into canonical rows |
@@ -24,6 +24,9 @@ One entry per step, newest at the bottom. Each says what was done, why, and what
 | `tests/test_loop.py` | L3b | 4 checks: net heat, input names, one prediction per moment, matches stepping by hand |
 | `run_l3b.py` | L3b | Runs the 1R1C twin through the recording; prints measured vs predicted every 3 h |
 | `explore_l3b_gains.py` | L3b | The experiment showing *why* the twin drifts: missing heat sources |
+| `twinlab/metrics.py` | L3c | Residual (measured − predicted), MAE and RMSE |
+| `tests/test_metrics.py` | L3c | 3 checks with numbers worked out by hand |
+| `run_l3c.py`, `l3c_twin_vs_plant.png` | L3c | Runs the twin with all heat sources; draws measured vs predicted and the residual |
 | `requirements.txt`, `pytest.ini`, `.gitignore` | L1–L2 | Libraries needed, test settings, files git ignores (`data/`, caches) |
 
 ---
@@ -186,7 +189,7 @@ L3 is split so each piece can be understood and run before the next:
 |---|---|---|
 | **L3a** | Load the recording into one dict per moment | ✔ |
 | **L3b** | The loop: at each moment, step the 1R1C model with the measured outside temperature and heat, and save its prediction | ✔ |
-| L3c | Give the model the missing heat sources (lights, plugs, sun), then draw measured vs predicted and the residual | |
+| **L3c** | Give the model the missing heat sources (lights, plugs, sun), then draw measured vs predicted and the residual | ✔ |
 | L3d | Fit R and C from an evening cool-down instead of guessing them | |
 
 ### L3a · Loading the recording
@@ -255,3 +258,35 @@ So the model is starved of heat and slides towards the outside temperature. Addi
 3. **Open loop errors pile up.** Each step starts from the last wrong prediction, so mistakes accumulate. The observer (L4) is what stops that in a live twin.
 
 **Next (L3c):** give the 1R1C model the missing heat sources as proper inputs (internal gains, plus sunshine × an area value), then draw measured vs predicted and the residual.
+
+### L3c · All heat sources, and the first residual chart
+
+**Model change (`twinlab/rc1.py`).** The heat `Q` in `C · dT/dt = (T_out − T)/R + Q` is now the sum of:
+- the unit's net heat (as before);
+- **internal gains**, `internal_gain_W`: lights + plugs, measured;
+- **sunshine × effective area**, `solar_W_m2 × solar_area_m2`. The area is a new model value, like R and C, to be fitted in L3d.
+
+Both new inputs are optional (0 if missing), so the model still works where only the unit's heat is known. A new test checks that 1 kW from gains settles the room exactly like 1 kW from the unit. `loop.py`'s `model_inputs()` now passes the two new inputs.
+
+**New `twinlab/metrics.py`:** residual = measured − predicted; MAE (average size of the miss); RMSE (like MAE, but big misses count extra).
+
+**Result** (`python run_l3c.py`; R = 0.02, C = 3 MJ/K, sun area = 5 m², all still guesses):
+
+| | Open loop, unit only (L3b) | Open loop, all heat sources (L3c) |
+|---|---|---|
+| MAE | 17.4 °C | **2.4 °C** |
+| RMSE | not computed | 3.1 °C |
+
+The twin now follows the shape of each day. Chart: `l3c_twin_vs_plant.png`.
+
+**Reading the residual chart.** The same pattern repeats every day, so it's the model's shape, not a fault:
+1. **Overnight the twin sinks below 15 °C while the real room holds at 15.** The twin thinks the heating isn't enough. Either R is too small (it loses heat too fast), or the real room is also getting heat back from its concrete walls, a second heat store the 1R1C doesn't have.
+2. **At 08:00 the real room jumps 15 → 21 °C in 15 minutes; the twin can't.** Only the *air* heats that fast, and the air stores very little heat. The twin's single C (3 MJ/K) is mostly concrete, so it can only move slowly. **One C can't be both fast (air) and slow (concrete).** This is the classic reason for a 2R2C model (air + fabric), the "TiTe" model of Bacher & Madsen (2011).
+3. **Midday the twin overshoots to about 27 °C;** the real room is capped at 24 by cooling. Probably too much sun (area guess too big), or cooling's heat removal underestimated.
+
+**Why it matters:** a fault detector watching this residual would raise a false alarm every morning. Before detection is worth trying, the residual on healthy data needs to be small and patternless. The ways to get there, in order:
+- **L3d:** fit R, C and the sun area to the data instead of guessing.
+- **L4:** an observer, so errors can't pile up.
+- **Possibly a 2R2C model** for the morning jump. Joe's reduced-order model may already be this, so it would plug in here.
+
+**Next (L3d):** fit R, C and the sun area automatically (least squares with SciPy) and see how much of the pattern is left.
