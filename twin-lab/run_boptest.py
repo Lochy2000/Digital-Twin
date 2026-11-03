@@ -6,7 +6,10 @@ Then record (default: 3 days from 15 January, one reading every 15 minutes):
     python run_boptest.py
 
 Output: data/boptest_bestest_air.csv, one row per reading, in the canonical
-message shape. Needs internet access to api.boptest.net.
+message shape.
+
+Local BOPTEST in Docker (what we use, see NOTES.md L2): add
+    --url http://127.0.0.1:8000
 """
 
 import argparse
@@ -61,7 +64,12 @@ def main():
                     print(f"  {i + 1}/{steps} steps  ({rows[0]['sensor_time']})")
         print(f"saved {out}")
     finally:
-        client.stop()  # always free our run on the server, even after an error
+        # Always free our run on the server, even after an error. A problem
+        # stopping is only a warning: the data is already saved by then.
+        try:
+            client.stop()
+        except Exception as e:
+            print(f"warning: couldn't stop the BOPTEST run cleanly ({e})")
 
 
 if __name__ == "__main__":

@@ -36,16 +36,18 @@ PUBLIC_URL = "https://api.boptest.net"
 SIM_YEAR_START = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
 # Which BOPTEST readings we keep, and the point ID each becomes.
-# The BOPTEST names are for the single-zone test case "bestest_air" and MUST be
-# checked against `python run_boptest.py --list` before trusting them.
-# heat_output / cool_output are sandbox-only points (heat delivered by the
-# unit); they are not in v0.1's asset model yet.
+# Names and descriptions confirmed with `--list` on a local BOPTEST v0.9.0
+# (2 Nov 2026) for the single-zone test case "bestest_air".
+# Points not in v0.1's asset model are sandbox-only for now.
 POINTS = {
-    "zon_reaTRooAir_y": "unit1.zone_air_temp",
-    "zon_weaSta_reaWeaTDryBul_y": "weather1.outside_air_temp",
-    "fcu_reaPHea_y": "unit1.heat_output",
-    "fcu_reaPCoo_y": "unit1.cool_output",
-    "fcu_reaPFan_y": "unit1.power",
+    "zon_reaTRooAir_y": "unit1.zone_air_temp",           # Zone air temperature
+    "zon_weaSta_reaWeaTDryBul_y": "weather1.outside_air_temp",  # Outside drybulb temperature
+    "fcu_reaPHea_y": "unit1.heat_output",                # Heating THERMAL power (heat delivered)
+    "fcu_reaPCoo_y": "unit1.cool_power",                 # Cooling ELECTRICAL power; heat removed = 3.0 x this (COP from the test case docs)
+    "fcu_reaPFan_y": "unit1.power",                      # Supply fan electrical power
+    "zon_reaPLig_y": "zone1.lighting_power",             # Lighting: heat the twin doesn't model yet
+    "zon_reaPPlu_y": "zone1.plug_power",                 # Plug loads: same
+    "zon_weaSta_reaWeaHGloHor_y": "weather1.solar_global",  # Sunshine on a flat surface
 }
 
 # BOPTEST unit -> (our QUDT unit ID, conversion). Units are read from BOPTEST's
@@ -53,6 +55,7 @@ POINTS = {
 UNIT_CONVERSIONS = {
     "K": ("DEG_C", lambda v: v - 273.15),
     "W": ("KiloW", lambda v: v / 1000),
+    "W/m2": ("W-PER-M2", lambda v: v),
 }
 
 
@@ -73,7 +76,12 @@ class BoptestClient:
     def _call(self, method: str, path: str, json=None):
         r = self.session.request(method, f"{self.base_url}/{path}", json=json, timeout=self.timeout)
         r.raise_for_status()
-        body = r.json()
+        try:
+            body = r.json()
+        except ValueError:
+            # Not JSON: the local BOPTEST answers `stop` with plain text, not JSON.
+            # Return the text as it is rather than crash.
+            return r.text
         # Most replies wrap the data in status/message/payload; unwrap it.
         if isinstance(body, dict) and "payload" in body:
             if body.get("status", 200) != 200:

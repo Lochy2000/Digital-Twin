@@ -15,20 +15,26 @@ from twinlab.boptest import POINTS, BoptestClient, BoptestError, check_points, t
 FAKE_POINT_LIST = {
     "zon_reaTRooAir_y": {"Unit": "K", "Description": "Zone air temperature"},
     "zon_weaSta_reaWeaTDryBul_y": {"Unit": "K", "Description": "Outside dry bulb temperature"},
-    "fcu_reaPHea_y": {"Unit": "W", "Description": "Heating power"},
-    "fcu_reaPCoo_y": {"Unit": "W", "Description": "Cooling power"},
-    "fcu_reaPFan_y": {"Unit": "W", "Description": "Fan power"},
+    "fcu_reaPHea_y": {"Unit": "W", "Description": "Heating thermal power consumption"},
+    "fcu_reaPCoo_y": {"Unit": "W", "Description": "Cooling electrical power consumption"},
+    "fcu_reaPFan_y": {"Unit": "W", "Description": "Supply fan electrical power consumption"},
+    "zon_reaPLig_y": {"Unit": "W", "Description": "Lighting power submeter"},
+    "zon_reaPPlu_y": {"Unit": "W", "Description": "Plug load power submeter"},
+    "zon_weaSta_reaWeaHGloHor_y": {"Unit": "W/m2", "Description": "Global horizontal solar irradiation"},
 }
 
 
 class FakeResponse:
-    def __init__(self, body):
+    def __init__(self, body, text=None):
         self.body = body
+        self.text = text  # set for replies that aren't JSON
 
     def raise_for_status(self):
         pass
 
     def json(self):
+        if self.text is not None:
+            raise ValueError("not JSON")
         return self.body
 
 
@@ -49,9 +55,12 @@ class FakeSession:
             self.time += 900
             return FakeResponse({"status": 200, "message": "", "payload": {
                 "time": self.time, "zon_reaTRooAir_y": 294.15, "zon_weaSta_reaWeaTDryBul_y": 278.15,
-                "fcu_reaPHea_y": 1500.0, "fcu_reaPCoo_y": 0.0, "fcu_reaPFan_y": 40.0}})
+                "fcu_reaPHea_y": 1500.0, "fcu_reaPCoo_y": 0.0, "fcu_reaPFan_y": 40.0,
+                "zon_reaPLig_y": 120.0, "zon_reaPPlu_y": 300.0, "zon_weaSta_reaWeaHGloHor_y": 250.0}})
         if "/initialize/" in url and json["start_time"] < 0:
             return FakeResponse({"status": 400, "message": "bad start time", "payload": None})
+        if "/stop/" in url:
+            return FakeResponse(None, text="stopped")  # the local BOPTEST replies to stop with plain text
         return FakeResponse({"status": 200, "message": "", "payload": {}})
 
 
@@ -89,6 +98,8 @@ def test_readings_become_canonical_rows_in_our_units():
     assert by_point["unit1.zone_air_temp"]["unit"] == "DEG_C"
     assert by_point["unit1.heat_output"]["value"] == pytest.approx(1.5)      # 1500 W
     assert by_point["unit1.heat_output"]["unit"] == "KiloW"
+    assert by_point["weather1.solar_global"]["value"] == pytest.approx(250.0)  # W/m2 kept as is
+    assert by_point["weather1.solar_global"]["unit"] == "W-PER-M2"
     first = rows[0]
     assert first["sensor_time"] == "2026-01-01T00:15:00.000Z"               # 900 s after 1 Jan
     assert first["ingest_time"] == "2026-11-02T12:00:00.000Z"
@@ -96,10 +107,10 @@ def test_readings_become_canonical_rows_in_our_units():
                           "ingest_time", "time_source", "source", "quality"}
 
 
-def test_stop_frees_the_run():
+def test_stop_copes_with_a_reply_that_is_not_json():  # bug found on the first local runs
     s = FakeSession()
     c = BoptestClient("https://example.test", session=s)
     c.select("bestest_air")
-    c.stop()
+    c.stop()   # must not crash on the plain-text reply
     assert s.calls[-1][:2] == ("PUT", "https://example.test/stop/abc123")
     assert c.testid is None

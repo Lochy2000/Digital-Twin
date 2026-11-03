@@ -57,7 +57,7 @@ Each step ends with a check and a short entry in `NOTES.md` before the next one 
 |---|---|---|
 | **L0** | Folder, plan, notes *(this step)* | This README |
 | **L1** ✔ | Model interface `step(state, inputs, dt) → state` (RR 1 §7) and the 1R1C twin model. Stepping uses the actual time between readings, not a fixed timer (project decision) | 8 tests against answers worked out by hand; `demo_l1.py` draws a day |
-| **L2** ◐ | **Plant = BOPTEST** (v0.1 build plan §1a): the single-zone `bestest_air` test case (one room, fan coil heating and cooling) recorded to canonical-shape CSV. A detailed model the twin doesn't share, so the mismatch comes for free. Built and tested offline; first real run on Loch's PC | Point names confirmed with `--list`; CSV looks physically sensible |
+| **L2** ✔ | **Plant = BOPTEST** (v0.1 build plan §1a): the single-zone `bestest_air` test case (one room, fan coil heating and cooling) recorded to canonical-shape CSV. A detailed model the twin doesn't share, so the mismatch comes for free. Run locally in Docker | Point names confirmed with `--list`; a 3-day recording that looks physically sensible (NOTES L2) |
 | **L3** | **The twin loop**, basic first: read the plant CSV, step the 1R1C model, compare, plot the residual (R and C guessed). Then calibration: fit R and C on one period (including an overnight cool-down, RR 1 §7), test on another | MAE and RMSE in kelvin. ASHRAE Guideline 14 NMBE and CV(RMSE), with the note that GL14 was written for whole-building energy |
 | **L4** | Observer and residual: open-loop vs Luenberger vs Kalman. Data gaps handled by LIVE / COASTING / STALE | Residual is near-white noise on healthy data. Behaviour during a 2 h data gap |
 | **L5** | Fault library and detectors: injected faults with known size and start time; EWMA, CUSUM, Z-score. Sensor faults are added to BOPTEST readings; equipment faults need our own small simulator or the LBNL datasets, because BOPTEST's building can't be broken from outside | Detection rate, false alarms per day, time to detect, per fault type and size (feasibility ref §6.3) |
@@ -86,6 +86,7 @@ twin-lab/
 ├── NOTES.md         build notes, one entry per step
 ├── demo_l1.py       runs the 1R1C model through one day and draws it
 ├── run_boptest.py   records a BOPTEST building to CSV (L2)
+├── plot_plant.py    draws a recorded CSV
 ├── twinlab/         Python package: model.py (interface), rc1.py (1R1C), boptest.py (plant) ...
 ├── notebooks/       experiments that use the package and draw the figures (from L2)
 ├── tests/           pytest                                                (from L1)
