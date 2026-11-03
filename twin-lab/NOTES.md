@@ -27,7 +27,10 @@ One entry per step, newest at the bottom. Each says what was done, why, and what
 | `twinlab/metrics.py` | L3c | Residual (measured − predicted), MAE and RMSE |
 | `tests/test_metrics.py` | L3c | 3 checks with numbers worked out by hand |
 | `run_l3c.py`, `l3c_twin_vs_plant.png` | L3c | Runs the twin with all heat sources; draws measured vs predicted and the residual |
-| `requirements.txt`, `pytest.ini`, `.gitignore` | L1–L2 | Libraries needed, test settings, files git ignores (`data/`, caches) |
+| `twinlab/fit.py` | L3d | **Fits** R, C and sun area to a recording (least squares, SciPy) |
+| `tests/test_fit.py` | L3d | 1 check: the fit finds known values again from a fake recording, starting from wrong guesses |
+| `run_l3d.py`, `l3d_fitted.png` | L3d | Fits on days 1–2, checks on day 3 (unseen); prints and draws the result |
+| `requirements.txt`, `pytest.ini`, `.gitignore` | L1–L3d | Libraries needed, test settings, files git ignores (`data/`, caches) |
 
 ---
 
@@ -190,7 +193,7 @@ L3 is split so each piece can be understood and run before the next:
 | **L3a** | Load the recording into one dict per moment | ✔ |
 | **L3b** | The loop: at each moment, step the 1R1C model with the measured outside temperature and heat, and save its prediction | ✔ |
 | **L3c** | Give the model the missing heat sources (lights, plugs, sun), then draw measured vs predicted and the residual | ✔ |
-| L3d | Fit R and C from an evening cool-down instead of guessing them | |
+| **L3d** | Fit R, C and sun area from the data instead of guessing them; check on a day the fit never saw | ✔ |
 
 ### L3a · Loading the recording
 
@@ -290,3 +293,36 @@ The twin now follows the shape of each day. Chart: `l3c_twin_vs_plant.png`.
 - **Possibly a 2R2C model** for the morning jump. Joe's reduced-order model may already be this, so it would plug in here.
 
 **Next (L3d):** fit R, C and the sun area automatically (least squares with SciPy) and see how much of the pattern is left.
+
+### L3d · Fitting R, C and sun area, then checking on an unseen day
+
+**How fitting works (`twinlab/fit.py`, "least squares"):** pick values for R, C and sun area; run the twin; square every residual and add them up. That one number is small when the twin follows the room. SciPy's `least_squares` keeps adjusting the three values in whichever direction makes that number smaller, until it can't improve. Two details:
+- R (about 0.02) and C (about 3,000,000) are wildly different sizes, so SciPy works on log(R) and log(C). That puts them on a similar scale and means they can never go negative.
+- The sun area can't go below 0.
+
+**Is the fitting code right?** `tests/test_fit.py` makes a fake recording from a 1R1C with values we chose (R = 0.015, C = 4 MJ/K, area = 3 m²). It then asks the fit to find them, starting from wrong guesses. It gets them back within 1%.
+
+**The real test (`python run_l3d.py`):** fit on days 1–2 only, then run on day 3, which the fit never saw (RR 1 §7: "fit on one period, evaluate on a held-out period").
+
+| | R (K/W) | C (MJ/K) | Sun area (m²) | Time constant | MAE days 1–2 | **MAE day 3 (unseen)** |
+|---|---|---|---|---|---|---|
+| Guessed (L3c) | 0.020 | 3.00 | 5.00 | 16.7 h | 2.35 °C | 2.66 °C |
+| Fitted on days 1–2 | 0.037 | 2.71 | 0.88 | 28.0 h | **0.78 °C** | **4.63 °C** |
+
+Chart: `l3d_fitted.png` (day 3 shaded).
+
+### What happened: great on the days it learned from, worse on the new day
+
+- **On days 1–2 the fit is excellent** (0.78 °C). On those numbers alone it would look solved.
+- **On day 3 it's worse than our guess** (4.63 vs 2.66 °C). After 08:00 the twin rises to only about 19 °C and then falls away, while the real room sits at 24.
+- **The fitted values aren't physically believable.** A sun area of 0.88 m² for a room with 12 m² of south glass is far too small, and R nearly doubled. The fit has found a combination that *happens* to match days 1–2: "less sun coming in, but heat escaping more slowly" gives similar curves on those days. On day 3, though, the sun was strong and cooling worked hardest (the peak in the L2 chart). With almost no sun in the model, the twin can't explain why the room stayed warm while cooling was taking heat out.
+
+This is called **overfitting with values that trade off against each other** (they aren't "identifiable" from this little data). It's a well-known trap, and it's **exactly why RR 1 asks for checking on a held-out period:** the training score alone would have been misleading.
+
+**Ways to fix it, roughly simplest first:**
+1. **More, and more varied, data.** Two days is very little. BOPTEST can record two weeks, or other seasons, in minutes.
+2. **Fit in stages, as RR 1 §7 describes.** First fit R and C on **night-time cool-downs only**, when there's no sun, so the sun can't trade off against R. Then fit the sun area on daytime data with R and C fixed.
+3. **Keep values physically sensible:** e.g. limit the sun area to a believable range.
+4. **A better model shape (2R2C).** The morning jump and the overnight hold showed the 1R1C is too simple. Some of what the fit is "bending" to cover is really a missing second heat store. Joe's model may help here.
+
+**Next:** record a longer stretch (about 14 days) from BOPTEST, then try the staged fit (cool-downs first) and check again on unseen days. If the 1R1C still can't hold up on new days, that's the evidence that a 2R2C is needed.
