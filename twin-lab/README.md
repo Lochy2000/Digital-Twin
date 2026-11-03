@@ -112,3 +112,28 @@ twin-lab/
 - Bacher, P. and Madsen, H. (2011). Identifying suitable models for the heat dynamics of buildings. *Energy and Buildings*, 43, 1511–1522. [PDF](https://02417.compute.dtu.dk/material/week13/article-grey-box-models.pdf)
 - Li, Y., Castiglione, J., Astroza, R. and Chen, Y. (2021). Real-time thermal dynamic analysis of a house using RC models and joint state-parameter estimation. *Building and Environment*, 188, 107184. [Record](https://investigadores.uandes.cl/en/publications/real-time-thermal-dynamic-analysis-of-a-house-using-rc-models-and/)
 - Project: RR 1 (§2, §4, §7, §8), DT-TEO feasibility reference (§5, §6), v0.1 build plan (§1e, §3, §4e), `../v0.1/experiments/FINDINGS.md`.
+
+---
+
+## Later: the modeller's model and machine learning
+
+**The modeller's model.** It will be added here, as one more model next to `rc1.py`. A reduced-order lumped model is the same family as our 1R1C, possibly with more R's and C's. The steps:
+1. Get their code.
+2. Find its inputs, outputs, units and parameters.
+3. Write a short wrapper so it has the interface in `model.py`.
+4. Run it on the same BOPTEST recording and compare it with the 1R1C on the same measures.
+
+It was built for a kettle, so its *structure* may carry over but its *values* won't: they get re-fitted to our data (L3d).
+
+**Machine learning and improvements.** Yes, in stages, each measured against the physics model so "better" is shown, not assumed (RR 1 §8):
+
+| Stage | What | Data |
+|---|---|---|
+| Fitting R and C (L3d) | The model learns its numbers from data (least squares). The first kind of learning | BOPTEST recording |
+| Online updating (L4) | A Kalman filter keeps the model's state, and later its numbers, in step with each new reading | Live data |
+| Hybrid: physics + ML correction | A small ML model learns only what the physics misses (e.g. the sun's effect), so it stays physically sensible | BOPTEST, any season; later the rig |
+| Forecasting | Predict the next hours of temperature or energy for what-if runs | More BOPTEST days, weather forecasts |
+| Fault classification | Tell fault types apart once labelled examples exist | Faults injected into BOPTEST, LBNL datasets, the rig |
+| Thermal images | Later, on the training PC | Botanic's thermal camera |
+
+The catch: ML needs data covering every condition it will meet, and it guesses badly outside them. Physics first keeps it honest, and a sound physics baseline is also what makes any ML gain measurable.

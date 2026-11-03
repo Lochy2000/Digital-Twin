@@ -17,6 +17,9 @@ One entry per step, newest at the bottom. Each says what was done, why, and what
 | `plot_plant.py` | L2 | Draws a recorded CSV (temperatures, heating/cooling, sunshine) to a PNG |
 | `data/boptest_bestest_air.csv` | L2 | **The first recording**: 3 days, 15–17 Jan, 288 steps × 8 points = 2,304 rows (git-ignored; re-record with `run_boptest.py`) |
 | `tests/test_boptest.py` | L2 | 5 checks of the BOPTEST code using a fake server that mimics the real point list (no internet needed) |
+| `twinlab/data.py` | L3a | Reads a canonical CSV into one dict per moment in time |
+| `tests/test_data.py` | L3a | 1 check that rows are grouped by time and sorted |
+| `look_l3a.py` | L3a | Prints the first few moments as a table: what the twin will "see" |
 | `requirements.txt`, `pytest.ini`, `.gitignore` | L1–L2 | Libraries needed, test settings, files git ignores (`data/`, caches) |
 
 ---
@@ -168,3 +171,36 @@ Source: `../boptest/testcases/bestest_air/doc/index.html` in the local BOPTEST c
 **Why it's still useful from the UK.** The twin learns R and C from the data of whatever it's watching, so it isn't tied to a location. BOPTEST lets us test the *method*: can a simple 1R1C model follow a detailed building it didn't design, and does the residual catch faults? Denver's weather changes the numbers (colder nights, much more sun than London) but not whether the method works. A sunny, swinging climate is arguably a harder test.
 
 **What not to use it for.** Quoting kWh, costs or savings as if they were UK figures; claims about SME process heat; anything about Botanic's own unit. Representative UK numbers would need UK weather: either a rebuilt BOPTEST model with a London weather file, or our own simple plant driven by real UK weather data. Both are later options.
+
+---
+
+## L3 · The twin loop, in small steps (started 3 Nov 2026)
+
+L3 is split so each piece can be understood and run before the next:
+
+| Step | What | Status |
+|---|---|---|
+| **L3a** | Load the recording into one dict per moment | ✔ |
+| L3b | The loop: at each moment, step the 1R1C model with the measured outside temperature and heat, and save its prediction | |
+| L3c | Compare: residual = measured − predicted; draw both lines and the residual | |
+| L3d | Fit R and C from an evening cool-down instead of guessing them | |
+
+### L3a · Loading the recording
+
+**The problem.** The CSV is "long": one row per reading, so a single moment is spread over 8 rows (zone temp, outside temp, heating and so on). The twin works one moment at a time, so it needs everything taken at that moment together.
+
+**What `load_timesteps()` does** (`twinlab/data.py`, 10 lines):
+1. Reads the CSV row by row.
+2. Turns `sensor_time` text into a Python datetime.
+3. Puts each reading into the dict for its time, creating that dict the first time a time is seen.
+4. Returns the dicts sorted oldest first. So even a shuffled file comes out in order.
+
+Result: 2,304 rows become **288 moments**, each like
+`{"time": 15 Jan 00:15, "unit1.zone_air_temp": 14.98, "weather1.outside_air_temp": -6.10, "unit1.heat_output": 0.024, ...}`.
+
+**What the first rows show** (`python look_l3a.py`):
+- **Zone held at 15 °C overnight** by the thermostat.
+- **Outside stays at −6.1 °C for over an hour.** The weather file has hourly values.
+- **Heating creeps up** (0.02 → 0.38 kW) even though both temperatures are steady. Two likely reasons: the thermostat's controller slowly winds up, and the concrete walls are still giving off heat they stored during the day, then run out. A 1R1C model has only one heat store, so it can't show that second effect. It's a first, small example of the mismatch the residual will reveal.
+
+**Limitation:** every value is read as a number. That's fine for BOPTEST; text points such as modes would need handling later.
