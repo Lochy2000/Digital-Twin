@@ -20,6 +20,10 @@ One entry per step, newest at the bottom. Each says what was done, why, and what
 | `twinlab/data.py` | L3a | Reads a canonical CSV into one dict per moment in time |
 | `tests/test_data.py` | L3a | 1 check that rows are grouped by time and sorted |
 | `look_l3a.py` | L3a | Prints the first few moments as a table: what the twin will "see" |
+| `twinlab/loop.py` | L3b | The **twin loop**, open-loop version: steps a model through a recording and returns its predictions |
+| `tests/test_loop.py` | L3b | 4 checks: net heat, input names, one prediction per moment, matches stepping by hand |
+| `run_l3b.py` | L3b | Runs the 1R1C twin through the recording; prints measured vs predicted every 3 h |
+| `explore_l3b_gains.py` | L3b | The experiment showing *why* the twin drifts: missing heat sources |
 | `requirements.txt`, `pytest.ini`, `.gitignore` | L1–L2 | Libraries needed, test settings, files git ignores (`data/`, caches) |
 
 ---
@@ -181,8 +185,8 @@ L3 is split so each piece can be understood and run before the next:
 | Step | What | Status |
 |---|---|---|
 | **L3a** | Load the recording into one dict per moment | ✔ |
-| L3b | The loop: at each moment, step the 1R1C model with the measured outside temperature and heat, and save its prediction | |
-| L3c | Compare: residual = measured − predicted; draw both lines and the residual | |
+| **L3b** | The loop: at each moment, step the 1R1C model with the measured outside temperature and heat, and save its prediction | ✔ |
+| L3c | Give the model the missing heat sources (lights, plugs, sun), then draw measured vs predicted and the residual | |
 | L3d | Fit R and C from an evening cool-down instead of guessing them | |
 
 ### L3a · Loading the recording
@@ -204,3 +208,50 @@ Result: 2,304 rows become **288 moments**, each like
 - **Heating creeps up** (0.02 → 0.38 kW) even though both temperatures are steady. Two likely reasons: the thermostat's controller slowly winds up, and the concrete walls are still giving off heat they stored during the day, then run out. A 1R1C model has only one heat store, so it can't show that second effect. It's a first, small example of the mismatch the residual will reveal.
 
 **Limitation:** every value is read as a number. That's fine for BOPTEST; text points such as modes would need handling later.
+
+### L3b · The loop (open loop)
+
+**What `run_open_loop()` does** (`twinlab/loop.py`):
+1. Starts the model from the **first measured** zone temperature.
+2. Walks through the recording in pairs (previous moment, this moment).
+3. For each pair, works out the **real time gap** (`dt`, 900 s here), takes the inputs from the *previous* moment, and calls `model.step()`. Using the previous moment's inputs means "assume they stayed the same across the gap", which is the assumption the 1R1C's exact step makes.
+4. Saves the prediction. Returns one prediction per moment.
+
+**Two small helpers:**
+- `unit_heat_W()`: net heat from the unit = heating − 3.0 × cooling electricity (COP from the test case docs).
+- `model_inputs()`: translates plant point IDs (`weather1.outside_air_temp`) into the model's input names (`outside_temp_C`). Neither side needs to know the other's names; when Joe's model arrives, only this translation changes.
+
+**"Open loop"** means the twin never looks at the measured temperature after the start. That tests the model on its own. Pulling it back towards each measurement is the observer's job (L4).
+
+**Guessed R and C** (read off the chart; L3d fits them properly):
+- **R ≈ 0.02 K/W.** Just before 08:00 the heating holds about 1.2 kW with about 26 °C between inside (15) and outside (about −11), so roughly 1200 / 26 ≈ 46 W per °C, i.e. R ≈ 0.02.
+- **C ≈ 3 MJ/K.** The evening drift closes about 30% of the inside–outside gap in about 7 h, so a time constant of about 17–19 h, and C = time constant / R ≈ 3 × 10⁶. That's heavy, because the concrete stores heat; the air alone would be about 0.16 MJ/K.
+
+### Result: the twin drifts far too cold
+
+`python run_l3b.py`: the measured room stays at 15–24 °C, but the twin falls to around 0 °C and below. Average error about **17 °C**.
+
+**Why** (`python explore_l3b_gains.py`, an energy balance):
+- On average the room is 23 °C warmer than outside, so with R = 0.02 it loses about **1,170 W**.
+- The unit only gives about **73 W net** on average (heating minus cooling).
+- The rest comes from heat sources the twin wasn't told about: lights (about 270 W), plugs (about 120 W), people, and above all **the sun** through 12 m² of south windows.
+
+So the model is starved of heat and slides towards the outside temperature. Adding the missing sources one at a time:
+
+| Heat given to the twin | Average error |
+|---|---|
+| Unit only | 17.4 °C |
+| + lights and plugs | 11.4 °C |
+| + lights, plugs, sun × 2 m² | 7.5 °C |
+| + lights, plugs, sun × 4 m² | 3.6 °C |
+| + lights, plugs, sun × 6 m² | 2.7 °C |
+
+"Sun × area" means sunshine (W/m²) × an *effective* window area (made-up values here; L3d fits it). It isn't the real 12 m², because the sunshine is measured on a flat surface, not the south wall, and glass lets only part of it through.
+
+### What this teaches (worth keeping for the feasibility report)
+
+1. **For this room the unit isn't the main heat source;** the sun and internal gains are. A twin that only knows the unit's heat can't work.
+2. **That's likely true of SME sites too:** machines, ovens, people and sun all add heat. So **what the twin is told about other heat sources matters as much as the model itself.** This feeds straight into the "minimum viable sensor set" question (WP4): e.g. is a cheap sunshine sensor, or a power meter on the big machines, worth more than another temperature probe?
+3. **Open loop errors pile up.** Each step starts from the last wrong prediction, so mistakes accumulate. The observer (L4) is what stops that in a live twin.
+
+**Next (L3c):** give the 1R1C model the missing heat sources as proper inputs (internal gains, plus sunshine × an area value), then draw measured vs predicted and the residual.
