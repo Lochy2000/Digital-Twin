@@ -28,8 +28,12 @@ One entry per step, newest at the bottom. Each says what was done, why, and what
 | `tests/test_metrics.py` | L3c | 3 checks with numbers worked out by hand |
 | `run_l3c.py`, `l3c_twin_vs_plant.png` | L3c | Runs the twin with all heat sources; draws measured vs predicted and the residual |
 | `twinlab/fit.py` | L3d | **Fits** R, C and sun area to a recording (least squares, SciPy) |
-| `tests/test_fit.py` | L3d | 1 check: the fit finds known values again from a fake recording, starting from wrong guesses |
+| `tests/test_fit.py` | L3d, L3e | 4 checks: finds known values from wrong guesses; keeps fixed values fixed; several segments; fixed R × C |
 | `run_l3d.py`, `l3d_fitted.png` | L3d | Fits on days 1–2, checks on day 3 (unseen); prints and draws the result |
+| `data/boptest_14days.csv` | L3e | **Second recording**: 14 days, 15–28 Jan, 1,344 moments (git-ignored) |
+| `twinlab/data.py` (added to) | L3e | `split_days()` splits a recording into days; `find_cooldowns()` finds stretches with unit off and no sun |
+| `twinlab/fit.py` (added to) | L3e | Fits over several separate segments; can fit only some values (`fit=`) or fix R × C (`tau_s=`) |
+| `run_l3e.py`, `l3e_unseen_days.png` | L3e | Fits three ways on 10 days, checks on 4 unseen days |
 | `requirements.txt`, `pytest.ini`, `.gitignore` | L1–L3d | Libraries needed, test settings, files git ignores (`data/`, caches) |
 
 ---
@@ -326,3 +330,42 @@ This is called **overfitting with values that trade off against each other** (th
 4. **A better model shape (2R2C).** The morning jump and the overnight hold showed the 1R1C is too simple. Some of what the fit is "bending" to cover is really a missing second heat store. Joe's model may help here.
 
 **Next:** record a longer stretch (about 14 days) from BOPTEST, then try the staged fit (cool-downs first) and check again on unseen days. If the 1R1C still can't hold up on new days, that's the evidence that a 2R2C is needed.
+
+---
+
+### L3e · More data, and fitting in stages (3 Nov 2026)
+
+**New recording:** 14 days (15–28 Jan), `python run_boptest.py --url http://127.0.0.1:8000 --days 14 --out data/boptest_14days.csv`. Outside ranged from −21 to +18 °C, so far more varied than the first 3 days.
+
+**Split:** days 1–10 for fitting, days 11–14 never seen by any fit. Each day is run on its own: the twin starts from that midnight's measured temperature and runs open loop for 24 h. So one bad day can't spoil the next.
+
+**New helpers:**
+- `split_days()`: one segment per day.
+- `find_cooldowns()`: stretches of at least 2 h with heating off, cooling off and no sun. There are 9 in the training days; RR 1 §7 calls these "free step-response experiments".
+- `fit_rc1()` now takes a list of segments (each restarted from its own measurement), can fit only some values (`fit=("R", "solar_area")`), and can fix R × C (`tau_s=`).
+
+**Something learned on the way.** The plan was "R and C from cool-downs, then sun area". In practice the cool-down fit pushed R towards 0 and C towards infinity. A quick check (fit C for several fixed R values) showed every R gives the same answer for **R × C ≈ 26–28 h**. A cool-down shows how *fast* the room cools, not R and C separately. **RR 1 §7 says exactly this:** the decay "yields the time constant", and a period with known heat input is needed to separate R and C. So the staged method became:
+1. **Night cool-downs → time constant** R × C = **26.0 h**.
+2. **Whole training days → R and sun area,** with R × C held at 26.0 h (so C = 26.0 h / R).
+
+### Results on the 4 unseen days
+
+| | R (K/W) | C (MJ/K) | Sun area (m²) | Time constant | MAE training days | **MAE unseen days** | MAE unseen nights |
+|---|---|---|---|---|---|---|---|
+| Guessed (L3c) | 0.0200 | 3.0 | 5.0 | 16.7 h | 3.92 °C | 3.14 °C | 1.51 °C |
+| One go (L3d method) | 0.0130 | 17.5 | 15.7 | 63.0 h | 1.78 °C | **1.64 °C** | 2.21 °C |
+| **Staged (RR 1 §7)** | 0.0114 | 8.2 | 12.1 | 26.0 h | 2.05 °C | **1.85 °C** | **0.79 °C** |
+
+Chart: `l3e_unseen_days.png`.
+
+**What it shows:**
+1. **More data fixed the L3d problem.** Fitted on 10 days, both fits now do *better* on unseen days than the guess (1.6–1.9 vs 3.1 °C). In L3d, fitted on 2 days, the fit did worse.
+2. **"One go" has the lowest overall error but the wrong physics.** Its time constant (63 h) contradicts the cool-downs (26 h), so its nights are worse (2.21 °C). It has settled on a compromise that's right on average but wrong in each part of the day.
+3. **"Staged" is physically consistent.** Its time constant agrees with the cool-downs, so nights are very good (0.79 °C). Its sun area, 12.1 m², is close to the real 12 m² of glass. That's partly luck, since "effective area" also includes how much the glass lets through and the low winter sun on a south wall, but at least it's believable. Its weak spot is the mornings, where it dips below the real room.
+4. **Neither can do the 08:00 jump.** With one heat store, the room can't be fast (air) and slow (concrete) at the same time. This is now consistent across 14 days: **the evidence points to a 2R2C model** (separate air and fabric temperatures, Bacher & Madsen's "TiTe").
+
+**Small caveat:** step 1 held R at 0.02 while fitting C. The time constant varies slightly with R (26–28 h across the R values tried), so a second pass at the fitted R would refine it a little. It doesn't change the conclusions.
+
+**How good is "good enough"?** RR 1 §7 doesn't ask for a fixed number: the model must be accurate enough that a realistic fault stands out from normal error. About 1.6–1.9 °C average error, concentrated in a daily pattern, is the baseline that L5 and L6 (fault detection) will be measured against.
+
+**Possible next steps:** (a) a 2R2C model, which the evidence now points to, and which would also show how a second model plugs in (the same path Joe's model will take); (b) L4, the observer, which keeps the twin in step with measurements.

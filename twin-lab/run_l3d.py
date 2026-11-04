@@ -26,7 +26,7 @@ def errors(model, part):
 
 
 guess = RC1(R=0.02, C=3e6, solar_area_m2=5.0)
-fitted = fit_rc1(train)
+fitted = fit_rc1([train])
 
 print("                 R (K/W)   C (MJ/K)   sun area (m2)   time constant")
 for name, m in (("guessed (L3c)", guess), ("fitted on days 1-2", fitted)):

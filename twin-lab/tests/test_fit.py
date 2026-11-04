@@ -38,7 +38,31 @@ def fake_recording(model, hours=48):
 
 def test_fit_recovers_known_values_from_wrong_guesses():
     true = RC1(R=0.015, C=4e6, solar_area_m2=3.0)
-    fitted = fit_rc1(fake_recording(true), start=(0.03, 1e6, 8.0))
+    fitted = fit_rc1([fake_recording(true)], start=(0.03, 1e6, 8.0))
     assert fitted.R == pytest.approx(0.015, rel=0.01)
     assert fitted.C == pytest.approx(4e6, rel=0.01)
     assert fitted.solar_area_m2 == pytest.approx(3.0, rel=0.01)
+
+
+def test_values_not_named_in_fit_stay_fixed():
+    true = RC1(R=0.015, C=4e6, solar_area_m2=3.0)
+    fitted = fit_rc1([fake_recording(true)], start=(0.015, 4e6, 8.0), fit=("solar_area",))
+    assert fitted.R == 0.015 and fitted.C == 4e6           # untouched
+    assert fitted.solar_area_m2 == pytest.approx(3.0, rel=0.01)
+
+
+def test_several_segments_each_restart_from_their_own_measurement():
+    true = RC1(R=0.015, C=4e6, solar_area_m2=3.0)
+    rec = fake_recording(true)
+    halves = [rec[:96], rec[96:]]                           # two separate days
+    fitted = fit_rc1(halves, start=(0.03, 1e6, 8.0))
+    assert fitted.R == pytest.approx(0.015, rel=0.01)
+    assert fitted.C == pytest.approx(4e6, rel=0.01)
+
+
+def test_fixing_the_time_constant_keeps_r_times_c():
+    true = RC1(R=0.015, C=4e6, solar_area_m2=3.0)          # time constant 60,000 s
+    fitted = fit_rc1([fake_recording(true)], start=(0.03, 1e6, 8.0),
+                     fit=("R", "solar_area"), tau_s=60_000)
+    assert fitted.time_constant_s == pytest.approx(60_000)
+    assert fitted.R == pytest.approx(0.015, rel=0.01)       # and R is still found
