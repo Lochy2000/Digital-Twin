@@ -59,7 +59,7 @@ Each step ends with a check and a short entry in `NOTES.md` before the next one 
 | **L1** ✔ | Model interface `step(state, inputs, dt) → state` (RR 1 §7) and the 1R1C twin model. Stepping uses the actual time between readings, not a fixed timer (project decision) | 8 tests against answers worked out by hand; `demo_l1.py` draws a day |
 | **L2** ✔ | **Plant = BOPTEST** (v0.1 build plan §1a): the single-zone `bestest_air` test case (one room, fan coil heating and cooling) recorded to canonical-shape CSV. A detailed model the twin doesn't share, so the mismatch comes for free. Run locally in Docker | Point names confirmed with `--list`; a 3-day recording that looks physically sensible (NOTES L2) |
 | **L3** ✔ | **The twin loop**, basic first: read the plant CSV, step the 1R1C model, compare, plot the residual (R and C guessed). Then calibration: fit R and C on one period (including an overnight cool-down, RR 1 §7), test on another | MAE and RMSE in kelvin. ASHRAE Guideline 14 NMBE and CV(RMSE), with the note that GL14 was written for whole-building energy |
-| **L4** | Observer and residual: open-loop vs Luenberger vs Kalman. Data gaps handled by LIVE / COASTING / STALE | Residual is near-white noise on healthy data. Behaviour during a 2 h data gap |
+| **L4** ✔ | Observer and residual: open loop vs a **Luenberger observer** (fixed gain L). Coasts through missing readings. *Not yet:* Kalman filter; the LIVE / COASTING / STALE state | Healthy residual 2.3 → 0.7 °C at L = 0.2; the gain vs fault-visibility trade-off measured (NOTES L4) |
 | **L5** | Fault library and detectors: injected faults with known size and start time; EWMA, CUSUM, Z-score. Sensor faults are added to BOPTEST readings; equipment faults need our own small simulator or the LBNL datasets, because BOPTEST's building can't be broken from outside | Detection rate, false alarms per day, time to detect, per fault type and size (feasibility ref §6.3) |
 | **L6** | **Detectability study.** Vary sensor noise, sampling interval, which sensors exist and fault size | The smallest fault each setup can detect. This is the evidence for or against the sparse-data premise |
 | **R1–R3** | Test rig (parallel track): spec after L2, so it measures what the model needs; build; record real cool-downs | Real data replaces the plant in L3–L5 |
@@ -77,6 +77,8 @@ Each step ends with a check and a short entry in `NOTES.md` before the next one 
 | Schedule mismatch | Unit runs outside production hours | Periodic, linked to the clock |
 
 ---
+
+**Decision (4 Nov 2026):** the 1R1C is good enough to keep building the pipeline. Improving the model (2R2C, ML, more data) is deferred to a later, separate piece of work.
 
 ## Folder layout (grows step by step)
 

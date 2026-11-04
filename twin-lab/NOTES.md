@@ -34,6 +34,9 @@ One entry per step, newest at the bottom. Each says what was done, why, and what
 | `twinlab/data.py` (added to) | L3e | `split_days()` splits a recording into days; `find_cooldowns()` finds stretches with unit off and no sun |
 | `twinlab/fit.py` (added to) | L3e | Fits over several separate segments; can fit only some values (`fit=`) or fix R × C (`tau_s=`) |
 | `run_l3e.py`, `l3e_unseen_days.png` | L3e | Fits three ways on 10 days, checks on 4 unseen days |
+| `twinlab/observer.py` | L4 | The **Luenberger observer**: predict, compare, correct by a fixed gain L |
+| `tests/test_observer.py` | L4 | 5 checks: L = 0 is open loop, L = 1 copies the sensor, one step by hand, missing reading, bad gain |
+| `run_l4.py`, `l4_observer.png` | L4 | Residual for different gains on 14 days, and how long a lasting sensor fault stays visible |
 | `requirements.txt`, `pytest.ini`, `.gitignore` | L1–L3d | Libraries needed, test settings, files git ignores (`data/`, caches) |
 
 ---
@@ -369,3 +372,54 @@ Chart: `l3e_unseen_days.png`.
 **How good is "good enough"?** RR 1 §7 doesn't ask for a fixed number: the model must be accurate enough that a realistic fault stands out from normal error. About 1.6–1.9 °C average error, concentrated in a daily pattern, is the baseline that L5 and L6 (fault detection) will be measured against.
 
 **Possible next steps:** (a) a 2R2C model, which the evidence now points to, and which would also show how a second model plugs in (the same path Joe's model will take); (b) L4, the observer, which keeps the twin in step with measurements.
+
+---
+
+## L4 · A Luenberger observer (4 Nov 2026)
+
+**Decision (Loch, 4 Nov):** no 2R2C for now. The 1R1C is good enough to carry on building the pipeline, which is the purpose of this work. Model accuracy (2R2C, ML, more data) is a later, separate piece of work.
+
+**The problem:** open loop, every small model error carries into the next step, so the twin drifts away from the real room over days.
+
+**What the observer does (`twinlab/observer.py`):** at every new reading:
+1. **predict:** step the model on from its last state;
+2. **compare:** residual = measured − predicted;
+3. **correct:** new state = predicted + **L** × residual.
+
+**L, the gain,** is between 0 and 1. L = 0 never corrects (open loop). L = 1 jumps to each reading (the twin just copies the sensor). L = 0.2 moves 20% of the way each step. A fixed L is a **Luenberger observer**; a Kalman filter has the same shape but works L out from how noisy the sensor and model are. The residual is now a **one-step-ahead** error: it's measured against a prediction made 15 minutes after the last correction.
+
+**Missing reading:** no correction that step. The twin carries on from its prediction ("coasts"), and the residual is `None`.
+
+### Results (`python run_l4.py`, fitted values from L3e: R 0.0114, C 8.23 MJ/K, sun 12.12 m²)
+
+**Part 1, healthy data, 14 days:**
+
+| Gain L | Residual MAE | Moments with residual over 1 °C |
+|---|---|---|
+| 0 (open loop) | 2.33 °C | 975 of 1,343 |
+| 0.05 | 1.47 °C | 690 |
+| 0.1 | 1.12 °C | 543 |
+| **0.2** | **0.74 °C** | 307 |
+| 0.3 | 0.55 °C | 214 |
+| 0.5 | 0.36 °C | 75 |
+| 1.0 | 0.21 °C | 24 |
+
+**Part 2, the catch.** The sensor suddenly reads 2 °C too high from 02:00 on 26 Jan and stays wrong (a lasting fault):
+
+| Gain L | Residual straight after | Time until the residual is back under 1 °C |
+|---|---|---|
+| 0.05 | 2.8 °C | 11.25 h |
+| 0.1 | 2.3 °C | 3.25 h |
+| 0.3 | 2.1 °C | 0.75 h |
+| 0.5 | 2.0 °C | 0.5 h |
+
+Chart: `l4_observer.png`. Top: healthy residual, open loop vs L = 0.2. Bottom: the fault, L = 0.05 vs 0.5.
+
+### What it shows
+
+1. **The observer works:** with L = 0.2 the healthy residual falls from 2.3 to 0.7 °C, and the slow drifts disappear.
+2. **The 08:00 spikes remain** (about 6 °C) at every gain. A jump of 6 °C in 15 minutes can't be predicted one step ahead by this model. It happens every working day, so the detector (L5) must not treat it as a fault: e.g. ignore residuals right after a known setpoint change, or accept it until a better model comes.
+3. **The observer can't tell a model error from a fault.** A big gain pulls the twin onto a faulty sensor within 30 minutes, so a lasting fault shows up only as a short spike. A small gain keeps the fault visible for hours, but carries a bigger everyday error (L = 0.05 sat about 1 °C off even before the fault).
+4. **So L has to be chosen together with the detector,** in L5. L = 0.2 is a placeholder until then. Detectors that add up the residual over time (CUSUM) can still catch a fault that a big gain has absorbed. Another common approach is to run an open-loop copy of the twin alongside the observer, just for slow faults. Both are options for L5.
+
+**Not done yet (possible small L4b):** the LIVE / COASTING / STALE data state from the project's design. The observer already coasts through a missing reading; the state machine would label how long it has been coasting, so detection can be switched off when data goes stale.
