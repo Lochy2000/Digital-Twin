@@ -21,7 +21,7 @@ It also stamps the site (from gateway config), so site + point identifies the re
 (message v2, step 2i).
 
 If any step can't be done (a word not in the map, text where a number should be, an
-unknown unit), it raises NormaliseError and the reading goes to quarantine.
+unknown unit, NaN or Infinity), it raises NormaliseError and the reading goes to quarantine.
 
 Raw unit: if the message itself states its unit (RawRecord.unit, e.g. Tasmota's "TempUnit"),
 that wins over the device type's dtteo:rawUnit, because the device knows its own setting.
@@ -42,6 +42,7 @@ Sources:
 """
 from __future__ import annotations
 
+import math
 from datetime import datetime, timezone
 
 from .decoders import RawRecord
@@ -92,6 +93,14 @@ def normalise(record: RawRecord, mapping: PointMapping, ingest_time: datetime, s
                 raise NormaliseError(str(e)) from e
         # 4. Tidy: remove floating-point noise. Whole numbers stay as written (int stays int).
         value = round(value, DECIMALS) if isinstance(value, float) else value
+
+    # NaN / Infinity are floats in Python, and Python's json.loads accepts the words NaN and
+    # Infinity, so they pass the number check above. They aren't readings: one NaN made a whole
+    # hour's mean and max NaN (experiments E1). Checked here, after every step, so it covers
+    # every point and an overflow during conversion too. v0.2 fix 3.
+    
+    if isinstance(value, float) and not math.isfinite(value):
+        raise NormaliseError(f"{mapping.point_id}: {value!r} is not a real number (NaN or Infinity)")
 
     # 5. Times. No device time -> use the time we received it, and say so (time_source).
     from_device = record.time is not None

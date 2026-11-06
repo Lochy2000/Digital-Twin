@@ -40,7 +40,10 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from . import DecodeError, RawRecord
 
-METADATA_KEYS = {"Time", "TempUnit"}
+# Labels, not readings. PressureUnit ("hPa"/"mmHg", SetOption24) comes with pressure sensors
+# such as the BME280; without it here it was quarantined as an unknown reading (experiments E7,
+# v0.2 fix 9). It isn't used as the pressure's unit yet: no point in the model stores pressure.
+METADATA_KEYS = {"Time", "TempUnit", "PressureUnit"}
 TEMP_UNITS = {"C": "DEG_C", "F": "DEG_F"}       # Tasmota's letters -> QUDT IDs
 
 

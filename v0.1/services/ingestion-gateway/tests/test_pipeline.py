@@ -151,3 +151,17 @@ def test_enabled_overrides_from_environment():
     assert parse_enabled("acme_hvac_0001=off, site4_hvac_01=on") == {"acme_hvac_0001": False, "site4_hvac_01": True}
     with pytest.raises(ValueError):
         parse_enabled("acme_hvac_0001=maybe")
+
+
+# --- v0.2 fix 3: NaN / Infinity (experiments E1) ------------------------------------------
+
+@pytest.mark.parametrize("word", ["NaN", "Infinity", "-Infinity"])
+def test_nan_and_infinity_go_to_quarantine_not_storage(pipeline, word):
+    # Raw bytes, as a device would send them: Python's json.loads accepts these words.
+    raw = b'{"ts": 1792006418428, "tempF": ' + word.encode() + b', "op_state": 2}'
+    out = run(pipeline, "raw/acme/acme_hvac_0001/telemetry", raw)
+    topics = {o.topic: o.payload for o in out}
+    assert "dt/v1/telemetry/site1/unit1/zone_air_temp" not in topics      # never stored
+    [q] = [o.payload for o in out if o.topic == "dt/v1/quarantine/acme"]
+    assert q["field"] == "tempF" and "not a real number" in q["reason"]
+    assert topics["dt/v1/telemetry/site1/unit1/mode_status"]["value"] == "cool"   # rest of message still flows

@@ -4,7 +4,7 @@ The running historian: broker in, database out (ADR-002 section 7).
     python -m historian.service          (settings from environment variables, below)
 
     dt/v1/telemetry/#  ─┐                              ┌─ readings
-    dt/v1/quarantine/# ─┴─► buffer ─► every 1 s or 500 ─► one transaction ─┴─ quarantine
+    dt/v1/quarantine/# ─┴─► buffer ─► every 0.2 s or 500 ─► one transaction ─┴─ quarantine
                                                        └─ then acknowledge those messages
 
 How nothing is lost (or stored twice):
@@ -27,7 +27,10 @@ Settings (environment variables):
     HISTORIAN_SITE              default site1: the site the asset model describes
     MODEL_DIR                   folder with dtteo_asset_model.ttl and mappings/ (default: v0.1)
     CONTRACTS_DIR               folder with the *.schema.json contracts (default: v0.1/contracts)
-    BATCH_SIZE / BATCH_SECONDS  default 500 / 1.0
+    BATCH_SIZE / BATCH_SECONDS  default 500 / 0.2. A reading waits up to BATCH_SECONDS before it is
+                                written. Was 1.0: p99 device-to-database delay 1.01-1.11 s; 0.2 gave
+                                0.21-0.27 s with nothing lost (experiments E2/E2b, v0.2 fix 5).
+                                Cost: more, smaller transactions (historian CPU 0.8% -> 1.3% at 10/s).
     LOG_LEVEL                   default INFO (DEBUG logs every batch)
     MQTT_USERNAME / MQTT_PASSWORD   broker login (default username: historian; read-only, broker/acl.conf)
 
@@ -168,7 +171,7 @@ def main() -> None:
         client.username_pw_set(os.getenv("MQTT_USERNAME", CLIENT_ID), os.environ["MQTT_PASSWORD"])
     client.will_set(STATUS_TOPIC, "offline", qos=1, retain=True)
     batcher = Batcher(store, client.ack, lambda: connection["n"],
-                      int(os.getenv("BATCH_SIZE", "500")), float(os.getenv("BATCH_SECONDS", "1.0")))
+                      int(os.getenv("BATCH_SIZE", "500")), float(os.getenv("BATCH_SECONDS", "0.2")))
 
     def on_connect(client, userdata, flags, reason_code, properties):
         if reason_code.is_failure:

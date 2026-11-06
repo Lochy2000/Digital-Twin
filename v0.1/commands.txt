@@ -1,0 +1,51 @@
+DT-TEO v0.1 COMMAND SHEET
+Run everything from the v0.1 folder in PowerShell.
+Passwords are in v0.1\.env
+
+---------------------------------------------------------------
+DOCKER
+
+docker compose up -d --build              Start everything (rebuilds changed code)
+docker compose --profile acme up -d       Start everything + fake Acme device
+docker compose --profile borealis up -d   Start everything + fake Borealis device
+docker compose ps                         Show what's running
+docker compose restart <service>          Restart one service
+docker compose up -d                      Apply changes after editing .env/config
+docker compose down                       Stop everything (data kept)
+docker compose --profile acme down        Stop everything incl. Acme
+docker compose down -v                    Stop AND DELETE ALL DATA (careful)
+
+Services: mosquitto, gateway, historian, timescaledb, migrate, grafana
+
+---------------------------------------------------------------
+INGESTION / GATEWAY
+
+docker compose logs -f gateway            Watch the gateway live (Ctrl+C to exit)
+docker compose logs -f historian          Watch readings being saved
+docker compose logs -f mosquitto          Watch the broker
+
+Watch all messages on the broker:
+docker compose exec mosquitto mosquitto_sub -v -u engineer -P <MQTT_ENGINEER_PASSWORD> -t "raw/#" -t "dt/v1/#"
+
+  raw/#                 device data, before the gateway
+  dt/v1/telemetry/#     clean readings, after the gateway
+  dt/v1/quarantine/#    rejected messages + reason
+  dt/v1/status/#        online/offline
+
+python tools\smoke_test.py                Test the full path end to end (expect ALL PASSED)
+
+---------------------------------------------------------------
+DATA
+
+docker compose exec timescaledb psql -U dtteo_owner -d dtteo     Open the database
+
+Inside the database:
+  \dt                                     List tables
+  SELECT count(*) FROM readings;          Count stored readings
+  SELECT * FROM quarantine LIMIT 5;       See rejected messages
+  \q                                      Exit
+
+docker compose run --rm backup            Back up the database to v0.1\backups\
+docker compose logs migrate               Check the tables were built
+
+Grafana dashboards: http://localhost:3000

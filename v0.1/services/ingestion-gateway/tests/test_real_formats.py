@@ -58,6 +58,15 @@ def test_tasmota_sample_is_flattened_and_ids_are_metadata(mapper):
     assert t.value == 21.4 and t.unit == "DEG_C"
 
 
+def test_tasmota_pressure_unit_is_a_label_not_a_reading(mapper):
+    # BME280 message shape (Tasmota wiki). v0.2 fix 9: PressureUnit was quarantined (E7).
+    recs = tasmota({"Time": "2026-10-18T11:22:00",
+                    "BME280": {"Temperature": 21.7, "Humidity": 48.2, "DewPoint": 10.2, "Pressure": 1013.4},
+                    "PressureUnit": "hPa", "TempUnit": "C"}, mapper)
+    assert "PressureUnit" not in recs
+    assert recs["BME280.Pressure"].value == 1013.4 and recs["BME280.Pressure"].unit is None
+
+
 def test_tasmota_local_time_uses_the_bindings_timezone(mapper):
     t = decode(*sample("tasmota"), mapper)[0].time
     assert t == datetime(2026, 10, 18, 10, 22, tzinfo=timezone.utc)    # 11:22 UK summer time
