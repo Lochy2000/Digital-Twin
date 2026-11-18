@@ -24,7 +24,24 @@ v0.1 split into `common/`, `gateway/`, `platform/`, `dev/` (ADR-003, to write). 
 plug-ins and that the Pi build binds no fake vendors) · historian 7 passed, 9 skipped (database tests need
 `TEST_DATABASE_URL`, as in v0.1) · `python -m gateway.demo` runs.
 
-**Not working yet (step B):** Dockerfiles and compose files still use v0.1 paths.
+### Step B: split the Docker setup (no behaviour change)
+
+| What | Why | Files |
+|---|---|---|
+| `gateway/compose.yml`: broker (`gateway-broker`) + gateway | Runs on the Pi on its own | `gateway/compose.yml`, `.env.example` |
+| `platform/compose.yml`: TimescaleDB, migrate, historian, Grafana, backup | Runs on the server on its own | `platform/compose.yml`, `.env.example` |
+| `dev/compose.yml` *includes* both, plus Acme/Borealis; `gateway.dev.yml` adds the plug-ins, `platform.dev.yml` points the historian at the gateway's broker | One command on the laptop, without copying the other two files | `dev/` |
+| Dockerfiles build from `v0.2/` and install `common` (normal install) | Images need the shared package | `gateway/Dockerfile`, `platform/historian/Dockerfile`, `.dockerignore` |
+| No `container_name`; project names `dt-gateway`, `dt-platform`, `dtteo-dev` | No clash with v0.1's containers; v0.2 gets its own fresh volumes | compose files |
+| Smoke test finds `dev/.env`, `gateway-broker`, `platform/storage/migrations` | New layout | `dev/smoke_test.py` |
+
+**Checked here:** `docker compose config` for dev (with Acme), gateway alone and platform alone (paths,
+passwords, volumes) · the build context holds no `.env`, backups or tests · `common` installs normally with
+its schemas · gateway service run live against a real Mosquitto broker with the plug-ins: Acme message ->
+`unit1.zone_air_temp` 21.1111 °C GOOD, `mode_status` "cool", unknown `co2` quarantined.
+**Not possible here (Docker Hub blocked):** building images and running the stack; that's the laptop run.
+
+**Known gap until step E:** the platform has no broker of its own, so `platform/` alone waits for one.
 
 ## Quick fixes (made in v0.1 on 5 Nov, before the restructure)
 

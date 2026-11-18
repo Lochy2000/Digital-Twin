@@ -1,0 +1,8 @@
+# Added to gateway/compose.yml in the dev setup only: load the fake test vendors as plug-ins.
+# Paths here are relative to gateway/ (the included project's folder).
+services:
+  gateway:
+    environment:
+      GATEWAY_PLUGINS: /plugins
+    volumes:
+      - ./tests/vendors:/plugins:ro

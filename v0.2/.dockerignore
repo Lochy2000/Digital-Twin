@@ -1,0 +1,11 @@
+# Build context for both images is v0.2/. Keep secrets, data and dev clutter out of it.
+**/.env
+.git
+**/.venv
+**/venv
+**/__pycache__
+**/.pytest_cache
+**/*.egg-info
+**/tests
+platform/backups
+dev

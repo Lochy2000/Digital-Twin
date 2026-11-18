@@ -1,5 +1,9 @@
 # DT-TEO v0.1: Digital Twin Foundation
 
+> **Moved (18 Nov 2026):** v0.1's code now lives in [`../v0.2`](../v0.2) (gateway, platform, common, dev).
+> This folder keeps v0.1's design and evidence (README, GUIDE, ADRs, experiments, FINDINGS, diagrams).
+> To run v0.1 exactly as tested: `git checkout v0.1-final`.
+
 **Status:** proposal and prototyping · **Last updated:** 31 October 2026
 
 **New here?** Start with [`GUIDE.md`](GUIDE.md): a short guide to what is built so far and how to use it. This README is the full design.

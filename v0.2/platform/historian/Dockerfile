@@ -1,13 +1,14 @@
-# Historian image. Built with the build context at v0.1/services (see docker-compose.yml) so it
-# can include the gateway's code: the historian reuses gateway.mapper to read the asset model.
-# The asset model, mappings and contracts are mounted read-only at run time.
+# Historian image. Build context: v0.2/ (see platform/compose.yml), so it can install ../common.
+# The asset model is mounted at run time (/model); the contracts come with dtteo_common.
 FROM python:3.11-slim
 WORKDIR /app
-COPY historian/requirements.txt .
+COPY platform/historian/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY ingestion-gateway/gateway/ gateway/
-COPY historian/historian/ historian/
-ENV MODEL_DIR=/model CONTRACTS_DIR=/contracts
+# Shared package. After the repo split:  pip install "git+<repo url>@<tag>#subdirectory=common"
+COPY common/ /tmp/common/
+RUN pip install --no-cache-dir /tmp/common && rm -rf /tmp/common
+COPY platform/historian/historian/ historian/
+ENV MODEL_DIR=/model
 RUN useradd --system --no-create-home historian
 USER historian
 CMD ["python", "-u", "-m", "historian.service"]

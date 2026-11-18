@@ -1,0 +1,6 @@
+# Added to platform/compose.yml in the dev setup only. Until step E (bridge + the platform's
+# own broker), the historian reads straight from the gateway's broker.
+services:
+  historian:
+    environment:
+      BROKER_HOST: gateway-broker
