@@ -11,29 +11,34 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .decoders import decode
-from .mapper import Mapper
+from dtteo_common.mapper import Mapper
+
+from .decoders import decode, load_plugins
 from .normaliser import NormaliseError, normalise
 from .validator import with_quality
 
 HERE = Path(__file__).resolve().parent
-V01 = HERE.parents[2]
-SAMPLES = HERE.parent / "tests" / "samples"
+MODEL = HERE.parent / "model"
+VENDORS = HERE.parent / "tests" / "vendors"        # fake Acme/Borealis, loaded as a plug-in
+SAMPLES = [*sorted((HERE.parent / "tests" / "samples").glob("*.json")), *sorted((VENDORS / "samples").glob("*.json"))]
 
 
 def main():
     # Acme, Borealis and the Tasmota probe all feed the zone temperature, so only one is
     # enabled at a time (bindings/site1.ttl). The demo swaps between them, as a real site would.
-    default = Mapper.from_folder(V01)                   # Acme + SDM120 enabled
+    load_plugins(VENDORS)
+    def mapper_with(enabled=None):
+        return Mapper.from_folder(MODEL, enabled, extra_dirs=[VENDORS / "mappings"])
+    default = mapper_with()                             # Acme + SDM120 enabled
     mappers = {
         "acme": default,
         "sdm120": default,
-        "borealis": Mapper.from_folder(V01, enabled={"acme_hvac_0001": False, "site4_hvac_01": True}),
-        "tasmota": Mapper.from_folder(V01, enabled={"acme_hvac_0001": False, "tasmota_zone1": True}),
+        "borealis": mapper_with({"acme_hvac_0001": False, "site4_hvac_01": True}),
+        "tasmota": mapper_with({"acme_hvac_0001": False, "tasmota_zone1": True}),
     }
     ingest = datetime.now(timezone.utc)
 
-    for sample in sorted(SAMPLES.glob("*.json")):
+    for sample in SAMPLES:
         mapper = mappers[sample.stem]
         s = json.loads(sample.read_text())
         print(f"\n{s['topic']}")

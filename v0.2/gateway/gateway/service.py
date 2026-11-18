@@ -25,7 +25,9 @@ Settings (environment variables):
     BROKER_HOST       default localhost
     BROKER_PORT       default 1883
     GATEWAY_SITE      default site1   (the {site} level in canonical topics; topics.md)
-    MODEL_DIR         folder holding dtteo_asset_model.ttl and mappings/  (default: v0.1)
+    MODEL_DIR         folder holding dtteo_asset_model.ttl and mappings/  (default: gateway/model)
+    GATEWAY_PLUGINS   optional folder of plug-ins: decoders/*.py and mappings/**/*.ttl
+                      (the dev setup points it at tests/vendors for Acme and Borealis)
     GATEWAY_ENABLED   optional on/off overrides for bindings, e.g.
                       "acme_hvac_0001=off,site4_hvac_01=on"  (to match the compose profile)
     LOG_LEVEL         default INFO  (DEBUG also logs every GOOD reading)
@@ -56,7 +58,9 @@ import paho.mqtt.client as mqtt
 from paho.mqtt.packettypes import PacketTypes
 from paho.mqtt.properties import Properties
 
-from .mapper import Mapper
+from dtteo_common.mapper import Mapper
+
+from .decoders import load_plugins
 from .pipeline import Outgoing, Pipeline, kv
 
 CLIENT_ID = "ingestion_gateway"                        # lowercase + "_" only (topics.md rule 2)
@@ -92,13 +96,17 @@ def send(client: mqtt.Client, o: Outgoing) -> None:
 
 
 def build_pipeline() -> Pipeline:
-    # Do not calculate the source-tree fallback when MODEL_DIR is configured.
-    # The container installs this module at /app/gateway/service.py, where parents[3]
-    # does not exist, even though Compose correctly supplies MODEL_DIR=/model.
+    # MODEL_DIR is set in the container (/model). Without it, use gateway/model in the source tree.
     configured_model_dir = os.getenv("MODEL_DIR")
     model_dir = (Path(configured_model_dir) if configured_model_dir
-                 else Path(__file__).resolve().parents[3])
-    mapper = Mapper.from_folder(model_dir, enabled=parse_enabled(os.getenv("GATEWAY_ENABLED", "")))
+                 else Path(__file__).resolve().parents[1] / "model")
+    plugins = os.getenv("GATEWAY_PLUGINS")
+    extra = []
+    if plugins:
+        log.info(kv("plugins_loaded", folder=plugins, decoders=load_plugins(Path(plugins))))
+        extra = [Path(plugins) / "mappings"]
+    mapper = Mapper.from_folder(model_dir, enabled=parse_enabled(os.getenv("GATEWAY_ENABLED", "")),
+                                extra_dirs=extra)
     for note in mapper.report:
         log.info(kv("mapper_note", note=note))
     log.info(kv("mapper_loaded", model_dir=str(model_dir), field_mappings=len(mapper)))

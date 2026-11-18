@@ -1,3 +1,0 @@
-# MOVED in step 2e: this vendor is now described once in types/acme_hvac.ttl
-# and its device is listed in bindings/site1.ttl.
-# This file is intentionally empty and can be deleted.

@@ -1,6 +1,6 @@
 import pytest
 
-from gateway.units import UnitError, convert
+from dtteo_common.units import UnitError, convert
 
 
 @pytest.mark.parametrize("f, c", [(32, 0.0), (212, 100.0), (-40, -40.0), (70.4, 21.333333)])

@@ -10,13 +10,11 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
-from gateway.mapper import Mapper
+from dtteo_common.mapper import Mapper
 from gateway.pipeline import Pipeline, kv, telemetry_topic
 from gateway.service import parse_enabled
+from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
 
-V01 = Path(__file__).resolve().parents[3]
-SAMPLES = Path(__file__).parent / "samples"
-CONTRACTS = V01 / "contracts"
 CANONICAL = Draft202012Validator(json.loads((CONTRACTS / "canonical_message.schema.json").read_text()),
                                  format_checker=FormatChecker())
 QUARANTINE = Draft202012Validator(json.loads((CONTRACTS / "quarantine_message.schema.json").read_text()),
@@ -26,7 +24,7 @@ QUARANTINE = Draft202012Validator(json.loads((CONTRACTS / "quarantine_message.sc
 @pytest.fixture(scope="module")
 def pipeline():
     # Recorded samples are old, so the stale-data check is off (as in the demo).
-    return Pipeline(Mapper.from_folder(V01), site="site1", max_age=None)
+    return Pipeline(model_mapper(), site="site1", max_age=None)
 
 
 def run(pipeline, topic, payload, now=datetime(2026, 10, 14, 19, 33, 39, tzinfo=timezone.utc)):
@@ -39,7 +37,7 @@ def run(pipeline, topic, payload, now=datetime(2026, 10, 14, 19, 33, 39, tzinfo=
 
 
 def sample(name):
-    s = json.loads((SAMPLES / f"{name}.json").read_text())
+    s = json.loads(sample_file(name).read_text())
     return s["topic"], s["payload"]
 
 

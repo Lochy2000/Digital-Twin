@@ -11,11 +11,12 @@ from pathlib import Path
 
 import pytest
 
-from gateway.mapper import Mapper
+from dtteo_common.contracts import HERE as CONTRACTS
+from dtteo_common.mapper import Mapper
 from historian.service import contract_validator
 from historian.store import Message, PostgresHistorian, StoreUnavailable, Unstorable, value_columns
 
-V01 = Path(__file__).resolve().parents[3]
+PLATFORM = Path(__file__).resolve().parents[2]      # platform/: holds the copy of the asset model
 DB = os.getenv("TEST_DATABASE_URL")
 needs_db = pytest.mark.skipif(not DB, reason="set TEST_DATABASE_URL to run database tests")
 
@@ -42,7 +43,7 @@ def test_other_values_are_refused():
 
 
 def test_contract_check_finds_problems():
-    validate = contract_validator(V01 / "contracts")
+    validate = contract_validator(CONTRACTS)
     good = json.loads(canonical().payload)
     assert validate(good, "canonical") == []
     bad = {**good, "v": 1}
@@ -62,9 +63,9 @@ def store():
     import psycopg
     with psycopg.connect(DB) as c:
         c.execute("TRUNCATE readings, quarantine, series RESTART IDENTITY CASCADE")
-    h = PostgresHistorian(DB, "site1", validate=contract_validator(V01 / "contracts"),
+    h = PostgresHistorian(DB, "site1", validate=contract_validator(CONTRACTS),
                           clock=lambda: datetime(2026, 10, 29, 12, tzinfo=timezone.utc))
-    h.sync_series("site1", Mapper.from_folder(V01).points())
+    h.sync_series("site1", Mapper.from_folder(PLATFORM).points())
     yield h
     h.close()
 

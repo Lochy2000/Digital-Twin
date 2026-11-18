@@ -11,13 +11,12 @@ import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
 from gateway.decoders import RawRecord, decode
-from gateway.mapper import Mapper, PointMapping
+from dtteo_common.mapper import Mapper, PointMapping
 from gateway.normaliser import NormaliseError, normalise
+from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
 
-V01 = Path(__file__).resolve().parents[3]
-SAMPLES = Path(__file__).parent / "samples"
 INGEST = datetime(2026, 10, 14, 19, 33, 38, 900000, tzinfo=timezone.utc)
-SCHEMA = json.loads((V01 / "contracts" / "canonical_message.schema.json").read_text())
+SCHEMA = json.loads((CONTRACTS / "canonical_message.schema.json").read_text())
 
 
 @pytest.fixture(scope="module")
@@ -25,14 +24,14 @@ def mapper():
     # Acme and Borealis pretend to be the same unit, so only one may be enabled at a
     # time (step 2e, rule 3). One mapper per vendor, as if swapping the device.
     return {
-        "acme": Mapper.from_folder(V01),                       # as in bindings/site1.ttl
-        "borealis": Mapper.from_folder(V01, enabled={"acme_hvac_0001": False, "site4_hvac_01": True}),
+        "acme": model_mapper(),                       # as in bindings/site1.ttl
+        "borealis": model_mapper({"acme_hvac_0001": False, "site4_hvac_01": True}),
     }
 
 
 def run(mapper, sample):
     """Decode a sample, normalise every field the mapper knows. Returns {point: reading}."""
-    s = json.loads((SAMPLES / f"{sample}.json").read_text())
+    s = json.loads(sample_file(sample).read_text())
     out = {}
     for r in decode(s["topic"], json.dumps(s["payload"]).encode()):
         m = mapper[sample].lookup(r.source, r.device, r.field)

@@ -43,16 +43,16 @@ Sources:
 """
 from __future__ import annotations
 
-import json
 import logging
 import re
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+
+from dtteo_common.logfmt import kv     # noqa: F401  (re-exported: service.py and tests import kv from here)
+from dtteo_common.mapper import Mapper
 
 from .decoders import DecodeError, RawRecord, decode, parse_raw_topic
-from .mapper import Mapper
 from .normaliser import NormaliseError, normalise, to_utc_text
 from .validator import with_quality
 
@@ -69,17 +69,6 @@ class Outgoing:
     retain: bool = False       # readings are never retained (topics.md)
 
 
-def kv(event: str, **fields: Any) -> str:
-    """logfmt line: kv("quarantine", stage="map", field="rh") -> 'quarantine stage=map field=rh'"""
-    parts = [event]
-    for key, value in fields.items():
-        if value is None:
-            continue
-        text = value if isinstance(value, str) else json.dumps(value, default=str)
-        if text == "" or re.search(r'[\s="]', text):
-            text = '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
-        parts.append(f"{key}={text}")
-    return " ".join(parts)
 
 
 def telemetry_topic(site: str, point_id: str) -> str:

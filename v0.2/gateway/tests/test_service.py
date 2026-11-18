@@ -1,17 +1,25 @@
-from pathlib import Path
-
 import gateway.service as service
+from support import MODEL, VENDORS
 
 
 def test_build_pipeline_uses_configured_model_dir_without_evaluating_fallback(monkeypatch):
     """The shallow /app path in Docker must work when MODEL_DIR is configured."""
-    model_dir = str(Path(__file__).resolve().parents[3])
-    monkeypatch.setenv("MODEL_DIR", model_dir)
+    monkeypatch.setenv("MODEL_DIR", str(MODEL))
+    monkeypatch.setenv("GATEWAY_PLUGINS", str(VENDORS))     # Acme's 2 fields count towards the 4
     monkeypatch.setattr(service, "__file__", "/app/gateway/service.py")
 
     pipeline = service.build_pipeline()
 
     assert len(pipeline.mapper) == 4      # step 2k: the SDM120 energy register now has a point
+
+
+def test_without_plugins_only_real_formats_are_mapped(monkeypatch):
+    """v0.2 change 7: on the Pi (no GATEWAY_PLUGINS) the fake vendors are not bound at all."""
+    monkeypatch.setenv("MODEL_DIR", str(MODEL))
+    monkeypatch.delenv("GATEWAY_PLUGINS", raising=False)
+    mapper = service.build_pipeline().mapper
+    assert mapper.binding("acme", "acme_hvac_0001") is None
+    assert mapper.binding("modbus", "sdm120_unit1") is not None
 
 
 # --- Step 2j: a message paho refuses (queue full) is logged, not silently lost ---------------

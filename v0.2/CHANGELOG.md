@@ -3,7 +3,30 @@
 Changes after the tested v0.1 (git tag `v0.1-tested`, the code `experiments/FINDINGS.md` measured).
 Fix numbers are FINDINGS section 3. FINDINGS itself is left as the v0.1 evidence.
 
-## v0.2 (in progress)
+## v0.2 restructure (18 Nov 2026)
+
+v0.1 split into `common/`, `gateway/`, `platform/`, `dev/` (ADR-003, to write). v0.1 as it was: git tag `v0.1-final`.
+
+### Step A: shared package (no behaviour change)
+
+| What | Why | Files |
+|---|---|---|
+| New package `dtteo-common`: mapper, units, logfmt (`kv`), Modbus types, contracts | Historian imported gateway code; separate repos need a shared, versioned package (pattern review #8) | `common/` |
+| Modbus type table moved from the decoder to `dtteo_common.modbus_types` | The mapper imported the gateway's Modbus decoder | `modbus_types.py`, `mapper.py`, `decoders/modbus.py` |
+| `Mapper.from_folder(model_dir, enabled, extra_dirs)` | Load plug-in mappings (test vendors) from another folder | `mapper.py` |
+| Decoder plug-ins: `register()`, `load_plugins(folder)`; built-in table is Tasmota + Modbus only | Fake vendors out of the live table (pattern review #7) | `decoders/__init__.py` |
+| Acme/Borealis = test plug-ins in `gateway/tests/vendors/` (decoders, types, bindings, samples). Their bindings left `site1.ttl` | Nearly every gateway test uses them as test data | `tests/vendors/`, `bindings/site1.ttl` |
+| `GATEWAY_PLUGINS` setting; `MODEL_DIR` default is now `gateway/model` | Dev setup loads the vendors; the Pi doesn't | `service.py` |
+| Tests find files through `tests/support.py`; mapper tests moved to the gateway (they test its model files) | v0.1 tests climbed up to the v0.1 folder | `gateway/tests/` |
+| Historian: `dtteo_common` instead of `gateway.*`; contracts from the package | No gateway code in the platform | `platform/historian/` |
+
+**Checked:** common 12 passed + contract examples OK · gateway 118 passed (v0.1's tests + new tests for
+plug-ins and that the Pi build binds no fake vendors) · historian 7 passed, 9 skipped (database tests need
+`TEST_DATABASE_URL`, as in v0.1) · `python -m gateway.demo` runs.
+
+**Not working yet (step B):** Dockerfiles and compose files still use v0.1 paths.
+
+## Quick fixes (made in v0.1 on 5 Nov, before the restructure)
 
 ### Quick wins (5 Nov 2026)
 

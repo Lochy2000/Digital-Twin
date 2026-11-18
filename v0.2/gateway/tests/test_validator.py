@@ -10,13 +10,12 @@ import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
 from gateway.decoders import decode
-from gateway.mapper import Mapper, MappingError, PointMapping, mapping_files
+from dtteo_common.mapper import Mapper, MappingError, PointMapping, mapping_files
 from gateway.normaliser import normalise
 from gateway.validator import validate, with_quality
+from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
 
-V01 = Path(__file__).resolve().parents[3]
-SAMPLES = Path(__file__).parent / "samples"
-SCHEMA = json.loads((V01 / "contracts" / "canonical_message.schema.json").read_text())
+SCHEMA = json.loads((CONTRACTS / "canonical_message.schema.json").read_text())
 T0 = "2026-10-19T08:00:00.000Z"
 
 ZONE = PointMapping("unit1.zone_air_temp", "DEG_C", None, None,
@@ -104,7 +103,7 @@ def test_stale_check_can_be_turned_off_for_back_fills():
 
 @pytest.fixture(scope="module")
 def mapper():
-    return Mapper.from_folder(V01, enabled={"acme_hvac_0001": False, "tasmota_zone1": True})
+    return model_mapper({"acme_hvac_0001": False, "tasmota_zone1": True})
 
 
 def test_ranges_come_from_type_and_asset_model(mapper):
@@ -125,12 +124,12 @@ def test_expected_range_wider_than_sensor_range_is_refused(tmp_path):
         :zone_temp dtteo:expectedRange [ schema:minValue -100 ; schema:maxValue 35 ; schema:unitCode unit:DEG_C ] .
     """)
     with pytest.raises(MappingError, match="beyond the sensor's range"):
-        Mapper.from_files(V01 / "dtteo_asset_model.ttl", mapping_files(V01) + [extra],
+        Mapper.from_files(ASSET_MODEL, all_mapping_files() + [extra],
                           {"acme_hvac_0001": False, "tasmota_zone1": True})
 
 
 def test_range_written_in_fahrenheit_is_converted_to_the_points_unit():
-    from gateway.mapper import _Builder
+    from dtteo_common.mapper import _Builder
     assert _Builder._span((32, 212, "http://qudt.org/vocab/unit/DEG_F"), "DEG_C", "test") == (0.0, 100.0)
 
 
@@ -140,7 +139,7 @@ def test_full_pipeline_gives_valid_canonical_messages(mapper):
     validator = Draft202012Validator(SCHEMA, format_checker=FormatChecker())
     ingest = datetime(2026, 10, 18, 10, 22, 1, tzinfo=timezone.utc)
     for name in ("tasmota", "sdm120"):
-        s = json.loads((SAMPLES / f"{name}.json").read_text())
+        s = json.loads(sample_file(name).read_text())
         for r in decode(s["topic"], json.dumps(s["payload"]).encode(), mapper):
             m = mapper.lookup(r.source, r.device, r.field)
             if m is None:

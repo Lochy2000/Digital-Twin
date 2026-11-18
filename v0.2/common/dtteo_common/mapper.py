@@ -52,6 +52,7 @@ from typing import Iterable
 from rdflib import Graph
 from rdflib.namespace import RDF
 
+from .modbus_types import FORMATS     # the Modbus decoder's list of supported types
 from .units import UnitError, convert
 
 log = logging.getLogger(__name__)
@@ -224,9 +225,13 @@ def _short(uri) -> str:
     return "brick:" + s[len(BRICK):] if s.startswith(BRICK) else (_local_name(s) or s)
 
 
-def mapping_files(v01: Path) -> list[Path]:
-    """Every .ttl under v0.1/mappings (types/ and bindings/ included), sorted. Same on Windows."""
-    return sorted((v01 / "mappings").rglob("*.ttl"))
+def mapping_files(model_dir: Path, extra_dirs: Iterable[Path] = ()) -> list[Path]:
+    """Every .ttl under model_dir/mappings (types/ and bindings/ included), sorted, then every
+    .ttl under each extra folder (plug-ins, e.g. the test vendors). Same order on Windows."""
+    files = sorted((model_dir / "mappings").rglob("*.ttl"))
+    for extra in extra_dirs:
+        files += sorted(Path(extra).rglob("*.ttl"))
+    return files
 
 
 class Mapper:
@@ -256,9 +261,12 @@ class Mapper:
         return _Builder(graph, enabled or {}).build()
 
     @classmethod
-    def from_folder(cls, v01: Path, enabled: dict[str, bool] | None = None) -> "Mapper":
-        """The usual set: v0.1's asset model + every .ttl under mappings/."""
-        return cls.from_files(v01 / "dtteo_asset_model.ttl", mapping_files(v01), enabled)
+    def from_folder(cls, model_dir: Path, enabled: dict[str, bool] | None = None,
+                    extra_dirs: Iterable[Path] = ()) -> "Mapper":
+        """The usual set: model_dir/dtteo_asset_model.ttl + every .ttl under model_dir/mappings/,
+        plus every .ttl under extra_dirs (plug-in mappings, e.g. the test vendors)."""
+        return cls.from_files(Path(model_dir) / "dtteo_asset_model.ttl",
+                              mapping_files(Path(model_dir), extra_dirs), enabled)
 
     def lookup(self, source: str, device: str, field: str) -> PointMapping | None:
         """Return the mapping, or None if this field is unknown (-> quarantine)."""
@@ -463,7 +471,6 @@ class _Builder:
 
     def _registers(self, name: str, value_rows) -> dict:
         """Modbus values of a type -> {field: RegisterSpec}, checked against the data type."""
-        from .decoders.modbus import FORMATS        # the decoder's list of supported types
         out = {}
         for v in value_rows:
             if v.entity is None:

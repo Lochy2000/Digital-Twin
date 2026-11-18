@@ -2,5 +2,5 @@
 psycopg[binary]==3.3.6       # PostgreSQL driver: https://www.psycopg.org/psycopg3/docs/
 paho-mqtt==2.1.0             # same MQTT client as the gateway
 jsonschema[format]==4.23.0   # checks each message against contracts/*.schema.json before storing
-rdflib>=7.1,<8               # for gateway.mapper (reads the asset model into the series table)
-tzdata>=2025.1               # gateway.mapper imports the decoders, which need timezone data on Windows
+# dtteo_common (mapper, contracts, logfmt) is installed separately; it brings rdflib.
+#   local:  pip install -e ../../common      Docker: see Dockerfile

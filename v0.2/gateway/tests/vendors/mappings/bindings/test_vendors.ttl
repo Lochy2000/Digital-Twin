@@ -1,0 +1,21 @@
+# Bindings for the FAKE test vendors (dev/vendors/ publishers). Loaded only as a plug-in:
+# by the gateway tests (tests/support.py) and by the dev setup (GATEWAY_PLUGINS), never on the Pi.
+#
+# Rule: only ONE enabled device may feed a point. Acme and Borealis pretend to be the same
+# unit, so only one is enabled at a time. To swap, flip the "enabled" lines.
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix types: <urn:dtteo:types#> .
+@prefix :      <urn:dtteo:site1#> .
+@prefix b:     <urn:dtteo:site1:bindings#> .
+
+b:acme_hvac_0001 a dtteo:DeviceBinding ;
+    dtteo:device "acme_hvac_0001" ;
+    dtteo:deviceType types:acme_hvac ;
+    dtteo:serves :unit1 .                      # enabled (default)
+
+b:site4_hvac_01 a dtteo:DeviceBinding ;
+    dtteo:device "site4_hvac_01" ;
+    dtteo:deviceType types:borealis_hvac ;
+    dtteo:serves :unit1 ;
+    dtteo:enabled false .                      # swap with Acme to test Borealis

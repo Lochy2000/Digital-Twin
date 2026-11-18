@@ -6,3 +6,5 @@ __pycache__/
 .env
 # Database backups (docker compose run --rm backup). Kept local, not committed.
 backups/
+# Created by "pip install -e" (package build info). Not source.
+*.egg-info/

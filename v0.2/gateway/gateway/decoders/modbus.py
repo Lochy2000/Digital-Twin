@@ -39,14 +39,10 @@ import json
 import struct
 from datetime import datetime
 
+from dtteo_common.modbus_types import FORMATS   # shared with the mapper, which checks bindings at start-up
+
 from . import DecodeError, RawRecord
 
-# xsd type (local name) -> (struct format, registers needed). Big-endian '>' after reordering.
-FORMATS = {
-    "short": ("h", 1), "unsignedShort": ("H", 1),
-    "int": ("i", 2),   "unsignedInt": ("I", 2),   "float": ("f", 2),
-    "long": ("q", 4),  "unsignedLong": ("Q", 4),  "double": ("d", 4),
-}
 
 
 def unpack(words: list[int], xsd_type: str, msb_first: bool = True, msw_first: bool = True):

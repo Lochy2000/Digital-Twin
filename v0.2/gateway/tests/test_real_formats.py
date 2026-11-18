@@ -14,24 +14,23 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from gateway.decoders import DecodeError, decode
 from gateway.decoders.modbus import unpack
-from gateway.mapper import Mapper, MappingError, mapping_files
+from dtteo_common.mapper import Mapper, MappingError, mapping_files
 from gateway.normaliser import normalise
+from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
 
-V01 = Path(__file__).resolve().parents[3]
-SAMPLES = Path(__file__).parent / "samples"
 INGEST = datetime(2026, 10, 18, 10, 22, 1, tzinfo=timezone.utc)
-SCHEMA = json.loads((V01 / "contracts" / "canonical_message.schema.json").read_text())
+SCHEMA = json.loads((CONTRACTS / "canonical_message.schema.json").read_text())
 TASMOTA_TOPIC = "raw/tasmota/tasmota_zone1/tele/SENSOR"
 
 
 @pytest.fixture(scope="module")
 def mapper():
     # Acme off, Tasmota probe on (they feed the same point). The SDM120 is on by default.
-    return Mapper.from_folder(V01, enabled={"acme_hvac_0001": False, "tasmota_zone1": True})
+    return model_mapper({"acme_hvac_0001": False, "tasmota_zone1": True})
 
 
 def sample(name):
-    s = json.loads((SAMPLES / f"{name}.json").read_text())
+    s = json.loads(sample_file(name).read_text())
     return s["topic"], json.dumps(s["payload"]).encode()
 
 
@@ -171,7 +170,7 @@ def test_type_with_wrong_register_count_is_refused_at_start_up(tmp_path):
         :bad a dtteo:DeviceBinding ; dtteo:device "bad" ; dtteo:deviceType types:bad ; dtteo:serves :unit1 .
     """)
     with pytest.raises(MappingError, match="takes 2 register"):
-        Mapper.from_files(V01 / "dtteo_asset_model.ttl", mapping_files(V01) + [bad])
+        Mapper.from_files(ASSET_MODEL, all_mapping_files() + [bad])
 
 
 # --- Contract ---------------------------------------------------------------------------

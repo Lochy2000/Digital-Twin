@@ -8,10 +8,9 @@ from pathlib import Path
 
 import pytest
 
-from gateway.mapper import Mapper, MappingError, mapping_files
+from dtteo_common.mapper import Mapper, MappingError, mapping_files
+from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
 
-V01 = Path(__file__).resolve().parents[3]          # .../v0.1
-ASSET_MODEL = V01 / "dtteo_asset_model.ttl"
 SWAP_TO_BOREALIS = {"acme_hvac_0001": False, "site4_hvac_01": True}
 SWAP_TO_TASMOTA = {"acme_hvac_0001": False, "tasmota_zone1": True}
 
@@ -26,14 +25,14 @@ HEAD = """
 
 @pytest.fixture(scope="module")
 def mapper():
-    return Mapper.from_folder(V01)                 # exactly as bindings/site1.ttl says
+    return model_mapper()                 # exactly as bindings/site1.ttl says
 
 
 def with_extra(tmp_path, ttl, enabled=None):
     """A mapper from the real files plus one extra Turtle snippet."""
     extra = tmp_path / "extra.ttl"
     extra.write_text(HEAD + ttl)
-    return Mapper.from_files(ASSET_MODEL, mapping_files(V01) + [extra], enabled)
+    return Mapper.from_files(ASSET_MODEL, all_mapping_files() + [extra], enabled)
 
 
 # --- Fake vendors, now via device types + bindings -------------------------------------
@@ -58,7 +57,7 @@ def test_borealis_is_disabled_by_default(mapper):
 
 
 def test_swapping_to_borealis_gives_the_same_points():
-    m = Mapper.from_folder(V01, enabled=SWAP_TO_BOREALIS)
+    m = model_mapper(SWAP_TO_BOREALIS)
     assert m.lookup("borealis", "site4_hvac_01", "temperature").point_id == "unit1.zone_air_temp"
     assert m.lookup("borealis", "site4_hvac_01", "status.mode").value_map == {"HEATING": "heat", "COOLING": "cool"}
     assert m.lookup("acme", "acme_hvac_0001", "tempF") is None
@@ -86,7 +85,7 @@ def test_binding_carries_instance_details(mapper):
 
 
 def test_tasmota_probe_is_placed_on_the_zone_temperature():
-    m = Mapper.from_folder(V01, enabled=SWAP_TO_TASMOTA)
+    m = model_mapper(SWAP_TO_TASMOTA)
     assert m.lookup("tasmota", "tasmota_zone1", "DS18B20.Temperature").point_id == "unit1.zone_air_temp"
 
 
@@ -125,7 +124,7 @@ def test_rule2_required_value_with_no_point_is_rejected(tmp_path):
 
 def test_rule3_two_enabled_devices_on_one_point_is_rejected():
     with pytest.raises(MappingError, match="only one may be enabled"):
-        Mapper.from_folder(V01, enabled={"site4_hvac_01": True})          # Acme AND Borealis on
+        model_mapper({"site4_hvac_01": True})          # Acme AND Borealis on
 
 
 def test_two_matching_points_must_be_placed(tmp_path):
@@ -162,7 +161,7 @@ def test_same_field_mapped_to_two_points_is_rejected(tmp_path):
 # --- Step 2k: value kinds and the energy point ---------------------------------------------
 
 def test_every_point_has_a_kind_and_energy_is_a_total():
-    m = Mapper.from_folder(V01)
+    m = model_mapper()
     kinds = {p.point_id: p.kind for p in m.points()}
     assert kinds["unit1.energy"] == "total"
     assert kinds["unit1.mode_status"] == "state"
@@ -171,7 +170,7 @@ def test_every_point_has_a_kind_and_energy_is_a_total():
 
 
 def test_sdm120_energy_register_now_maps_to_kwh():
-    pm = Mapper.from_folder(V01).lookup("modbus", "sdm120_unit1", "InputRegister:72")
+    pm = model_mapper().lookup("modbus", "sdm120_unit1", "InputRegister:72")
     assert (pm.point_id, pm.unit, pm.raw_unit) == ("unit1.energy", "KiloW-HR", "KiloW-HR")
 
 
@@ -184,4 +183,4 @@ def test_point_without_a_kind_is_refused(tmp_path):
             ref:hasExternalReference [ a ref:TimeseriesReference ; ref:hasTimeseriesId "unit1.zone_humidity" ] .
     """)
     with pytest.raises(MappingError, match="unit1.zone_humidity: dtteo:valueKind must be one of"):
-        Mapper.from_files(V01 / "dtteo_asset_model.ttl", mapping_files(V01) + [extra])
+        Mapper.from_files(ASSET_MODEL, all_mapping_files() + [extra])

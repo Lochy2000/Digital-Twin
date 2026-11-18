@@ -2,27 +2,14 @@
 # One block per device. To add a device of a known type, add one block.
 # Vocabulary (and its sources): mappings/dtteo_onboarding.ttl
 #
-# Rule: only ONE enabled device may feed a point. Acme and Borealis pretend to be
-# the same unit, and the Tasmota probe would also measure zone 1, so only one of
-# those three is enabled at a time. To swap, flip the two "enabled" lines.
+# Rule: only ONE enabled device may feed a point.
+# The fake test vendors (Acme, Borealis) are bound in tests/vendors/mappings/bindings/,
+# which is only loaded as a plug-in by the tests and the dev setup.
 
 @prefix dtteo: <urn:dtteo:schema#> .
 @prefix types: <urn:dtteo:types#> .
 @prefix :      <urn:dtteo:site1#> .
 @prefix b:     <urn:dtteo:site1:bindings#> .
-
-# --- Fake test vendors (testing/vendors/) -----------------------------
-
-b:acme_hvac_0001 a dtteo:DeviceBinding ;
-    dtteo:device "acme_hvac_0001" ;
-    dtteo:deviceType types:acme_hvac ;
-    dtteo:serves :unit1 .                      # enabled (default)
-
-b:site4_hvac_01 a dtteo:DeviceBinding ;
-    dtteo:device "site4_hvac_01" ;
-    dtteo:deviceType types:borealis_hvac ;
-    dtteo:serves :unit1 ;
-    dtteo:enabled false .                      # swap with Acme to test Borealis
 
 # --- Real formats -------------------------------------------------------
 

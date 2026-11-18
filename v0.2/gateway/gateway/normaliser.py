@@ -45,9 +45,10 @@ from __future__ import annotations
 import math
 from datetime import datetime, timezone
 
+from dtteo_common.mapper import PointMapping
+from dtteo_common.units import UnitError, convert
+
 from .decoders import RawRecord
-from .mapper import PointMapping
-from .units import UnitError, convert
 
 DECIMALS = 4   # enough for 0.0001 °C / 0.1 W; only removes float noise, not real precision
 

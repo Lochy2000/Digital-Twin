@@ -9,14 +9,13 @@ from pathlib import Path
 import pytest
 
 from gateway.decoders import DecodeError, decode, parse_raw_topic
-from gateway.mapper import Mapper
+from dtteo_common.mapper import Mapper
+from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
 
-SAMPLES = Path(__file__).parent / "samples"
-V01 = Path(__file__).resolve().parents[3]
 
 
 def load_sample(name):
-    s = json.loads((SAMPLES / f"{name}.json").read_text())
+    s = json.loads(sample_file(name).read_text())
     return s["topic"], json.dumps(s["payload"]).encode()
 
 
@@ -94,8 +93,8 @@ def test_undecodable_messages_raise(topic, payload):
 
 def test_two_vendors_end_up_on_the_same_points():
     # Only one of the two may be enabled at a time (step 2e), so one mapper each.
-    mappers = {"acme": Mapper.from_folder(V01),
-               "borealis": Mapper.from_folder(V01, enabled={"acme_hvac_0001": False, "site4_hvac_01": True})}
+    mappers = {"acme": model_mapper(),
+               "borealis": model_mapper({"acme_hvac_0001": False, "site4_hvac_01": True})}
 
     def mapped(name):
         mapper = mappers[name]
@@ -111,3 +110,20 @@ def test_two_vendors_end_up_on_the_same_points():
     assert acme_points == bor_points == {"unit1.zone_air_temp", "unit1.mode_status"}
     assert acme_unknown == {"rh"}            # humidity -> quarantine
     assert bor_unknown == {"humidity"}       # humidity -> quarantine
+
+
+# --- v0.2: plug-in decoders ----------------------------------------------------------------
+
+def test_vendor_plugins_are_registered_but_not_built_in():
+    from gateway import decoders
+    assert {"tasmota", "modbus"} <= set(decoders.DECODERS)
+    assert {"acme", "borealis"} <= set(decoders.DECODERS)          # added by tests/support.py
+
+
+def test_a_different_decoder_for_a_taken_source_is_refused():
+    from gateway.decoders import register
+
+    class FakeTasmota:
+        source = "tasmota"
+    with pytest.raises(ValueError, match="already registered"):
+        register(FakeTasmota())

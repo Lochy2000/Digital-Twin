@@ -18,8 +18,8 @@ Some formats need facts about the installed device that aren't in the message, e
 Tasmota's timezone or a Modbus meter's register layout. Those come from the device's
 binding (mappings/bindings/), looked up through the `registry` passed to decode().
 
-Adding a format = add a module here + register it in DECODERS below + a device type in
-mappings/types/.
+Adding a real format = add a module here + list it in DECODERS below + a device type in
+model/mappings/types/. A test-only format goes in a plug-in folder instead (load_plugins).
 
 Sources:
   - Pattern (one adapter per protocol/format, separate from the rest of the platform):
@@ -30,8 +30,10 @@ Sources:
 """
 from __future__ import annotations
 
+import importlib.util
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Protocol
 
 
@@ -77,14 +79,46 @@ def topic_kind(topic: str) -> str:
 
 
 # --- Registry: which decoder handles which source -----------------------------------
-from .acme import AcmeDecoder          # noqa: E402  (imported here to avoid a circular import)
-from .borealis import BorealisDecoder  # noqa: E402
-from .modbus import ModbusDecoder      # noqa: E402
+# Built-in decoders are the real formats only. Test and dev formats (the fake Acme and
+# Borealis vendors) are added as plug-ins with load_plugins(), so they never sit in the
+# live table by accident (v0.2 change 7).
+from .modbus import ModbusDecoder      # noqa: E402  (imported here to avoid a circular import)
 from .tasmota import TasmotaDecoder    # noqa: E402
 
-DECODERS: dict[str, Decoder] = {
-    d.source: d for d in (AcmeDecoder(), BorealisDecoder(), TasmotaDecoder(), ModbusDecoder())
-}
+DECODERS: dict[str, Decoder] = {d.source: d for d in (TasmotaDecoder(), ModbusDecoder())}
+
+
+def register(decoder: Decoder) -> None:
+    """Add a decoder to the table. Loading the same plug-in again is fine; a DIFFERENT decoder
+    for a source that already has one is refused (two formats can't share raw/{source}/...)."""
+    def identity(d):
+        return type(d).__module__, type(d).__qualname__
+    existing = DECODERS.get(decoder.source)
+    if existing is not None and identity(existing) != identity(decoder):
+        raise ValueError(f"a decoder for source {decoder.source!r} is already registered")
+    DECODERS[decoder.source] = decoder
+
+
+def load_plugins(folder: Path) -> list[str]:
+    """
+    Register every decoder in folder/decoders/*.py. Each file must define DECODER = SomeDecoder().
+    Returns the sources added, e.g. ["acme", "borealis"]. Missing folder -> nothing added.
+
+    Plug-in pattern: the files are loaded by path (importlib), so a plug-in folder can live
+    anywhere (tests/vendors/ in the tests, a mounted folder in the dev setup).
+    Source: https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
+    """
+    added = []
+    for path in sorted((Path(folder) / "decoders").glob("*.py")):
+        spec = importlib.util.spec_from_file_location(f"gateway_plugin_{path.stem}", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        decoder = getattr(module, "DECODER", None)
+        if decoder is None:
+            raise ValueError(f"plug-in {path} has no DECODER = ... at the bottom")
+        register(decoder)
+        added.append(decoder.source)
+    return added
 
 
 def decode(topic: str, payload: bytes, registry=None) -> list[RawRecord]:

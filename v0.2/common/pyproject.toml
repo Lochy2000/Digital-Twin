@@ -1,0 +1,27 @@
+# dtteo-common: the code and contracts that the gateway AND the platform both use.
+# Installed by each service, so there is one copy of each, not one per service.
+#
+#   local development:  pip install -e ../common          (edits show up straight away)
+#   later, after the repo split:  pip install "git+<repo url>@<tag>#subdirectory=common"
+#
+# Sources: setuptools pyproject configuration (package-dir, package-data):
+#   https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dtteo-common"
+version = "0.2.0"
+description = "DT-TEO shared code: asset-model reader (mapper), units, log format, message contracts"
+requires-python = ">=3.11"
+dependencies = ["rdflib>=7.1,<8"]
+
+[tool.setuptools]
+# The contracts stay in common/contracts (with their notes and examples) but are
+# installed as the package dtteo_common.contracts, so services can find the schemas.
+packages = ["dtteo_common", "dtteo_common.contracts"]
+package-dir = { "dtteo_common" = "dtteo_common", "dtteo_common.contracts" = "contracts" }
+
+[tool.setuptools.package-data]
+"dtteo_common.contracts" = ["*.json", "examples/*/*.json"]

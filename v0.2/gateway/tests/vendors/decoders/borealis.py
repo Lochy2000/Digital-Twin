@@ -11,15 +11,15 @@ Borealis's format (a list of readings plus a status block):
     status.{key}   each one -> RawRecord(field="status.<key>"), using the readings' time
     site, unit     metadata, not readings
 
-This is a made-up test format (testing/vendors/borealis_publisher.py), not a real product.
-Its device type: mappings/types/borealis_hvac.ttl
+This is a made-up test format (dev/vendors/borealis_publisher.py), not a real product.
+Its device type: tests/vendors/mappings/types/borealis_hvac.ttl
 """
 from __future__ import annotations
 
 import json
 from datetime import datetime
 
-from . import DecodeError, RawRecord
+from gateway.decoders import DecodeError, RawRecord
 
 
 class BorealisDecoder:
@@ -54,3 +54,7 @@ class BorealisDecoder:
             records.append(RawRecord(self.source, device, f"status.{key}", value, latest))
 
         return records
+
+
+# Plug-in entry point (gateway.decoders.load_plugins looks for this name).
+DECODER = BorealisDecoder()

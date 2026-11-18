@@ -25,8 +25,9 @@ Settings (environment variables):
     BROKER_HOST / BROKER_PORT   default localhost / 1883
     DATABASE_URL                e.g. postgresql://historian:pw@timescaledb:5432/dtteo
     HISTORIAN_SITE              default site1: the site the asset model describes
-    MODEL_DIR                   folder with dtteo_asset_model.ttl and mappings/ (default: v0.1)
-    CONTRACTS_DIR               folder with the *.schema.json contracts (default: v0.1/contracts)
+    MODEL_DIR                   folder with dtteo_asset_model.ttl (default: platform/)
+    CONTRACTS_DIR               folder with the *.schema.json contracts (default: the ones installed
+                                with dtteo_common, so normally leave it unset)
     BATCH_SIZE / BATCH_SECONDS  default 500 / 0.2. A reading waits up to BATCH_SECONDS before it is
                                 written. Was 1.0: p99 device-to-database delay 1.01-1.11 s; 0.2 gave
                                 0.21-0.27 s with nothing lost (experiments E2/E2b, v0.2 fix 5).
@@ -54,8 +55,9 @@ from jsonschema import Draft202012Validator, FormatChecker
 from paho.mqtt.packettypes import PacketTypes
 from paho.mqtt.properties import Properties
 
-from gateway.mapper import Mapper          # same asset-model reader as the gateway (one source of truth)
-from gateway.pipeline import kv            # same logfmt log lines as the gateway
+from dtteo_common.contracts import HERE as DEFAULT_CONTRACTS   # the installed JSON Schemas
+from dtteo_common.logfmt import kv         # same logfmt log lines as the gateway
+from dtteo_common.mapper import Mapper     # same asset-model reader as the gateway (one source of truth)
 
 from .store import Message, PostgresHistorian, StoreUnavailable
 
@@ -67,7 +69,8 @@ RECEIVE_MAX = 1000                 # most unacknowledged messages the broker may
 MAX_WAIT = 30                      # longest wait between database retries, seconds
 
 log = logging.getLogger("historian")
-V01 = Path(__file__).resolve().parents[3] if len(Path(__file__).resolve().parents) > 3 else Path("/")
+# Source tree default: platform/ (holds the copy of dtteo_asset_model.ttl). The container sets MODEL_DIR.
+PLATFORM = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path("/")
 
 
 @dataclass(frozen=True)
@@ -146,8 +149,8 @@ class Batcher:
 def main() -> None:
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
     site = os.getenv("HISTORIAN_SITE", "site1")
-    model_dir = Path(os.getenv("MODEL_DIR") or V01)
-    contracts_dir = Path(os.getenv("CONTRACTS_DIR") or model_dir / "contracts")
+    model_dir = Path(os.getenv("MODEL_DIR") or PLATFORM)
+    contracts_dir = Path(os.getenv("CONTRACTS_DIR") or DEFAULT_CONTRACTS)
     store = PostgresHistorian(os.environ["DATABASE_URL"], site, validate=contract_validator(contracts_dir))
 
     # 1. Copy the asset model's points into the series table (waits for the database).

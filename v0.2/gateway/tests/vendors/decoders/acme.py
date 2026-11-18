@@ -8,15 +8,15 @@ Acme's format (one flat JSON object per message):
     deviceId  Acme's own ID                    -> metadata, not a reading
     all other keys are readings                -> one RawRecord each
 
-This is a made-up test format (testing/vendors/acme_publisher.py), not a real product.
-Its device type: mappings/types/acme_hvac.ttl
+This is a made-up test format (dev/vendors/acme_publisher.py), not a real product.
+Its device type: tests/vendors/mappings/types/acme_hvac.ttl
 """
 from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
 
-from . import DecodeError, RawRecord
+from gateway.decoders import DecodeError, RawRecord
 
 METADATA_KEYS = {"deviceId", "ts"}   # everything else is treated as a reading
 
@@ -45,3 +45,7 @@ class AcmeDecoder:
             for field, value in msg.items()
             if field not in METADATA_KEYS
         ]
+
+
+# Plug-in entry point (gateway.decoders.load_plugins looks for this name).
+DECODER = AcmeDecoder()

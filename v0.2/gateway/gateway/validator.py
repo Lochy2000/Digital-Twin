@@ -48,7 +48,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from .mapper import PointMapping
+from dtteo_common.mapper import PointMapping
 
 # QARTOD primary flags (ioos_qc QartodFlags) and our words for them.
 PASS, SUSPECT_FLAG, FAIL = 1, 3, 4
