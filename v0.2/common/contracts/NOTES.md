@@ -195,3 +195,13 @@ The quarantine message is also v2: it gains `site`, and a new stage `internal` (
 ### Still open
 
 - The open question from step 1a, "should `point` IDs include the site?", is answered: no, `site` is its own field.
+
+## v0.2 step C (18 Nov 2026): one more check name, `device_flag`
+
+- `qc[].test` may now also be `device_flag`: the DEVICE marked its own reading SUSPECT or BAD
+  (dt-edge does this, e.g. a thermal frame with dead pixels). The gateway keeps that as one more
+  check instead of dropping it; all its own checks still run.
+- Not a shape change: every message that was valid is still valid, so `v` stays `2`.
+  `dtteo-common` goes to 0.2.1, so the gateway and the historian must both use 0.2.1 or later
+  (an older historian would quarantine a message carrying `device_flag`).
+

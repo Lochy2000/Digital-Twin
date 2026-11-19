@@ -30,4 +30,11 @@ pip install -r gateway\requirements-dev.txt -r platform\historian\requirements-d
 cd common ; python -m pytest -q ; cd ..\gateway ; python -m pytest -q ; cd ..\platform\historian ; python -m pytest -q
 ```
 
+## Replay a rig recording (dt-edge readings.csv)
+
+```
+python dev\replay_run.py path\to\readings.csv [more parts.csv]              # offline summary, no Docker
+python dev\replay_run.py path\to\readings.csv --publish                     # into the dev stack
+```
+
 Changes and the reasons for them: [`CHANGELOG.md`](CHANGELOG.md).

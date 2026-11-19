@@ -1,7 +1,7 @@
 """
 The running ingestion gateway: connects to the MQTT broker and runs the pipeline.
 
-    python -m gateway.service          (settings from environment variables, below)
+    python -m gateway.service          (settings from environment variables: gateway/settings.py)
 
 What it does:
   - subscribes to  raw/#  (QoS 1)
@@ -21,18 +21,7 @@ Not losing data when something restarts (the "small buffer" in v0.1/README.md):
     delivers them when we're back. How many it keeps is the broker's max_queued_messages, and
     whether they survive a BROKER restart is its persistence setting (broker/mosquitto.conf).
 
-Settings (environment variables):
-    BROKER_HOST       default localhost
-    BROKER_PORT       default 1883
-    GATEWAY_SITE      default site1   (the {site} level in canonical topics; topics.md)
-    MODEL_DIR         folder holding dtteo_asset_model.ttl and mappings/  (default: gateway/model)
-    GATEWAY_PLUGINS   optional folder of plug-ins: decoders/*.py and mappings/**/*.ttl
-                      (the dev setup points it at tests/vendors for Acme and Borealis)
-    GATEWAY_ENABLED   optional on/off overrides for bindings, e.g.
-                      "acme_hvac_0001=off,site4_hvac_01=on"  (to match the compose profile)
-    LOG_LEVEL         default INFO  (DEBUG also logs every GOOD reading)
-    MQTT_USERNAME     broker login (default ingestion_gateway); MQTT_PASSWORD its password
-                      (broker/acl.conf: the only login allowed to publish dt/v1/telemetry/...)
+Settings: gateway/settings.py (read and checked once at start-up).
 
 Sources:
   - paho-mqtt 2.x callbacks (on_connect(client, userdata, flags, reason_code, properties), ...):
@@ -48,11 +37,9 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import signal
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 
 import paho.mqtt.client as mqtt
 from paho.mqtt.packettypes import PacketTypes
@@ -62,6 +49,7 @@ from dtteo_common.mapper import Mapper
 
 from .decoders import load_plugins
 from .pipeline import Outgoing, Pipeline, kv
+from .settings import Settings, SettingsError, parse_enabled  # noqa: F401  (parse_enabled: tests)
 
 CLIENT_ID = "ingestion_gateway"                        # lowercase + "_" only (topics.md rule 2)
 STATUS_TOPIC = f"dt/v1/status/{CLIENT_ID}"
@@ -70,17 +58,6 @@ MAX_QUEUED = 10_000                                    # outgoing messages held 
 SESSION_EXPIRY = 7 * 24 * 3600                         # seconds the broker keeps our session while we're away
 
 log = logging.getLogger("gateway")
-
-
-def parse_enabled(text: str) -> dict[str, bool]:
-    """'acme_hvac_0001=off,site4_hvac_01=on' -> {'acme_hvac_0001': False, 'site4_hvac_01': True}"""
-    out = {}
-    for item in filter(None, (part.strip() for part in text.split(","))):
-        device, _, state = item.partition("=")
-        if state.strip().lower() not in ("on", "off"):
-            raise ValueError(f"GATEWAY_ENABLED: expected device=on|off, got {item!r}")
-        out[device.strip()] = state.strip().lower() == "on"
-    return out
 
 
 def send(client: mqtt.Client, o: Outgoing) -> None:
@@ -95,33 +72,34 @@ def send(client: mqtt.Client, o: Outgoing) -> None:
         log.warning(kv("publish_problem", topic=o.topic, rc=mqtt.error_string(info.rc)))
 
 
-def build_pipeline() -> Pipeline:
-    # MODEL_DIR is set in the container (/model). Without it, use gateway/model in the source tree.
-    configured_model_dir = os.getenv("MODEL_DIR")
-    model_dir = (Path(configured_model_dir) if configured_model_dir
-                 else Path(__file__).resolve().parents[1] / "model")
-    plugins = os.getenv("GATEWAY_PLUGINS")
+def build_pipeline(settings: Settings | None = None) -> Pipeline:
+    settings = settings or Settings.from_env()
     extra = []
-    if plugins:
-        log.info(kv("plugins_loaded", folder=plugins, decoders=load_plugins(Path(plugins))))
-        extra = [Path(plugins) / "mappings"]
-    mapper = Mapper.from_folder(model_dir, enabled=parse_enabled(os.getenv("GATEWAY_ENABLED", "")),
-                                extra_dirs=extra)
+    if settings.plugins:
+        log.info(kv("plugins_loaded", folder=str(settings.plugins), decoders=load_plugins(settings.plugins)))
+        extra = [settings.plugins / "mappings"]
+    mapper = Mapper.from_folder(settings.model_dir, enabled=settings.enabled, extra_dirs=extra)
     for note in mapper.report:
         log.info(kv("mapper_note", note=note))
-    log.info(kv("mapper_loaded", model_dir=str(model_dir), field_mappings=len(mapper)))
-    return Pipeline(mapper, site=os.getenv("GATEWAY_SITE", "site1"))
+    log.info(kv("mapper_loaded", model_dir=str(settings.model_dir), field_mappings=len(mapper)))
+    return Pipeline(mapper, site=settings.site)
 
 
 def main() -> None:
-    logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"),
-                        format="%(asctime)s %(levelname)s %(message)s")
-    pipeline = build_pipeline()     # a broken model or mapping stops us here, before connecting
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    try:
+        settings = Settings.from_env()          # every setting checked before anything starts
+    except SettingsError as e:
+        log.error(kv("settings_invalid", problems=str(e)))
+        raise SystemExit(2)
+    logging.getLogger().setLevel(settings.log_level)
+    log.info(kv("settings", **settings.for_log()))
+    pipeline = build_pipeline(settings)     # a broken model or mapping stops us here, before connecting
 
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, protocol=mqtt.MQTTv5)
     client.max_queued_messages_set(MAX_QUEUED)
-    if os.getenv("MQTT_PASSWORD"):                          # the broker refuses anonymous clients
-        client.username_pw_set(os.getenv("MQTT_USERNAME", CLIENT_ID), os.environ["MQTT_PASSWORD"])
+    if settings.mqtt_password:                              # the broker refuses anonymous clients
+        client.username_pw_set(settings.mqtt_username, settings.mqtt_password)
     client.will_set(STATUS_TOPIC, "offline", qos=1, retain=True)
 
     def on_connect(client, userdata, flags, reason_code, properties):
@@ -162,7 +140,7 @@ def main() -> None:
         client.disconnect()
     signal.signal(signal.SIGTERM, stop)                     # docker compose stop
 
-    host, port = os.getenv("BROKER_HOST", "localhost"), int(os.getenv("BROKER_PORT", "1883"))
+    host, port = settings.broker_host, settings.broker_port
     log.info(kv("connecting", host=host, port=port))
     # Don't fail if the broker isn't up yet... (clean_start=False: always resume our session)
     client.connect_async(host, port, clean_start=False, properties=connect_properties())

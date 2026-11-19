@@ -5,15 +5,13 @@ Every outgoing message is checked against its contract schema.
 import json
 import logging
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
-from dtteo_common.mapper import Mapper
 from gateway.pipeline import Pipeline, kv, telemetry_topic
 from gateway.service import parse_enabled
-from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
+from support import CONTRACTS, model_mapper, sample_file
 
 CANONICAL = Draft202012Validator(json.loads((CONTRACTS / "canonical_message.schema.json").read_text()),
                                  format_checker=FormatChecker())

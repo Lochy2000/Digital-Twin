@@ -12,7 +12,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dtteo-common"
-version = "0.2.0"
+version = "0.2.1"   # 0.2.1: qc test "device_flag" added to the canonical schema
 description = "DT-TEO shared code: asset-model reader (mapper), units, log format, message contracts"
 requires-python = ">=3.11"
 dependencies = ["rdflib>=7.1,<8"]

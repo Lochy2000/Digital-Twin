@@ -178,3 +178,344 @@
         ref:hasTimeseriesId "weather1.outside_air_temp" ;   # <equipment>.<point>, like the others (was site1.outside_air_temp)
         ref:storedAt "postgresql://dtteo/telemetry"
     ] .
+
+# --- Lab test rig (v0.2 step C) --------------------------------------
+# The dt-edge rig on the Pi: whatever object is under test (kettle, fan matrix, ...) plus
+# the room it sits in. WHAT each thermocouple or camera spot is fixed to changes per test and
+# is kept in dt-edge's asset profiles, not here: here a thermocouple is just "socket 1".
+# Expected ranges are PLACEHOLDERS (lab conditions), not agreed limits.
+# The camera images themselves are not points (they aren't single values); only the
+# summaries and spots are. More camera-derived points (areas, hot-spot position, ...) can be
+# added here later as plain points.
+
+:building1 brick:hasPart :lab1 .
+
+:lab1 a rec:Room ;
+    rdfs:label "Lab (test rig)" .
+
+:rig1 a brick:Equipment ;
+    rdfs:label "Lab test rig: object under test + room" ;
+    brick:hasLocation :lab1 ;
+    brick:hasPoint :rig_tc_ch1, :rig_tc_ch2, :rig_tc_ch3, :rig_tc_ch4,
+        :rig_tc_ch5, :rig_tc_ch6, :rig_tc_ch7, :rig_tc_ch8,
+        :rig_tc_cold_junction, :rig_lepton_max, :rig_lepton_mean, :rig_lepton_min,
+        :rig_mlx_max, :rig_mlx_mean, :rig_mlx_min, :rig_lepton_spot1,
+        :rig_lepton_spot2, :rig_lepton_spot3, :rig_lepton_spot4, :rig_lepton_spot5,
+        :rig_lepton_spot6, :rig_lepton_spot7, :rig_lepton_spot8, :rig_room_air_temp,
+        :rig_room_humidity, :rig_room_pressure, :rig_plug_power, :rig_plug_energy_today,
+        :rig_plug_on .
+
+:rig_tc_ch1 a brick:Temperature_Sensor ;
+    rdfs:label "Thermocouple, TC-08 socket 1 (where it is fixed: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.tc_ch1" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_tc_ch2 a brick:Temperature_Sensor ;
+    rdfs:label "Thermocouple, TC-08 socket 2 (where it is fixed: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.tc_ch2" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_tc_ch3 a brick:Temperature_Sensor ;
+    rdfs:label "Thermocouple, TC-08 socket 3 (where it is fixed: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.tc_ch3" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_tc_ch4 a brick:Temperature_Sensor ;
+    rdfs:label "Thermocouple, TC-08 socket 4 (where it is fixed: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.tc_ch4" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_tc_ch5 a brick:Temperature_Sensor ;
+    rdfs:label "Thermocouple, TC-08 socket 5 (where it is fixed: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.tc_ch5" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_tc_ch6 a brick:Temperature_Sensor ;
+    rdfs:label "Thermocouple, TC-08 socket 6 (where it is fixed: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.tc_ch6" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_tc_ch7 a brick:Temperature_Sensor ;
+    rdfs:label "Thermocouple, TC-08 socket 7 (where it is fixed: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.tc_ch7" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_tc_ch8 a brick:Temperature_Sensor ;
+    rdfs:label "Thermocouple, TC-08 socket 8 (where it is fixed: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -20 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.tc_ch8" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_tc_cold_junction a brick:Temperature_Sensor ;
+    rdfs:label "TC-08 logger's own temperature (cold junction)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 50 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.tc_cold_junction" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_max a brick:Temperature_Sensor ;
+    rdfs:label "Lepton 3.5 camera, hottest pixel in view" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_max" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_mean a brick:Temperature_Sensor ;
+    rdfs:label "Lepton 3.5 camera, average pixel in view" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_mean" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_min a brick:Temperature_Sensor ;
+    rdfs:label "Lepton 3.5 camera, coldest pixel in view" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_min" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_mlx_max a brick:Temperature_Sensor ;
+    rdfs:label "MLX90640 camera, hottest pixel in view" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.mlx_max" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_mlx_mean a brick:Temperature_Sensor ;
+    rdfs:label "MLX90640 camera, average pixel in view" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.mlx_mean" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_mlx_min a brick:Temperature_Sensor ;
+    rdfs:label "MLX90640 camera, coldest pixel in view" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.mlx_min" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_spot1 a brick:Temperature_Sensor ;
+    rdfs:label "Lepton camera spot 1 (where it is: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_spot1" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_spot2 a brick:Temperature_Sensor ;
+    rdfs:label "Lepton camera spot 2 (where it is: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_spot2" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_spot3 a brick:Temperature_Sensor ;
+    rdfs:label "Lepton camera spot 3 (where it is: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_spot3" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_spot4 a brick:Temperature_Sensor ;
+    rdfs:label "Lepton camera spot 4 (where it is: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_spot4" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_spot5 a brick:Temperature_Sensor ;
+    rdfs:label "Lepton camera spot 5 (where it is: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_spot5" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_spot6 a brick:Temperature_Sensor ;
+    rdfs:label "Lepton camera spot 6 (where it is: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_spot6" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_spot7 a brick:Temperature_Sensor ;
+    rdfs:label "Lepton camera spot 7 (where it is: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_spot7" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_lepton_spot8 a brick:Temperature_Sensor ;
+    rdfs:label "Lepton camera spot 8 (where it is: dt-edge asset profile)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 150 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.lepton_spot8" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_room_air_temp a brick:Air_Temperature_Sensor ;
+    rdfs:label "Room air temperature (BME280)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:DEG_C ;
+    dtteo:expectedRange [ schema:minValue -10 ; schema:maxValue 45 ; schema:unitCode unit:DEG_C ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.room_air_temp" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_room_humidity a brick:Relative_Humidity_Sensor ;
+    rdfs:label "Room relative humidity (BME280)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:PERCENT_RH ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.room_humidity" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_room_pressure a brick:Pressure_Sensor ;
+    rdfs:label "Room air pressure (BME280)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:HectoPA ;
+    dtteo:expectedRange [ schema:minValue 900 ; schema:maxValue 1100 ; schema:unitCode unit:HectoPA ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.room_pressure" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_plug_power a brick:Active_Power_Sensor ;
+    rdfs:label "Electrical power through the smart plug (Tapo P110)" ;
+    dtteo:valueKind "measurement" ;
+    brick:hasUnit unit:W ;
+    dtteo:expectedRange [ schema:minValue 0 ; schema:maxValue 3000 ; schema:unitCode unit:W ] ;   # placeholder
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.plug_power" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_plug_energy_today a brick:Electric_Energy_Sensor ;
+    rdfs:label "Energy through the plug today (resets at midnight; Tapo P110)" ;
+    dtteo:valueKind "total" ;
+    brick:hasUnit unit:KiloW-HR ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.plug_energy_today" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .
+
+:rig_plug_on a brick:On_Off_Status ;
+    rdfs:label "Smart plug on/off (Tapo P110)" ;
+    dtteo:valueKind "state" ;
+    ref:hasExternalReference [
+        a ref:TimeseriesReference ;
+        ref:hasTimeseriesId "rig1.plug_on" ;
+        ref:storedAt "postgresql://dtteo/telemetry"
+    ] .

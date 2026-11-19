@@ -5,15 +5,14 @@ mapping files and asset model. Ends with a contract check against the canonical 
 import json
 from datetime import datetime, timezone
 from decimal import Decimal
-from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
 from gateway.decoders import RawRecord, decode
-from dtteo_common.mapper import Mapper, PointMapping
+from dtteo_common.mapper import PointMapping
 from gateway.normaliser import NormaliseError, normalise
-from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
+from support import CONTRACTS, model_mapper, sample_file
 
 INGEST = datetime(2026, 10, 14, 19, 33, 38, 900000, tzinfo=timezone.utc)
 SCHEMA = json.loads((CONTRACTS / "canonical_message.schema.json").read_text())
@@ -108,7 +107,7 @@ def test_word_not_in_value_map_is_refused():
 @pytest.mark.parametrize("bad", ["21.5", None, True, [21.5]])
 def test_non_numbers_are_refused_for_numeric_points(bad):
     m = PointMapping("unit1.zone_air_temp", "DEG_C", None, None)
-    with pytest.raises(NormaliseError, match="expected a number"):
+    with pytest.raises(NormaliseError, match="expected a number|no value"):   # None: "no value" (v0.2)
         normalise(rec(bad), m, INGEST, "site1")
 
 

@@ -17,6 +17,8 @@ https://qudt.org/vocab/unit/<ID>  (no conversionOffset on the page means 0). Che
     https://qudt.org/vocab/unit/KiloW     https://qudt.org/vocab/unit/PERCENT
     https://qudt.org/vocab/unit/V         https://qudt.org/vocab/unit/A
     https://qudt.org/vocab/unit/HZ        https://qudt.org/vocab/unit/KiloW-HR
+Added 2026-11-18 for the rig's BME280 (dt-edge), values from the QUDT pages:
+    https://qudt.org/vocab/unit/HectoPA (multiplier 100)   https://qudt.org/vocab/unit/PERCENT_RH (0.01)
 Add a row when a new unit appears (and check it against the QUDT page).
 """
 from __future__ import annotations
@@ -36,6 +38,10 @@ _UNITS: dict[str, tuple[str, Decimal, Decimal]] = {
     "A":        ("current",    Decimal("1"),                                  Decimal("0")),
     "HZ":       ("frequency",  Decimal("1"),                                  Decimal("0")),
     "KiloW-HR": ("energy",     Decimal("3600000"),                            Decimal("0")),   # to joules
+    # Added in v0.2 step C for the rig's BME280 (air pressure, relative humidity):
+    "PA":         ("pressure",          Decimal("1"),                         Decimal("0")),
+    "HectoPA":    ("pressure",          Decimal("100"),                       Decimal("0")),
+    "PERCENT_RH": ("relative_humidity", Decimal("0.01"),                      Decimal("0")),
 }
 
 

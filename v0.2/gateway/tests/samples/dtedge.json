@@ -1,0 +1,151 @@
+{
+ "_note": "One dt-edge poll as dt-edge's Reading.to_message() builds it (dt-edge app/record.py), sent as a list. mlx.mean carries dt-edge's own SUSPECT flag.",
+ "topic": "raw/dtedge/digitwin_pi/telemetry",
+ "payload": [
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "tc08.ch1",
+   "value": 28.4,
+   "unit": "DEG_C",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:tc08"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "tc08.cold_junction",
+   "value": 21.9,
+   "unit": "DEG_C",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:tc08"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "lepton.max",
+   "value": 31.2,
+   "unit": "DEG_C",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:lepton"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "lepton.spot1",
+   "value": 27.9,
+   "unit": "DEG_C",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:lepton"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "mlx.mean",
+   "value": 24.0,
+   "unit": "DEG_C",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "SUSPECT",
+   "qc": [
+    "bad_pixels"
+   ],
+   "time_source": "device",
+   "source": "x:mlx"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "ambient.air_temp",
+   "value": 22.1,
+   "unit": "DEG_C",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:ambient"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "ambient.humidity",
+   "value": 48.3,
+   "unit": "PERCENT_RH",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:ambient"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "ambient.pressure",
+   "value": 1012.4,
+   "unit": "HectoPA",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:ambient"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "plug.power",
+   "value": 1840.5,
+   "unit": "W",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:plug"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "plug.energy_today",
+   "value": 0.412,
+   "unit": "KiloW-HR",
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:plug"
+  },
+  {
+   "v": 2,
+   "site": "rig1",
+   "point_id": "plug.on",
+   "value": true,
+   "unit": null,
+   "sensor_time": "2026-11-08T21:00:00.123456+00:00",
+   "ingest_time": "2026-11-08T21:00:00.200000+00:00",
+   "quality": "GOOD",
+   "qc": null,
+   "time_source": "device",
+   "source": "x:plug"
+  }
+ ]
+}

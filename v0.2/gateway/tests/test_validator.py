@@ -3,17 +3,16 @@ Validator tests: QARTOD-style quality flags (GOOD / SUSPECT / BAD).
 Rules and sources: top of gateway/validator.py.
 """
 import json
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
+from datetime import datetime, timezone
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
 from gateway.decoders import decode
-from dtteo_common.mapper import Mapper, MappingError, PointMapping, mapping_files
+from dtteo_common.mapper import Mapper, MappingError, PointMapping
 from gateway.normaliser import normalise
 from gateway.validator import validate, with_quality
-from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
+from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file
 
 SCHEMA = json.loads((CONTRACTS / "canonical_message.schema.json").read_text())
 T0 = "2026-10-19T08:00:00.000Z"

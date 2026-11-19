@@ -8,3 +8,5 @@ __pycache__/
 backups/
 # Created by "pip install -e" (package build info). Not source.
 *.egg-info/
+
+.dev/part1.cev

@@ -1,0 +1,219 @@
+# Device type: a dt-edge rig node (Raspberry Pi running the dt-edge repo).
+# Botanic's own format. Decoder: gateway/decoders/dtedge.py
+#   Topic raw/dtedge/{node}/telemetry, payload = dt-edge readings (app/record.py, to_message()).
+#
+# Fields are dt-edge's own point ids (sensor id from dt-edge's sensors.yaml + metric), so this
+# type matches the sensor ids in dt-edge's default sensors.yaml: tc08, lepton, mlx, ambient, plug.
+# A node that renames a sensor needs a matching type (or the field quarantines as "not in type").
+# A node without some of these sensors simply never sends those fields: nothing to configure.
+#
+# Sensor ranges (outside = can't be real = BAD) come from the makers' datasheets and are
+# marked TO VERIFY: check each against the datasheet before relying on the BAD flag.
+# The values carry their own unit, so no rawUnit is needed here.
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix unit:  <http://qudt.org/vocab/unit/> .
+@prefix ssn-system: <http://www.w3.org/ns/ssn/systems/> .
+@prefix schema: <http://schema.org/> .
+@prefix types: <urn:dtteo:types#> .
+
+types:dtedge_rig a dtteo:DeviceType ;
+    dtteo:version "1.0.0" ;
+    dtteo:decoder "dtedge" ;
+    dtteo:manufacturerDoc "dt-edge repo: app/record.py, sensors.yaml" ;
+
+    dtteo:hasValue [
+        dtteo:field "tc08.ch1" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Pico TC-08 with a type K probe
+            a ssn-system:MeasurementRange ; schema:minValue -270 ; schema:maxValue 1370 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "tc08.ch2" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Pico TC-08 with a type K probe
+            a ssn-system:MeasurementRange ; schema:minValue -270 ; schema:maxValue 1370 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "tc08.ch3" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Pico TC-08 with a type K probe
+            a ssn-system:MeasurementRange ; schema:minValue -270 ; schema:maxValue 1370 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "tc08.ch4" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Pico TC-08 with a type K probe
+            a ssn-system:MeasurementRange ; schema:minValue -270 ; schema:maxValue 1370 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "tc08.ch5" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Pico TC-08 with a type K probe
+            a ssn-system:MeasurementRange ; schema:minValue -270 ; schema:maxValue 1370 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "tc08.ch6" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Pico TC-08 with a type K probe
+            a ssn-system:MeasurementRange ; schema:minValue -270 ; schema:maxValue 1370 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "tc08.ch7" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Pico TC-08 with a type K probe
+            a ssn-system:MeasurementRange ; schema:minValue -270 ; schema:maxValue 1370 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "tc08.ch8" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Pico TC-08 with a type K probe
+            a ssn-system:MeasurementRange ; schema:minValue -270 ; schema:maxValue 1370 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "tc08.cold_junction" ;
+        dtteo:pointClass brick:Temperature_Sensor
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.max" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.mean" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.min" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "mlx.max" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Melexis MLX90640
+            a ssn-system:MeasurementRange ; schema:minValue -40 ; schema:maxValue 300 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "mlx.mean" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Melexis MLX90640
+            a ssn-system:MeasurementRange ; schema:minValue -40 ; schema:maxValue 300 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "mlx.min" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Melexis MLX90640
+            a ssn-system:MeasurementRange ; schema:minValue -40 ; schema:maxValue 300 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.spot1" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.spot2" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.spot3" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.spot4" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.spot5" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.spot6" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.spot7" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "lepton.spot8" ;
+        dtteo:pointClass brick:Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # FLIR Lepton 3.5, low-gain mode
+            a ssn-system:MeasurementRange ; schema:minValue -10 ; schema:maxValue 400 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "ambient.air_temp" ;
+        dtteo:pointClass brick:Air_Temperature_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Bosch BME280
+            a ssn-system:MeasurementRange ; schema:minValue -40 ; schema:maxValue 85 ; schema:unitCode unit:DEG_C ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "ambient.humidity" ;
+        dtteo:pointClass brick:Relative_Humidity_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Bosch BME280
+            a ssn-system:MeasurementRange ; schema:minValue 0 ; schema:maxValue 100 ; schema:unitCode unit:PERCENT_RH ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "ambient.pressure" ;
+        dtteo:pointClass brick:Pressure_Sensor ;
+        ssn-system:hasSystemCapability [ ssn-system:hasSystemProperty [   # Bosch BME280
+            a ssn-system:MeasurementRange ; schema:minValue 300 ; schema:maxValue 1100 ; schema:unitCode unit:HectoPA ] ]
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "plug.power" ;
+        dtteo:pointClass brick:Active_Power_Sensor
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "plug.energy_today" ;
+        dtteo:pointClass brick:Electric_Energy_Sensor
+    ] ;
+
+    dtteo:hasValue [
+        dtteo:field "plug.on" ;
+        dtteo:pointClass brick:On_Off_Status
+    ] .

@@ -149,7 +149,8 @@ class Pipeline:
 
             # 4. Validate, then publish whatever the quality. BAD is stored, not dropped,
             #    and the message's qc list says why (message v2).
-            message, verdict = with_quality(reading, mapping, **self.validator_options)
+            message, verdict = with_quality(reading, mapping, device_quality=r.device_quality,
+                                            device_qc=r.device_qc, **self.validator_options)
             line = kv("reading", point=message["point"], value=message["value"], unit=message["unit"],
                       quality=message["quality"], sensor_time=message["sensor_time"],
                       source=message["source"], reasons="; ".join(verdict.reasons) or None)

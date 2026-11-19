@@ -4,12 +4,11 @@ Mapper tests. Run from services/ingestion-gateway:   python -m pytest -q
 These use the REAL asset model, device types and bindings, so a broken edit to any
 of them shows up here straight away. The rule tests add one small extra file on top.
 """
-from pathlib import Path
 
 import pytest
 
-from dtteo_common.mapper import Mapper, MappingError, mapping_files
-from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
+from dtteo_common.mapper import Mapper, MappingError
+from support import ASSET_MODEL, all_mapping_files, model_mapper
 
 SWAP_TO_BOREALIS = {"acme_hvac_0001": False, "site4_hvac_01": True}
 SWAP_TO_TASMOTA = {"acme_hvac_0001": False, "tasmota_zone1": True}

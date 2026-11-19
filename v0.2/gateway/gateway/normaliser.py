@@ -72,6 +72,11 @@ def normalise(record: RawRecord, mapping: PointMapping, ingest_time: datetime, s
     value = record.value
     raw_unit = record.unit or mapping.raw_unit         # the message's own unit wins (see above)
 
+    # 0. No value at all (a device sends null when it couldn't read). Nothing to store as a
+    #    reading; quarantine keeps the message, so the gap is still visible (v0.2).
+    if value is None:
+        raise NormaliseError(f"no value for {mapping.point_id} (the device sent null)")
+
     # 1. Value map: translate vendor codes/words. Compare as text, so 2 and "2" both match.
     if mapping.value_map is not None:
         key = str(value)

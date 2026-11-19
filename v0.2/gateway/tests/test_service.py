@@ -1,7 +1,5 @@
 import gateway.service as service
 from support import MODEL, VENDORS
-
-
 def test_build_pipeline_uses_configured_model_dir_without_evaluating_fallback(monkeypatch):
     """The shallow /app path in Docker must work when MODEL_DIR is configured."""
     monkeypatch.setenv("MODEL_DIR", str(MODEL))
@@ -10,7 +8,7 @@ def test_build_pipeline_uses_configured_model_dir_without_evaluating_fallback(mo
 
     pipeline = service.build_pipeline()
 
-    assert len(pipeline.mapper) == 4      # step 2k: the SDM120 energy register now has a point
+    assert len(pipeline.mapper) == 33     # 2 Acme + 2 SDM120 (step 2k) + 29 rig fields (v0.2 step C)
 
 
 def test_without_plugins_only_real_formats_are_mapped(monkeypatch):

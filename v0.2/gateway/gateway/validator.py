@@ -32,6 +32,10 @@ Our three words are QARTOD's flags 1 / 3 / 4, and match OPC UA's Good / Uncertai
 
     GOOD = QARTOD 1 "pass"      SUSPECT = QARTOD 3 "suspect"      BAD = QARTOD 4 "fail"
 
+device_flag (v0.2): some devices (dt-edge) mark their own readings SUSPECT or BAD, e.g. a thermal
+frame with dead pixels. That becomes one more check here, SUSPECT or BAD to match, so the device's
+own knowledge isn't thrown away, and isn't trusted on its own either: every other check still runs.
+
 Not done yet (they need the previous readings of each point, i.e. state):
 spike, rate of change, flat line ("stuck sensor"), duplicates. See NOTES.md.
 
@@ -92,9 +96,16 @@ def _is_number(v) -> bool:
 
 def validate(reading: dict, mapping: PointMapping,
              future_tolerance: timedelta = FUTURE_TOLERANCE,
-             max_age: timedelta | None = MAX_AGE) -> Verdict:
+             max_age: timedelta | None = MAX_AGE,
+             device_quality: str | None = None, device_qc: tuple[str, ...] = ()) -> Verdict:
     flags: list[Check] = []
     value = reading["value"]
+
+    # What the device said about its own reading (dt-edge), if anything.
+    if device_quality in ("SUSPECT", "BAD"):
+        why = ", ".join(device_qc) or "no reason given"
+        flags.append(Check("device_flag", FAIL if device_quality == "BAD" else SUSPECT_FLAG,
+                           f"the device marked this reading {device_quality} ({why})"))
 
     # Gross range test. Only for numbers: words like "cool" were already checked by the value map.
     if _is_number(value):

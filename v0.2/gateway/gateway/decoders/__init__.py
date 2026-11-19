@@ -45,6 +45,10 @@ class RawRecord:
     value: Any                     # as sent (Modbus: as unpacked from the registers)
     time: datetime | None          # when measured, timezone-aware; None if the device gave no time
     unit: str | None = None        # QUDT unit IF the message itself states it, e.g. "DEG_F"
+    # What the DEVICE said about its own reading, if its format has that (dt-edge does).
+    # The validator turns it into one more check; the gateway still runs all its own checks.
+    device_quality: str | None = None          # "GOOD" / "SUSPECT" / "BAD"
+    device_qc: tuple[str, ...] = ()            # the device's reasons, e.g. ("bad_pixels",)
 
 
 class DecodeError(Exception):
@@ -82,10 +86,11 @@ def topic_kind(topic: str) -> str:
 # Built-in decoders are the real formats only. Test and dev formats (the fake Acme and
 # Borealis vendors) are added as plug-ins with load_plugins(), so they never sit in the
 # live table by accident (v0.2 change 7).
-from .modbus import ModbusDecoder      # noqa: E402  (imported here to avoid a circular import)
+from .dtedge import DtEdgeDecoder      # noqa: E402  (imported here to avoid a circular import)
+from .modbus import ModbusDecoder      # noqa: E402
 from .tasmota import TasmotaDecoder    # noqa: E402
 
-DECODERS: dict[str, Decoder] = {d.source: d for d in (TasmotaDecoder(), ModbusDecoder())}
+DECODERS: dict[str, Decoder] = {d.source: d for d in (TasmotaDecoder(), ModbusDecoder(), DtEdgeDecoder())}
 
 
 def register(decoder: Decoder) -> None:

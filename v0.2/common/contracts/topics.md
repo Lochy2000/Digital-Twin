@@ -91,7 +91,8 @@ device ──► raw/acme/hvac_01/telemetry ──► [ingestion gateway] ──
 |---|---|---|---|
 | `tasmota` | `raw/tasmota/{device}/tele/SENSOR` (also `STATE`, `LWT`) | Tasmota's own JSON | Tasmota. The device is set to this topic with `FullTopic raw/tasmota/%topic%/%prefix%/` ([Commands](https://tasmota.github.io/docs/Commands/)) |
 | `modbus` | `raw/modbus/{device}/registers` | `{"time": "<UTC>Z", "registers": {"InputRegister:12": [w1, w2], ...}}`: the 16-bit words read, untouched | **Us**: the Modbus poller (later step) publishes this. Decoded in `gateway/decoders/modbus.py` |
-| `acme`, `borealis` | `raw/acme/{device}/telemetry`, `raw/borealis/{device}/data` | Made-up test formats | `testing/vendors/` |
+| `dtedge` | `raw/dtedge/{node}/telemetry` | dt-edge's reading message (`point_id`, `value`, `unit`, `sensor_time`, `quality`, `qc`), one or a list | **Us**: dt-edge on the rig's Pi (v0.2 step C). Decoded in `gateway/decoders/dtedge.py` |
+| `acme`, `borealis` | `raw/acme/{device}/telemetry`, `raw/borealis/{device}/data` | Made-up test formats | `dev/vendors/` (decoders: `gateway/tests/vendors/`) |
 
 ---
 

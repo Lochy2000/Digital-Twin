@@ -43,6 +43,35 @@ its schemas · gateway service run live against a real Mosquitto broker with the
 
 **Known gap until step E:** the platform has no broker of its own, so `platform/` alone waits for one.
 
+### Step C: the lab rig through the gateway
+
+| What | Why | Files |
+|---|---|---|
+| **C1** `Settings`: every gateway setting read and checked once at start-up; all problems reported together; password never logged | Settings were read with `os.getenv` all over the service, so typos showed up late (pattern review #9) | `gateway/settings.py`, `service.py` |
+| **C2** dt-edge decoder `dtedge`: `raw/dtedge/{node}/telemetry`, one reading or a list | dt-edge's message looks canonical but isn't (`point_id` not `point`, `+00:00` not `Z`, `qc` as plain words), so it is decoded like any device | `decoders/dtedge.py`, `contracts/topics.md` |
+| Device type `dtedge_rig` (29 fields), binding `digitwin_pi` -> `:rig1`, 29 `rig1.*` points (thermocouples 1-8 + logger, Lepton/MLX max/mean/min, Lepton spots 1-8, room air/humidity/pressure, plug power/energy/on) | The rig's sensors, named by what they are on (`rig1.tc_ch1`), not by sensor; kettle or matrix stays in dt-edge's asset profiles | `model/...`, `platform/dtteo_asset_model.ttl` (copy) |
+| Device's own quality kept as check `device_flag` (SUSPECT/BAD); gateway checks still run | dt-edge already knows about dead pixels etc. Not thrown away, not trusted alone | `decoders/__init__.py` (RawRecord), `validator.py`, `pipeline.py` |
+| **Contract:** `device_flag` added to the allowed `qc[].test` names; `dtteo-common` 0.2.1 (`v` stays 2) | New check name; every old message is still valid | `canonical_message.schema.json`, `contracts/NOTES.md` |
+| A `null` value is quarantined ("no value") | dt-edge sends null for a failed read | `normaliser.py` |
+| Units `PA`, `HectoPA`, `PERCENT_RH` (QUDT multipliers 1, 100, 0.01) | BME280 pressure and humidity | `dtteo_common/units.py` |
+| Broker login `digitwin_pi` (test-device password for now) | So the Pi can publish | `gateway/broker/start.sh` |
+| **C3** `dev/replay_run.py`: a dt-edge run (either download: "All readings" or "Excel CSV", one or several parts) offline through the pipeline with a summary, or `--publish` to the dev broker | Test with real recordings before dt-edge publishes live | `dev/replay_run.py` |
+| Smoke test check 9: gateway and platform asset-model copies match | The copy (ADR-003) must not drift | `dev/smoke_test.py` |
+
+Placeholders, to replace: the rig's expected ranges (lab guesses); the sensor ranges in `dtedge_rig.ttl`
+are datasheet values marked TO VERIFY.
+
+**Checked here:** gateway 138 passed (16 new: decoder, rig pipeline, settings) · common 12 · historian 7 + 9 skipped ·
+model loads with 31 field mappings · a model mistake was caught at start-up as designed (Lepton expected range
+below its sensor range) · synthetic 2-part, 6,302-row dt-edge recording: offline 6,300 stored / 2 quarantined /
+0 contract breaks; the same through a real Mosquitto broker + the gateway service: 6,300 telemetry + 2 quarantine.
+
+**Matrix cool-down run (8-9 Nov, 3 Excel-CSV parts), offline replay:** 278,913 readings over 3.70 h, all 21 sensor
+columns mapped, 0 quarantined, 0 contract breaks. 1 reading BAD: `rig1.lepton_min` -10.49 degC at 01:11:27, below
+the Lepton's -10 degC datasheet limit (marked TO VERIFY). Check that limit before relying on BAD for the cameras.
+
+**Not yet:** dt-edge doesn't publish over MQTT yet (dt-edge change, later); thermal images (later, with the Pi Zero nodes).
+
 ## Quick fixes (made in v0.1 on 5 Nov, before the restructure)
 
 ### Quick wins (5 Nov 2026)

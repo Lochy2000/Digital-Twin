@@ -16,7 +16,7 @@ mosquitto_passwd -c -b "$auth/passwords" ingestion_gateway "$MQTT_GATEWAY_PASSWO
 mosquitto_passwd -b "$auth/passwords" historian "$MQTT_HISTORIAN_PASSWORD"
 mosquitto_passwd -b "$auth/passwords" engineer "$MQTT_ENGINEER_PASSWORD"
 # Test devices share one password for now. A real device gets its own line and password.
-for device in acme_hvac_0001 site4_hvac_01 tasmota_zone1; do
+for device in acme_hvac_0001 site4_hvac_01 tasmota_zone1 digitwin_pi; do
   mosquitto_passwd -b "$auth/passwords" "$device" "$MQTT_DEVICE_PASSWORD"
 done
 cp /mosquitto/broker/acl.conf "$auth/acl"

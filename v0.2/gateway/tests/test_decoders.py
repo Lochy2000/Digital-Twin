@@ -4,13 +4,11 @@ vendor scripts in v0.1/testing/vendors/ (same instant: 19:33:38 UTC on 14 Oct 20
 """
 import json
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pytest
 
 from gateway.decoders import DecodeError, decode, parse_raw_topic
-from dtteo_common.mapper import Mapper
-from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
+from support import model_mapper, sample_file
 
 
 

@@ -12,6 +12,7 @@ What it checks, in about 10 seconds:
   5. Grafana: http://localhost:3000/api/health says the database is ok.
   6. Broker logins: a client with no login is refused.
   7. Access rules: a device can't publish canonical data (only the gateway may).
+  8. Asset model copies: platform/dtteo_asset_model.ttl is the same as gateway/model's (v0.2).
 Then it deletes its own two test rows, so no test data is left behind.
 
 It needs only Python (no extra packages): it reaches the broker and the database through
@@ -154,6 +155,14 @@ def main() -> int:
     got, _ = watcher.communicate(timeout=15)
     check("a device can't publish canonical data", marker not in got,
           "blocked by the access rules" if marker not in got else "IT GOT THROUGH: check gateway/broker/acl.conf")
+
+    # 8. The platform's copy of the asset model must match the gateway's (ADR-003: one model,
+    #    copied). If they differ, the historian lists different points from the ones the gateway sends.
+    def model(path):
+        return path.read_text(encoding="utf-8").replace("\r\n", "\n")
+    same = model(DEV.parent / "gateway" / "model" / "dtteo_asset_model.ttl") == model(DEV.parent / "platform" / "dtteo_asset_model.ttl")
+    check("asset model copies match", same, "gateway and platform copies are identical" if same else
+          "DIFFERENT: copy gateway/model/dtteo_asset_model.ttl over platform/dtteo_asset_model.ttl, then restart the historian")
 
     # Clean up our two test rows (as the owner; the historian's own login can't delete).
     sql(f"""DELETE FROM readings WHERE sensor_time = {sensor_time} AND series_id =

@@ -62,7 +62,7 @@
         "required": ["test", "flag", "reason"],
         "additionalProperties": false,
         "properties": {
-          "test": { "enum": ["sensor_range", "expected_range", "future_time", "late_arrival"] },
+          "test": { "enum": ["sensor_range", "expected_range", "future_time", "late_arrival", "device_flag"] },
           "flag": { "enum": ["SUSPECT", "BAD"] },
           "reason": { "type": "string", "minLength": 1 }
         }

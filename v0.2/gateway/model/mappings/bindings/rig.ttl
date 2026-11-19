@@ -1,0 +1,44 @@
+# Binding for the lab rig's Pi (dt-edge). Every field is placed on its point by name,
+# because most of the rig's points are plain temperatures (the type can't tell them apart).
+# To add a sensor: a field in types/dtedge_rig.ttl, a point in the asset model, a line here.
+#
+# Device slug = the Pi's MQTT login and topic level (raw/dtedge/digitwin_pi/telemetry).
+
+@prefix dtteo: <urn:dtteo:schema#> .
+@prefix types: <urn:dtteo:types#> .
+@prefix :      <urn:dtteo:site1#> .
+@prefix b:     <urn:dtteo:site1:bindings#> .
+
+b:digitwin_pi a dtteo:DeviceBinding ;
+    dtteo:device "digitwin_pi" ;
+    dtteo:deviceType types:dtedge_rig ;
+    dtteo:serves :rig1 ;
+    dtteo:place [ dtteo:field "tc08.ch1" ; dtteo:point :rig_tc_ch1 ] ;
+    dtteo:place [ dtteo:field "tc08.ch2" ; dtteo:point :rig_tc_ch2 ] ;
+    dtteo:place [ dtteo:field "tc08.ch3" ; dtteo:point :rig_tc_ch3 ] ;
+    dtteo:place [ dtteo:field "tc08.ch4" ; dtteo:point :rig_tc_ch4 ] ;
+    dtteo:place [ dtteo:field "tc08.ch5" ; dtteo:point :rig_tc_ch5 ] ;
+    dtteo:place [ dtteo:field "tc08.ch6" ; dtteo:point :rig_tc_ch6 ] ;
+    dtteo:place [ dtteo:field "tc08.ch7" ; dtteo:point :rig_tc_ch7 ] ;
+    dtteo:place [ dtteo:field "tc08.ch8" ; dtteo:point :rig_tc_ch8 ] ;
+    dtteo:place [ dtteo:field "tc08.cold_junction" ; dtteo:point :rig_tc_cold_junction ] ;
+    dtteo:place [ dtteo:field "lepton.max" ; dtteo:point :rig_lepton_max ] ;
+    dtteo:place [ dtteo:field "lepton.mean" ; dtteo:point :rig_lepton_mean ] ;
+    dtteo:place [ dtteo:field "lepton.min" ; dtteo:point :rig_lepton_min ] ;
+    dtteo:place [ dtteo:field "mlx.max" ; dtteo:point :rig_mlx_max ] ;
+    dtteo:place [ dtteo:field "mlx.mean" ; dtteo:point :rig_mlx_mean ] ;
+    dtteo:place [ dtteo:field "mlx.min" ; dtteo:point :rig_mlx_min ] ;
+    dtteo:place [ dtteo:field "lepton.spot1" ; dtteo:point :rig_lepton_spot1 ] ;
+    dtteo:place [ dtteo:field "lepton.spot2" ; dtteo:point :rig_lepton_spot2 ] ;
+    dtteo:place [ dtteo:field "lepton.spot3" ; dtteo:point :rig_lepton_spot3 ] ;
+    dtteo:place [ dtteo:field "lepton.spot4" ; dtteo:point :rig_lepton_spot4 ] ;
+    dtteo:place [ dtteo:field "lepton.spot5" ; dtteo:point :rig_lepton_spot5 ] ;
+    dtteo:place [ dtteo:field "lepton.spot6" ; dtteo:point :rig_lepton_spot6 ] ;
+    dtteo:place [ dtteo:field "lepton.spot7" ; dtteo:point :rig_lepton_spot7 ] ;
+    dtteo:place [ dtteo:field "lepton.spot8" ; dtteo:point :rig_lepton_spot8 ] ;
+    dtteo:place [ dtteo:field "ambient.air_temp" ; dtteo:point :rig_room_air_temp ] ;
+    dtteo:place [ dtteo:field "ambient.humidity" ; dtteo:point :rig_room_humidity ] ;
+    dtteo:place [ dtteo:field "ambient.pressure" ; dtteo:point :rig_room_pressure ] ;
+    dtteo:place [ dtteo:field "plug.power" ; dtteo:point :rig_plug_power ] ;
+    dtteo:place [ dtteo:field "plug.energy_today" ; dtteo:point :rig_plug_energy_today ] ;
+    dtteo:place [ dtteo:field "plug.on" ; dtteo:point :rig_plug_on ] .

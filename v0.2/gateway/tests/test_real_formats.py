@@ -7,16 +7,15 @@ Sources for the formats are listed at the top of gateway/decoders/tasmota.py and
 import json
 import struct
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
 from gateway.decoders import DecodeError, decode
 from gateway.decoders.modbus import unpack
-from dtteo_common.mapper import Mapper, MappingError, mapping_files
+from dtteo_common.mapper import Mapper, MappingError
 from gateway.normaliser import normalise
-from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file  # noqa: F401
+from support import ASSET_MODEL, CONTRACTS, all_mapping_files, model_mapper, sample_file
 
 INGEST = datetime(2026, 10, 18, 10, 22, 1, tzinfo=timezone.utc)
 SCHEMA = json.loads((CONTRACTS / "canonical_message.schema.json").read_text())
