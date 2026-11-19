@@ -36,7 +36,7 @@ from pathlib import Path
 
 DEV = Path(__file__).resolve().parent                          # v0.2/dev: compose.yml and .env live here
 MIGRATIONS = DEV.parent / "platform" / "storage" / "migrations"
-BROKER = ["docker", "compose", "exec", "-T", "gateway-broker"]  # where mosquitto_pub / _sub run
+BROKER = ["docker", "compose", "exec", "-T", "broker"]          # where mosquitto_pub / _sub run
 TOPIC = "raw/acme/acme_hvac_0001/telemetry"
 WAIT_S = 15                      # the historian writes at least once a second; allow for start-up
 
@@ -143,7 +143,7 @@ def main() -> int:
     # 6. No login -> refused.
     out = try_publish(TOPIC, {"ts": ts_ms, "tempF": 70.0}, user=None)
     check("broker refuses clients with no login", out.returncode != 0,
-          "refused" if out.returncode != 0 else "ACCEPTED: check gateway/broker/mosquitto.conf (allow_anonymous false)")
+          "refused" if out.returncode != 0 else "ACCEPTED: check broker/mosquitto.conf (allow_anonymous false)")
 
     # 7. A device publishing canonical data -> dropped by the access rules. The engineer login
     #    watches the topic for 5 s; nothing must arrive.
@@ -154,7 +154,7 @@ def main() -> int:
     try_publish(denied_topic, {"marker": marker})
     got, _ = watcher.communicate(timeout=15)
     check("a device can't publish canonical data", marker not in got,
-          "blocked by the access rules" if marker not in got else "IT GOT THROUGH: check gateway/broker/acl.conf")
+          "blocked by the access rules" if marker not in got else "IT GOT THROUGH: check broker/acl.conf")
 
     # 8. The platform's copy of the asset model must match the gateway's (ADR-003: one model,
     #    copied). If they differ, the historian lists different points from the ones the gateway sends.

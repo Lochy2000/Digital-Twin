@@ -1,5 +1,5 @@
-# dt-gateway: the broker + ingestion gateway. Runs on the Pi 5 on its own, or as part of
-# dev/compose.yml on a laptop (which also starts the platform and the test vendors).
+# dt-gateway: the ingestion gateway. It connects to dt-broker (BROKER_HOST), like every other
+# part; it runs no broker of its own. On its own, or in dev/compose.yml on a laptop.
 #
 # On its own (from gateway/):   copy .env.example to .env, set the passwords, then
 #   docker compose up -d --build
@@ -11,41 +11,21 @@
 name: dt-gateway
 
 services:
-  gateway-broker:
-    # Pinned so test runs can be repeated. 2.1.x is only published as -alpine tags.
-    image: eclipse-mosquitto:2.0.22
-    ports:
-      - "1883:1883"
-    # broker/start.sh builds the password file from the MQTT_* passwords, copies the access
-    # rules, then starts Mosquitto (broker/mosquitto.conf: no anonymous clients).
-    entrypoint: ["/bin/sh", "/mosquitto/broker/start.sh"]
-    environment:
-      MQTT_GATEWAY_PASSWORD: ${MQTT_GATEWAY_PASSWORD:?set the MQTT_ passwords in .env (see .env.example)}
-      MQTT_HISTORIAN_PASSWORD: ${MQTT_HISTORIAN_PASSWORD:?set the MQTT_ passwords in .env}
-      MQTT_DEVICE_PASSWORD: ${MQTT_DEVICE_PASSWORD:?set the MQTT_ passwords in .env}
-      MQTT_ENGINEER_PASSWORD: ${MQTT_ENGINEER_PASSWORD:?set the MQTT_ passwords in .env}
-    volumes:
-      - ./broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - ./broker/acl.conf:/mosquitto/broker/acl.conf:ro
-      - ./broker/start.sh:/mosquitto/broker/start.sh:ro
-      - gateway-broker-data:/mosquitto/data     # queued messages survive a restart
-    restart: unless-stopped
-
   gateway:
     build:
       context: ..
       dockerfile: gateway/Dockerfile
-    depends_on: [gateway-broker]
     environment:
-      BROKER_HOST: gateway-broker
+      # Default: the broker on this same machine (dt-broker publishes port 1883 here).
+      BROKER_HOST: ${BROKER_HOST:-host.docker.internal}
       GATEWAY_SITE: site1
       GATEWAY_ENABLED: ${GATEWAY_ENABLED:-}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       MQTT_USERNAME: ingestion_gateway
-      MQTT_PASSWORD: ${MQTT_GATEWAY_PASSWORD}
+      MQTT_PASSWORD: ${MQTT_GATEWAY_PASSWORD:?set MQTT_GATEWAY_PASSWORD in .env (see .env.example)}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # lets the container reach this machine (Linux; built in on Docker Desktop)
     volumes:
       - ./model:/model:ro                      # asset model + mappings: edit, then restart (no rebuild)
     restart: unless-stopped
 
-volumes:
-  gateway-broker-data:

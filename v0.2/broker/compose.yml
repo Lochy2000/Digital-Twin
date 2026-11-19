@@ -1,0 +1,34 @@
+# dt-broker: the site's MQTT broker. Every part connects to it: sensor nodes, the gateway,
+# dashboards, the twin. Runs on its own, on whichever machine hosts it.
+#
+# On its own (from broker/):   copy .env.example to .env, set the passwords, then
+#   docker compose up -d
+#   docker compose logs broker
+#   docker compose exec broker mosquitto_sub -u engineer -P <MQTT_ENGINEER_PASSWORD> -v -t "raw/#" -t "dt/v1/#"
+#
+# Other machines and containers reach it on this machine's address, port 1883.
+
+name: dt-broker
+
+services:
+  broker:
+    # Pinned so test runs can be repeated. 2.1.x is only published as -alpine tags.
+    image: eclipse-mosquitto:2.0.22
+    ports:
+      - "1883:1883"
+    entrypoint: ["/bin/sh", "/mosquitto/broker/start.sh"]
+    environment:
+      MQTT_GATEWAY_PASSWORD: ${MQTT_GATEWAY_PASSWORD:?set the passwords in .env (see .env.example)}
+      MQTT_HISTORIAN_PASSWORD: ${MQTT_HISTORIAN_PASSWORD:?set in .env}
+      MQTT_DEVICE_PASSWORD: ${MQTT_DEVICE_PASSWORD:?set in .env}
+      MQTT_ENGINEER_PASSWORD: ${MQTT_ENGINEER_PASSWORD:?set in .env}
+      MQTT_DEVICES: ${MQTT_DEVICES:-}
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./acl.conf:/mosquitto/broker/acl.conf:ro
+      - ./start.sh:/mosquitto/broker/start.sh:ro
+      - broker-data:/mosquitto/data      # queued messages survive a restart
+    restart: unless-stopped
+
+volumes:
+  broker-data:

@@ -6,7 +6,8 @@ pipeline itself stay in [`../v0.1`](../v0.1) (README, ADRs, FINDINGS).
 | Folder | Becomes | Runs on | What |
 |---|---|---|---|
 | `common/` | `dtteo-common` package | (installed by both) | Mapper, units, log format, message contracts |
-| `gateway/` | `dt-gateway` repo | Pi 5 | Broker + ingestion gateway |
+| `broker/` | `dt-broker` repo | Site hub | The MQTT broker every part connects to |
+| `gateway/` | `dt-gateway` repo | Site hub | Ingestion gateway (raw -> checked readings) |
 | `platform/` | `dt-platform` repo | Server | Database, historian, Grafana, backups |
 | `dev/` | stays here | Laptop | Runs everything together + fake test vendors + smoke test |
 

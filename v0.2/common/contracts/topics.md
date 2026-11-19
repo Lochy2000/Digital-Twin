@@ -51,6 +51,20 @@ These follow HiveMQ's [MQTT topic best practices](https://www.hivemq.com/blog/mq
 
 ---
 
+### Sensor nodes (dt-node, v0.2)
+
+A node is software that reads sensors and publishes; it logs in to the broker as its own name
+(`{node}`, e.g. `lab_lepton`), so the access rules confine it to its own topics.
+
+| Topic | What's on it | Published by | Subscribed by | QoS | Retained |
+|---|---|---|---|---|---|
+| `raw/dtedge/{node}/telemetry` | Readings, dt-edge format, one or a list (decoder `dtedge`) | The node | Gateway | 1 | No |
+| `dt/v1/status/{node}` | `online` / `offline` (Last Will), as every client | The node | Anyone | 1 | **Yes** |
+| `raw/dtedge/{node}/frames/{camera}` | *Reserved:* thermal images (format decided when built) | The node | Gateway / frame store | 0 | No |
+| `dt/v1/config/{node}` | *Reserved:* the node's settings (e.g. camera spots), so they can change without logging in to it | Engineer / dashboard | The node | 1 | **Yes** |
+
+Times: a node stamps each reading with its own clock; the gateway checks clock drift (planned).
+
 ## How a canonical topic is built
 
 The canonical topic comes straight from the message's `point` ID: swap the `.` for `/` and put the site in front.

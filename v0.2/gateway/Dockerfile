@@ -4,10 +4,11 @@ FROM python:3.11-slim
 WORKDIR /app
 COPY gateway/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt     # runtime only; tests use requirements-dev.txt
-# Shared package (mapper, units, contracts, logfmt). After the repo split this becomes
-#   RUN pip install --no-cache-dir "git+<repo url>@<tag>#subdirectory=common"
-COPY common/ /tmp/common/
-RUN pip install --no-cache-dir /tmp/common && rm -rf /tmp/common
+# Shared code (mapper, units, log format, contracts): copied in as plain files, not
+# pip-installed, so the build needs no download and no build tools (works offline, e.g. on
+# a Pi in the field). Same layout as the installed package: dtteo_common/ with contracts/ inside.
+COPY common/dtteo_common/ dtteo_common/
+COPY common/contracts/ dtteo_common/contracts/
 COPY gateway/gateway/ gateway/
 ENV MODEL_DIR=/model
 # Run as an ordinary user, not root (Docker build best practices:

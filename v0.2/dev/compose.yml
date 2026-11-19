@@ -1,5 +1,5 @@
-# Dev setup: gateway + platform + fake test vendors, all on this laptop, from one command.
-# Reuses gateway/compose.yml and platform/compose.yml unchanged ("include"); the two small
+# Dev setup: broker + gateway + platform + fake test vendors, all on this laptop, from one command.
+# Reuses broker/, gateway/ and platform/compose.yml unchanged ("include"); the two small
 # *.dev.yml files only add what dev needs on top.
 #   https://docs.docker.com/compose/how-tos/multiple-compose-files/include/
 #
@@ -17,6 +17,8 @@
 name: dtteo-dev
 
 include:
+  - path: ../broker/compose.yml
+    env_file: .env
   - path: [../gateway/compose.yml, gateway.dev.yml]
     env_file: .env
   - path: [../platform/compose.yml, platform.dev.yml]
@@ -27,9 +29,9 @@ services:
     build: ./vendors
     command: python -u acme_publisher.py
     profiles: ["acme"]
-    depends_on: [gateway-broker]
+    depends_on: [broker]
     environment:
-      BROKER_HOST: gateway-broker
+      BROKER_HOST: broker
       MQTT_USERNAME: acme_hvac_0001             # its device slug (gateway/broker/acl.conf)
       MQTT_PASSWORD: ${MQTT_DEVICE_PASSWORD}
     restart: unless-stopped
@@ -38,9 +40,9 @@ services:
     build: ./vendors
     command: python -u borealis_publisher.py
     profiles: ["borealis"]
-    depends_on: [gateway-broker]
+    depends_on: [broker]
     environment:
-      BROKER_HOST: gateway-broker
+      BROKER_HOST: broker
       MQTT_USERNAME: site4_hvac_01
       MQTT_PASSWORD: ${MQTT_DEVICE_PASSWORD}
     restart: unless-stopped

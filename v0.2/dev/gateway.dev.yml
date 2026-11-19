@@ -3,6 +3,7 @@
 services:
   gateway:
     environment:
+      BROKER_HOST: broker            # the dev broker, by its service name
       GATEWAY_PLUGINS: /plugins
     volumes:
       - ./tests/vendors:/plugins:ro

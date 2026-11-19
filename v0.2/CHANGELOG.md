@@ -72,6 +72,28 @@ the Lepton's -10 degC datasheet limit (marked TO VERIFY). Check that limit befor
 
 **Not yet:** dt-edge doesn't publish over MQTT yet (dt-edge change, later); thermal images (later, with the Pi Zero nodes).
 
+### Docker builds copy `common` instead of installing it (19 Nov 2026)
+
+A build failed when downloading setuptools timed out (3.6 kB/s). Installing `common` needed build
+tools fetched from the internet every time; copying its files needs nothing. Builds now work offline.
+`rdflib` is listed in each service's requirements again. Checked: both image layouts rebuilt here
+under Python 3.11 with nothing installed but the requirements: gateway pipeline builds (31 mappings),
+historian validator builds and reads the platform model (39 points).
+
+### dt-broker in its own folder (19 Nov 2026)
+
+| What | Why | Files |
+|---|---|---|
+| `broker/`: Mosquitto config, access rules and start script moved out of the gateway; its own compose file | The broker is shared by every part (nodes, gateway, dashboards, historian), so it isn't the gateway's | `broker/` |
+| Device logins listed in `.env` (`MQTT_DEVICES`), not in the script | Adding a node = one line of config | `broker/start.sh`, `.env.example` files |
+| Gateway runs no broker; connects to `BROKER_HOST` (default: the broker on the same machine) | Gateway and broker deploy separately | `gateway/compose.yml`, `.env.example` |
+| Node topics added: telemetry and status (in use), frames and settings (reserved); nodes may read their own settings topic | Message design for dt-node | `contracts/topics.md`, `broker/acl.conf` |
+| Dev setup includes `broker/`; services use `broker` | | `dev/` |
+
+**Checked here:** dev, broker, gateway and platform compose files all resolve; the real start script + config on
+a live Mosquitto: listed devices get logins, a node publishes to its own topics and status only, anonymous and
+unlisted clients refused.
+
 ## Quick fixes (made in v0.1 on 5 Nov, before the restructure)
 
 ### Quick wins (5 Nov 2026)
