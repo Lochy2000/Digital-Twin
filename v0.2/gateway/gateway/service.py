@@ -14,9 +14,14 @@ is clean_start=False PLUS a Session Expiry Interval above 0; with no interval th
 ends at disconnect (HiveMQ, MQTT 5 Essentials part 4).
 
 Not losing data when something restarts (the "small buffer" in v0.1/README.md):
+  - Gateway crashes mid-message (v0.2 step D): a raw message is acknowledged only after the broker
+    has confirmed every output made from it (gateway/acks.py). Until then the broker still holds
+    it and sends it again after a restart.
   - Broker down: paho keeps QoS 1 messages it couldn't send yet and sends them after it
     reconnects (paho-mqtt 2.1.0, Client.publish). Capped by MAX_QUEUED so memory can't run away;
     if the cap is hit, paho refuses the message (MQTT_ERR_QUEUE_SIZE) and we log an ERROR.
+    With manual acks this shouldn't happen: the broker sends at most RECEIVE_MAX unacknowledged
+    raw messages, so at most RECEIVE_MAX x (outputs per message) can be waiting.
   - Gateway down: the broker keeps raw QoS 1 messages for our session (SESSION_EXPIRY) and
     delivers them when we're back. How many it keeps is the broker's max_queued_messages, and
     whether they survive a BROKER restart is its persistence setting (broker/mosquitto.conf).
@@ -47,6 +52,7 @@ from paho.mqtt.properties import Properties
 
 from dtteo_common.mapper import Mapper
 
+from .acks import AckTracker
 from .decoders import load_plugins
 from .pipeline import Outgoing, Pipeline, kv
 from .settings import Settings, SettingsError, parse_enabled  # noqa: F401  (parse_enabled: tests)
@@ -56,13 +62,17 @@ STATUS_TOPIC = f"dt/v1/status/{CLIENT_ID}"
 SUBSCRIPTION = "raw/#"
 MAX_QUEUED = 10_000                                    # outgoing messages held while the broker is away
 SESSION_EXPIRY = 7 * 24 * 3600                         # seconds the broker keeps our session while we're away
+RECEIVE_MAX = 100                                      # most unacknowledged raw messages the broker may send us
 
 log = logging.getLogger("gateway")
 
 
-def send(client: mqtt.Client, o: Outgoing) -> None:
-    """Publish one message and say so if it couldn't even be queued (it would be lost)."""
+def send(client: mqtt.Client, o: Outgoing) -> int | None:
+    """Publish one message. Returns its id if paho holds it (sent, or sent after a reconnect),
+    None if it couldn't even be queued (it is lost, and logged)."""
     info = client.publish(o.topic, json.dumps(o.payload), qos=o.qos, retain=o.retain)
+    if info.rc in (mqtt.MQTT_ERR_SUCCESS, mqtt.MQTT_ERR_NO_CONN):
+        return info.mid
     if info.rc == mqtt.MQTT_ERR_QUEUE_SIZE:
         # paho refuses new messages once MAX_QUEUED are waiting: this one is LOST.
         log.error(kv("publish_dropped", topic=o.topic, reason="outgoing queue full",
@@ -70,6 +80,7 @@ def send(client: mqtt.Client, o: Outgoing) -> None:
     elif info.rc not in (mqtt.MQTT_ERR_SUCCESS, mqtt.MQTT_ERR_NO_CONN):
         # NO_CONN is normal while reconnecting: paho keeps the message and sends it later.
         log.warning(kv("publish_problem", topic=o.topic, rc=mqtt.error_string(info.rc)))
+    return None
 
 
 def build_pipeline(settings: Settings | None = None) -> Pipeline:
@@ -98,6 +109,8 @@ def main() -> None:
 
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, protocol=mqtt.MQTTv5)
     client.max_queued_messages_set(MAX_QUEUED)
+    client.manual_ack_set(True)                             # we ack, once the outputs are safe (acks.py)
+    tracker = AckTracker(client.ack)
     if settings.mqtt_password:                              # the broker refuses anonymous clients
         client.username_pw_set(settings.mqtt_username, settings.mqtt_password)
     client.will_set(STATUS_TOPIC, "offline", qos=1, retain=True)
@@ -106,6 +119,10 @@ def main() -> None:
         if reason_code.is_failure:
             log.error(kv("connect_failed", reason=str(reason_code)))
             return
+        # Acks from the old connection aren't valid any more; the broker re-sends those messages.
+        dropped = tracker.reconnected()
+        if dropped:
+            log.info(kv("unacked_dropped_on_reconnect", messages=dropped, why="broker sends them again"))
         # (Re)subscribe and announce on every connect, so a reconnect restores both.
         client.subscribe(SUBSCRIPTION, qos=1)
         client.publish(STATUS_TOPIC, "online", qos=1, retain=True)
@@ -119,8 +136,9 @@ def main() -> None:
     def on_message(client, userdata, msg):
         # pipeline.process never raises: a bug quarantines the message (stage=internal).
         outgoing = pipeline.process(msg.topic, msg.payload, datetime.now(timezone.utc))
-        for o in outgoing:
-            send(client, o)
+        # A failed send (None) can't be waited for; it was logged as lost. QoS 0 has no confirmation.
+        mids = [mid for o in outgoing if (mid := send(client, o)) is not None and o.qos > 0]
+        tracker.received(msg.mid, msg.qos, mids)
         if time.monotonic() - last_report["t"] >= 60:          # once a minute, if anything was skipped
             counts = pipeline.take_skipped()
             if counts:
@@ -128,11 +146,16 @@ def main() -> None:
                             why="optional in the device type, no point in the asset model"))
             last_report["t"] = time.monotonic()
 
+    def on_publish(client, userdata, mid, reason_code, properties):
+        tracker.published(mid)                              # the broker has this output now
+
     client.on_connect, client.on_disconnect, client.on_message = on_connect, on_disconnect, on_message
+    client.on_publish = on_publish
 
     def connect_properties() -> Properties:
         props = Properties(PacketTypes.CONNECT)
         props.SessionExpiryInterval = SESSION_EXPIRY
+        props.ReceiveMaximum = RECEIVE_MAX                  # limits what can be waiting for an ack
         return props
 
     def stop(*_):

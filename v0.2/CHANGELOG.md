@@ -113,6 +113,29 @@ historian validator builds and reads the platform model (39 points).
 a live Mosquitto: listed devices get logins, a node publishes to its own topics and status only, anonymous and
 unlisted clients refused.
 
+### Step D1: gateway acknowledges only after its outputs are safe (20 Nov 2026) — FINDINGS fix 2
+
+| What | Why | Files |
+|---|---|---|
+| Manual acks: a raw message is acknowledged only after the broker has confirmed every output made from it; acks go out in arrival order (MQTT 5.0 §4.6) | paho acked on return from `on_message` while outputs still waited in memory, so a crash lost them | new `gateway/acks.py`, `service.py` |
+| `RECEIVE_MAX = 100` sent on connect | Caps how many raw messages can wait for an ack, so outputs in memory stay bounded | `service.py` |
+| `send()` returns the output's id (or `None` if paho refused it) | The tracker needs the ids to wait for | `service.py` |
+| After a reconnect, unacked messages are forgotten and the broker re-sends them | Acks are only valid on the connection a message arrived on; re-sent readings are skipped by the historian's unique key | `acks.py` |
+
+**Checked:** gateway 146 passed (6 new tracker tests, 2 new `send` tests). Kill test (local Mosquitto, simulated
+node at 50 polls/s, gateway away 8 s then `kill -9` while draining the backlog, 5 times per run):
+
+| Gateway | Kill after | Readings sent | Missing |
+|---|---|---|---|
+| before | 0.5 s | 12,132 | **4,792** |
+| before | 0.7 s | 12,336 | **1,319** |
+| before | 0.9 s | 12,536 | 0 |
+| after | 0.3 / 0.5 / 0.7 / 0.9 s | 11,936–12,536 | **0** in every run |
+
+One "after" run re-counted: 102 re-sent copies, proving the kills landed mid-message and were recovered.
+Copies of readings are skipped by the historian; a re-sent message that was quarantined is stored twice in
+`quarantine` (no unique key there; acceptable for now).
+
 ## Quick fixes (made in v0.1 on 5 Nov, before the restructure)
 
 ### Quick wins (5 Nov 2026)
@@ -130,4 +153,4 @@ unlisted clients refused.
 - To apply: `docker compose up -d --build` (rebuilds gateway and historian, restarts the broker with the new config).
 
 ### Not started
-2 gateway manual ack · 4 stateful checks · 6 energy-per-hour aggregate · 7 completeness view · 8 TLS + per-device passwords · 10 clock offset
+~~2 gateway manual ack~~ (done, step D1) · 4 stateful checks · 6 energy-per-hour aggregate · 7 completeness view · 8 TLS + per-device passwords · 10 clock offset

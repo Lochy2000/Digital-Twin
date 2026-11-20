@@ -53,3 +53,16 @@ def test_not_connected_is_normal_and_not_logged(caplog):
     with caplog.at_level(logging.WARNING, logger="gateway"):
         service.send(FakeClient(mqtt.MQTT_ERR_NO_CONN), o)
     assert not caplog.records
+
+
+# --- v0.2 step D: send() tells the caller which outputs it can wait for ---------------------
+
+def test_send_returns_the_message_id_when_paho_holds_it():
+    o = Outgoing("dt/v1/telemetry/site1/unit1/zone_air_temp", {"point": "unit1.zone_air_temp"})
+    assert service.send(FakeClient(mqtt.MQTT_ERR_SUCCESS), o) == 1
+    assert service.send(FakeClient(mqtt.MQTT_ERR_NO_CONN), o) == 1     # sent after reconnect
+
+
+def test_send_returns_none_when_the_output_is_lost():
+    o = Outgoing("dt/v1/telemetry/site1/unit1/zone_air_temp", {"point": "unit1.zone_air_temp"})
+    assert service.send(FakeClient(mqtt.MQTT_ERR_QUEUE_SIZE), o) is None
