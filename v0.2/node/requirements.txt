@@ -1,0 +1,4 @@
+# What every node needs. Python's own library covers the rest (SQLite, TOML, threads).
+paho-mqtt==2.1.0             # MQTT client (same version as the gateway)
+# A sensor's own libraries are installed only on nodes that have that sensor
+# (e.g. the Lepton adapter needs OpenCV); they are listed with the adapter when it is added.

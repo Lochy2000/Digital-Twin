@@ -9,6 +9,9 @@
 #   docker compose logs -f gateway historian
 #   docker compose down                              stop (data kept);  down -v  also deletes the data
 #
+# Simulated rig node too (pretends to be the rig's Pi; data on rig1.*):
+#   docker compose --profile acme --profile node up -d --build
+#
 # Borealis instead of Acme (they pretend to be the same unit):
 #   GATEWAY_ENABLED="acme_hvac_0001=off,site4_hvac_01=on" docker compose --profile borealis up -d --build
 #
@@ -36,6 +39,19 @@ services:
       MQTT_PASSWORD: ${MQTT_DEVICE_PASSWORD}
     restart: unless-stopped
 
+  node:
+    # Simulated dt-node pretending to be the rig's Pi (node.dev.toml). Readings -> broker -> gateway -> rig1.*
+    build: ../node
+    command: ["python", "-u", "-m", "dtnode.service", "/config/node.toml"]
+    profiles: ["node"]
+    depends_on: [broker]
+    environment:
+      MQTT_PASSWORD: ${MQTT_DEVICE_PASSWORD}
+    volumes:
+      - ./node.dev.toml:/config/node.toml:ro
+      - node-outbox:/data                       # the outbox survives a restart, as on a real node
+    restart: unless-stopped
+
   borealis:
     build: ./vendors
     command: python -u borealis_publisher.py
@@ -46,3 +62,6 @@ services:
       MQTT_USERNAME: site4_hvac_01
       MQTT_PASSWORD: ${MQTT_DEVICE_PASSWORD}
     restart: unless-stopped
+
+volumes:
+  node-outbox:

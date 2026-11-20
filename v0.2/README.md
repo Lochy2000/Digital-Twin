@@ -6,6 +6,7 @@ pipeline itself stay in [`../v0.1`](../v0.1) (README, ADRs, FINDINGS).
 | Folder | Becomes | Runs on | What |
 |---|---|---|---|
 | `common/` | `dtteo-common` package | (installed by both) | Mapper, units, log format, message contracts |
+| `node/` | `dt-node` repo | Each sensor device | Reads the sensors, sends readings to the broker |
 | `broker/` | `dt-broker` repo | Site hub | The MQTT broker every part connects to |
 | `gateway/` | `dt-gateway` repo | Site hub | Ingestion gateway (raw -> checked readings) |
 | `platform/` | `dt-platform` repo | Server | Database, historian, Grafana, backups |
@@ -16,7 +17,7 @@ pipeline itself stay in [`../v0.1`](../v0.1) (README, ADRs, FINDINGS).
 ```
 cd dev
 copy .env.example .env          # then change the passwords
-docker compose --profile acme up -d --build
+docker compose --profile acme up -d --build      # add --profile node for the simulated rig node
 python smoke_test.py            # 9 checks, about 15 s
 ```
 

@@ -1,0 +1,41 @@
+# Simulated node for the dev setup (docker compose --profile node). It pretends to be the rig's
+# Pi (digitwin_pi), as Acme pretends to be unit1, so the gateway maps its readings to rig1.*.
+# Shaped like the matrix cool-down: 30 degC falling towards 5 degC.
+name = "digitwin_pi"
+
+[broker]
+host = "broker"
+
+[outbox]
+path = "/data/outbox.db"
+
+[[sensors]]
+id = "tc08"
+type = "simulated"
+poll_s = 1
+unit = "DEG_C"
+[sensors.metrics]
+ch1 = { start = 30, end = 5, tau_s = 1800, noise = 0.05 }
+ch2 = { start = 29.5, end = 5, tau_s = 2000, noise = 0.05 }
+ch3 = { start = 29, end = 5.5, tau_s = 1500, noise = 0.05 }
+cold_junction = { start = 30, end = 6, tau_s = 2400, noise = 0.02 }
+
+[[sensors]]
+id = "lepton"
+type = "simulated"
+poll_s = 1
+unit = "DEG_C"
+[sensors.metrics]
+max = { start = 31, end = 8, tau_s = 1800, noise = 0.3 }
+mean = { start = 28.5, end = 6, tau_s = 1800, noise = 0.2 }
+min = { start = 27, end = 3, tau_s = 1800, noise = 0.3 }
+spot1 = { start = 28.4, end = 5.5, tau_s = 1800, noise = 0.2 }
+
+[[sensors]]
+id = "ambient"
+type = "simulated"
+poll_s = 2
+[sensors.metrics]
+air_temp = { start = 30, end = 5, tau_s = 1200, noise = 0.05, unit = "DEG_C" }
+humidity = { start = 55, end = 70, tau_s = 3600, noise = 0.3, unit = "PERCENT_RH" }
+pressure = { start = 1012, noise = 0.2, unit = "HectoPA" }

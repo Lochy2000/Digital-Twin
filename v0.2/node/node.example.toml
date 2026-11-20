@@ -1,0 +1,24 @@
+# dt-node settings for ONE device: which sensors it has and where the broker is.
+# Copy to node.toml on the device. The password is not kept here: set env MQTT_PASSWORD.
+
+name = "lab_lepton"            # this node's broker login and topic level: raw/dtedge/<name>/telemetry
+                               # (the broker's MQTT_DEVICES must list it; the gateway needs a binding for it)
+
+[broker]
+host = "digitwin-pi.local"     # the site broker. Env BROKER_HOST overrides.
+port = 1883
+
+[outbox]
+path = "~/dt-node/outbox.db"   # readings wait here until the broker confirms them
+max_messages = 100000          # when full, the oldest are dropped first
+
+# One block per sensor. type = which adapter (dtnode/adapters/__init__.py).
+[[sensors]]
+id = "lepton"
+type = "simulated"             # becomes "lepton" when the real adapter is added
+poll_s = 1
+unit = "DEG_C"
+[sensors.metrics]
+max = { start = 32, end = 8, tau_s = 1800, noise = 0.3 }
+mean = { start = 29, end = 6, tau_s = 1800, noise = 0.2 }
+min = { start = 27, end = 3, tau_s = 1800, noise = 0.3 }

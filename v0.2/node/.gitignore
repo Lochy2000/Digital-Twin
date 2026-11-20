@@ -1,0 +1,4 @@
+# The outbox (SQLite) and its WAL files: live data, never committed.
+*.db
+*.db-wal
+*.db-shm

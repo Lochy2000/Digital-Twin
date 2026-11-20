@@ -72,6 +72,25 @@ the Lepton's -10 degC datasheet limit (marked TO VERIFY). Check that limit befor
 
 **Not yet:** dt-edge doesn't publish over MQTT yet (dt-edge change, later); thermal images (later, with the Pi Zero nodes).
 
+### dt-node, first version (19 Nov 2026)
+
+New part `node/` (becomes `dt-node`): runs on each sensor device, reads its sensors, sends to the broker.
+
+| What | Why |
+|---|---|
+| One thread per sensor; adapters `simulated` (heating/cooling curves) and `csv` (replays a recorded run live) | Build and test without hardware; real sensor adapters come from dt-edge |
+| Outbox: every poll goes into a SQLite file first, removed only when the broker confirms it | Nothing lost when the broker or Wi-Fi drops, or the node loses power |
+| Reconnect at least every 5 s (paho's own wait grows to 120 s) | Found in the outage test: with the default, the outbox kept filling long after the broker was back |
+| Settings in `node.toml` (Python reads TOML itself); password from env | One package needed (`paho-mqtt`): light enough for a Pi Zero |
+| Online/offline on `dt/v1/status/{node}`, Last Will | Same as every other client |
+| Dev: `--profile node` runs a simulated node posing as the rig's Pi (`digitwin_pi`) | rig1.* data in the dev setup without hardware; default setup and smoke test unchanged |
+
+**Checked here:** 15 node tests. Live, with a real Mosquitto broker and the gateway service: broker stopped for
+15 s while the node ran; 44 polls waited in the outbox; the node reconnected 2 s after the broker returned and
+sent them oldest first; every field arrived with no gap bigger than its poll interval (0.5 s / 1 s); the gateway
+stored all of it as GOOD rig1 readings; outbox empty afterwards. Also found and fixed: stopping the node while
+disconnected crashed it. Every field in `dev/node.dev.toml` maps to a rig1 point (11 readings, 0 quarantined).
+
 ### Docker builds copy `common` instead of installing it (19 Nov 2026)
 
 A build failed when downloading setuptools timed out (3.6 kB/s). Installing `common` needed build
