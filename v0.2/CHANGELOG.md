@@ -162,6 +162,21 @@ reports "95 raw messages waiting for an ack" · stop under load → clean exit 0
   (e.g. an autoheal container or systemd) is a later decision.
 - Heartbeats aren't queued while disconnected, so an old one can't arrive later looking current.
 
+### Step D3: node heartbeat (21 Nov 2026)
+
+| What | Why | Files |
+|---|---|---|
+| Heartbeat every 30 s on `dt/v1/health/{node}` (retained, only while connected): each sensor `ok`/`failing` with its last error, outbox `waiting` and `dropped` | A node with one dead sensor still looked `online`; on a Pi Zero there's no Docker to report health | new `node/dtnode/health.py`, `service.py`, `config.py` |
+| A sensor is failing after 3 polls + 5 s with no successful read; drops since the last heartbeat are a problem | Slow sensors (long `poll_s`) aren't flagged early; old drops aren't reported twice | `health.py` |
+| Same message shape as the gateway's and historian's, built in the node (no `dtteo_common`) | Keeps the node at one dependency (paho) | `health.py` |
+
+**Checked:** node 18 passed (3 new). Live (local Mosquitto): a node with a working simulated `tc08` and a
+`lepton` pointing at a missing file. First heartbeat (start-up grace) ok; the next one, 30 s later:
+`"sensor lepton: no reading for 30s (FileNotFoundError(...))"`, `tc08` still `ok`. No broker change needed:
+the D2 access rule (`pattern write dt/v1/health/%u`) already covers nodes.
+
+**Later:** step E's bridge must carry `dt/v1/health/#` to the platform broker as well, or the server can't see nodes' health.
+
 ## Quick fixes (made in v0.1 on 5 Nov, before the restructure)
 
 ### Quick wins (5 Nov 2026)

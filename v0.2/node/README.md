@@ -11,6 +11,7 @@ sensors ──► one thread per sensor ──► outbox (SQLite file) ──►
 | File | What |
 |---|---|
 | `dtnode/service.py` | The running node: sensor threads, the sender, online/offline status |
+| `dtnode/health.py` | The heartbeat on `dt/v1/health/{name}` every 30 s: which sensors are reading, outbox size and drops |
 | `dtnode/outbox.py` | Readings wait here until the broker confirms them; survives power cuts and outages |
 | `dtnode/config.py` | Reads `node.toml` (what this device has); the password comes from env `MQTT_PASSWORD` |
 | `dtnode/reading.py` | The message format (the same as dt-edge's, which the gateway reads) |

@@ -12,6 +12,9 @@ The running node: sensors -> outbox -> broker.
   - Broker gone: paho reconnects by itself; RECONNECT_MAX_S keeps the retries frequent.
   - Online/offline: "online" (retained) on dt/v1/status/{name}; the broker publishes "offline"
     for us if we vanish (Last Will), the same as every other client (contracts/topics.md).
+  - Health: every 30 s, while connected, a heartbeat on dt/v1/health/{name}: which sensors are
+    reading, outbox size and drops (dtnode/health.py). Sent directly, not through the outbox:
+    it's current state, so an old one arriving late would mislead.
 
 What it does NOT do: check, convert or interpret readings. That is the gateway's job.
 
@@ -26,7 +29,7 @@ import sys
 import threading
 import time
 
-from dtnode import adapters
+from dtnode import adapters, health
 from dtnode.config import ConfigError, NodeConfig, load
 from dtnode.outbox import Outbox
 
@@ -42,7 +45,10 @@ class SensorThread(threading.Thread):
     def __init__(self, cfg: dict, node: NodeConfig, outbox: Outbox, stop: threading.Event):
         super().__init__(name=f"sensor-{cfg['id']}", daemon=True)
         self.cfg, self.node, self.outbox, self.stop = cfg, node, outbox, stop
+        self.sensor_id = cfg["id"]
         self.poll_s = float(cfg.get("poll_s", 1))
+        self.last_ok = time.monotonic()                 # last successful read (start = grace period)
+        self.last_error: str | None = None              # for the heartbeat
 
     def run(self) -> None:
         wait = 1.0
@@ -56,12 +62,14 @@ class SensorThread(threading.Thread):
                 next_at = time.monotonic()
                 while not self.stop.is_set():
                     readings = adapter.read()
+                    self.last_ok, self.last_error = time.monotonic(), None
                     if readings:
                         payload = json.dumps([r.to_message(adapter.source) for r in readings]).encode()
                         self.outbox.put(self.node.topic, payload)
                     next_at += self.poll_s
                     self.stop.wait(max(0.0, next_at - time.monotonic()))
             except Exception as e:                      # one sensor failing must not stop the others
+                self.last_error = repr(e)[:200]
                 log.warning("sensor %s: %r; retrying in %.0f s", self.cfg["id"], e, wait)
                 self.stop.wait(wait)
                 wait = min(wait * 2, 60.0)
@@ -150,9 +158,10 @@ def run(node: NodeConfig) -> None:
     signal.signal(signal.SIGTERM, shutdown)
     signal.signal(signal.SIGINT, shutdown)
 
-    for s in node.sensors:
-        if s.get("enabled", True):
-            SensorThread(s, node, outbox, stop).start()
+    sensors = [SensorThread(s, node, outbox, stop) for s in node.sensors if s.get("enabled", True)]
+    for t in sensors:
+        t.start()
+    started, last_health, dropped_before = time.monotonic(), float("-inf"), 0
     client.connect_async(node.broker_host, node.broker_port)
     client.loop_start()
     log.info("node %s started: %d sensor(s), outbox %s", node.name, len(node.sensors), node.outbox_path)
@@ -161,6 +170,12 @@ def run(node: NodeConfig) -> None:
     while not stop.is_set():
         if sender.send_some() == 0:
             stop.wait(0.1)
+        if sender.connected and time.monotonic() - last_health >= health.INTERVAL:
+            msg = health.message(node.name, sensors, outbox.count(), outbox.dropped, dropped_before, started)
+            client.publish(node.health_topic, json.dumps(msg), qos=1, retain=True)
+            if not msg["ok"]:
+                log.warning("health problem: %s", "; ".join(msg["problems"]))
+            last_health, dropped_before = time.monotonic(), outbox.dropped
         if time.monotonic() - last_report >= 60:
             log.info("outbox: %d waiting, %d dropped (outbox full) so far", outbox.count(), outbox.dropped)
             last_report = time.monotonic()

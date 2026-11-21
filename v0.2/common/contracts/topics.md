@@ -38,7 +38,7 @@ These follow HiveMQ's [MQTT topic best practices](https://www.hivemq.com/blog/mq
 | `dt/v1/telemetry/{site}/{equipment}/{point}` | **Canonical messages**, one reading each | Ingestion gateway only | Twin, detection, historian, API | 1 | No |
 | `dt/v1/quarantine/{source}` | Readings the gateway couldn't process, plus the reason (shape: `quarantine_message.schema.json`) | Ingestion gateway only | Historian (to log them), engineer for debugging | 1 | No |
 | `dt/v1/status/{client_id}` | `online` / `offline` for each service and device | Each client (`offline` is sent automatically by the broker, see below) | API, detection | 1 | **Yes** |
-| `dt/v1/health/{client_id}` | Heartbeat every 30 s: is it *working*, not just connected (see "Health heartbeat") | Gateway, historian (nodes next) | Dashboard, engineer | 1 | **Yes** |
+| `dt/v1/health/{client_id}` | Heartbeat every 30 s: is it *working*, not just connected (see "Health heartbeat") | Gateway, historian, nodes | Dashboard, engineer | 1 | **Yes** |
 
 ### Reserved for later steps (names only, not built yet)
 
@@ -61,6 +61,7 @@ A node is software that reads sensors and publishes; it logs in to the broker as
 |---|---|---|---|---|---|
 | `raw/dtedge/{node}/telemetry` | Readings, dt-edge format, one or a list (decoder `dtedge`) | The node | Gateway | 1 | No |
 | `dt/v1/status/{node}` | `online` / `offline` (Last Will), as every client | The node | Anyone | 1 | **Yes** |
+| `dt/v1/health/{node}` | Heartbeat every 30 s: each sensor `ok`/`failing`, outbox `waiting`/`dropped` (`node/dtnode/health.py`) | The node | Anyone | 1 | **Yes** |
 | `raw/dtedge/{node}/frames/{camera}` | *Reserved:* thermal images (format decided when built) | The node | Gateway / frame store | 0 | No |
 | `dt/v1/config/{node}` | *Reserved:* the node's settings (e.g. camera spots), so they can change without logging in to it | Engineer / dashboard | The node | 1 | **Yes** |
 

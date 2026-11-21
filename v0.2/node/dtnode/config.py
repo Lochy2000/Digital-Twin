@@ -43,6 +43,10 @@ class NodeConfig:
     def status_topic(self) -> str:
         return f"dt/v1/status/{self.name}"
 
+    @property
+    def health_topic(self) -> str:
+        return f"dt/v1/health/{self.name}"
+
 
 def load(path: Path | str, env=os.environ) -> NodeConfig:
     path = Path(path)
