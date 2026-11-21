@@ -26,6 +26,11 @@ Not losing data when something restarts (the "small buffer" in v0.1/README.md):
     delivers them when we're back. How many it keeps is the broker's max_queued_messages, and
     whether they survive a BROKER restart is its persistence setting (broker/mosquitto.conf).
 
+Health (v0.2 step D2): a heartbeat every 30 s on dt/v1/health/ingestion_gateway and in
+HEALTH_FILE, read by Docker's HEALTHCHECK (dtteo_common/health.py). Unhealthy when:
+  - not connected, or the broker has confirmed nothing for 75 s (connection or loop stuck);
+  - a raw message has waited over STUCK_AFTER seconds for its outputs to be confirmed.
+
 Settings: gateway/settings.py (read and checked once at start-up).
 
 Sources:
@@ -43,6 +48,7 @@ from __future__ import annotations
 import json
 import logging
 import signal
+import threading
 import time
 from datetime import datetime, timezone
 
@@ -50,6 +56,7 @@ import paho.mqtt.client as mqtt
 from paho.mqtt.packettypes import PacketTypes
 from paho.mqtt.properties import Properties
 
+from dtteo_common.health import BrokerLink, Heartbeat
 from dtteo_common.mapper import Mapper
 
 from .acks import AckTracker
@@ -63,6 +70,8 @@ SUBSCRIPTION = "raw/#"
 MAX_QUEUED = 10_000                                    # outgoing messages held while the broker is away
 SESSION_EXPIRY = 7 * 24 * 3600                         # seconds the broker keeps our session while we're away
 RECEIVE_MAX = 100                                      # most unacknowledged raw messages the broker may send us
+RECONNECT_MAX_S = 5                                    # paho's default backoff grows to 120 s (found in D2 test)
+STUCK_AFTER = 60                                       # seconds a raw message may wait for its ack before we're "stuck"
 
 log = logging.getLogger("gateway")
 
@@ -109,8 +118,24 @@ def main() -> None:
 
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, protocol=mqtt.MQTTv5)
     client.max_queued_messages_set(MAX_QUEUED)
+    client.reconnect_delay_set(min_delay=1, max_delay=RECONNECT_MAX_S)
     client.manual_ack_set(True)                             # we ack, once the outputs are safe (acks.py)
     tracker = AckTracker(client.ack)
+    link = BrokerLink()
+    received = {"n": 0}
+
+    def status():
+        problems = link.problems()
+        wait = tracker.oldest_wait()
+        if wait > STUCK_AFTER:
+            problems.append(f"{tracker.pending} raw messages waiting for an ack, oldest {wait:.0f}s")
+        return problems, {"received": received["n"], "acked": tracker.acked, "pending": tracker.pending}
+
+    def publish_health(topic, text):
+        if link.is_connected:           # not queued while away: an old heartbeat later would mislead
+            client.publish(topic, text, qos=1, retain=True)
+
+    heartbeat = Heartbeat(CLIENT_ID, status, publish_health, path=settings.health_file)
     if settings.mqtt_password:                              # the broker refuses anonymous clients
         client.username_pw_set(settings.mqtt_username, settings.mqtt_password)
     client.will_set(STATUS_TOPIC, "offline", qos=1, retain=True)
@@ -119,6 +144,7 @@ def main() -> None:
         if reason_code.is_failure:
             log.error(kv("connect_failed", reason=str(reason_code)))
             return
+        link.connected()
         # Acks from the old connection aren't valid any more; the broker re-sends those messages.
         dropped = tracker.reconnected()
         if dropped:
@@ -129,12 +155,14 @@ def main() -> None:
         log.info(kv("connected", subscribed=SUBSCRIPTION, session_present=flags.session_present))
 
     def on_disconnect(client, userdata, flags, reason_code, properties):
+        link.disconnected()
         log.warning(kv("disconnected", reason=str(reason_code)))
 
     last_report = {"t": time.monotonic()}
 
     def on_message(client, userdata, msg):
         # pipeline.process never raises: a bug quarantines the message (stage=internal).
+        received["n"] += 1
         outgoing = pipeline.process(msg.topic, msg.payload, datetime.now(timezone.utc))
         # A failed send (None) can't be waited for; it was logged as lost. QoS 0 has no confirmation.
         mids = [mid for o in outgoing if (mid := send(client, o)) is not None and o.qos > 0]
@@ -147,6 +175,7 @@ def main() -> None:
             last_report["t"] = time.monotonic()
 
     def on_publish(client, userdata, mid, reason_code, properties):
+        link.confirmed()                                    # the broker is answering
         tracker.published(mid)                              # the broker has this output now
 
     client.on_connect, client.on_disconnect, client.on_message = on_connect, on_disconnect, on_message
@@ -159,14 +188,20 @@ def main() -> None:
         return props
 
     def stop(*_):
+        heartbeat.stop()
         client.publish(STATUS_TOPIC, "offline", qos=1, retain=True)
         client.disconnect()
-    signal.signal(signal.SIGTERM, stop)                     # docker compose stop
+    # docker compose stop. The signal arrives on this thread, which is also paho's network
+    # thread, possibly in the middle of paho's own bookkeeping; publishing from there crashed
+    # ("OrderedDict mutated during iteration", D2 test). From another thread, paho's lock
+    # makes the publish wait its turn.
+    signal.signal(signal.SIGTERM, lambda *_: threading.Thread(target=stop, name="stop").start())
 
     host, port = settings.broker_host, settings.broker_port
     log.info(kv("connecting", host=host, port=port))
     # Don't fail if the broker isn't up yet... (clean_start=False: always resume our session)
     client.connect_async(host, port, clean_start=False, properties=connect_properties())
+    heartbeat.start()                                       # reports "not connected" until we are
     try:
         client.loop_forever(retry_first_connection=True)    # ...keep trying, and reconnect if it drops
     except KeyboardInterrupt:

@@ -32,6 +32,7 @@ Sources:
 """
 from __future__ import annotations
 
+import time
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Callable, Iterable
@@ -42,19 +43,21 @@ class _Entry:
     mid: int                                   # the raw message's id (what we acknowledge)
     qos: int
     waiting: set[int] = field(default_factory=set)   # output ids the broker hasn't confirmed yet
+    since: float = 0.0                         # when it arrived (clock), for the health check
 
 
 class AckTracker:
     """Holds each raw message's ack until all its outputs are confirmed, then acks in order."""
 
-    def __init__(self, ack: Callable[[int, int], object]):
-        self._ack = ack
+    def __init__(self, ack: Callable[[int, int], object], clock: Callable[[], float] = time.monotonic):
+        self._ack, self._clock = ack, clock
+        self.acked = 0                          # raw messages acknowledged so far (health counter)
         self._line: deque[_Entry] = deque()     # raw messages in arrival order
         self._by_output: dict[int, _Entry] = {}  # output id -> the raw message it came from
 
     def received(self, mid: int, qos: int, output_mids: Iterable[int]) -> None:
         """A raw message was processed and its outputs handed to paho (their ids)."""
-        entry = _Entry(mid, qos, set(output_mids))
+        entry = _Entry(mid, qos, set(output_mids), self._clock())
         for out in entry.waiting:
             self._by_output[out] = entry
         self._line.append(entry)
@@ -79,8 +82,17 @@ class AckTracker:
         """Raw messages received but not yet acknowledged."""
         return len(self._line)
 
+    def oldest_wait(self) -> float:
+        """Seconds the oldest unacknowledged message has waited (0 if none). Read by the
+        heartbeat thread: a long wait means outputs aren't being confirmed (gateway stuck)."""
+        try:
+            return self._clock() - self._line[0].since
+        except IndexError:                      # empty, possibly emptied while we looked
+            return 0.0
+
     def _release(self) -> None:
         while self._line and not self._line[0].waiting:
             entry = self._line.popleft()
             if entry.qos > 0:                   # QoS 0 has nothing to acknowledge
                 self._ack(entry.mid, entry.qos)
+            self.acked += 1

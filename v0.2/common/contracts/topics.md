@@ -38,6 +38,7 @@ These follow HiveMQ's [MQTT topic best practices](https://www.hivemq.com/blog/mq
 | `dt/v1/telemetry/{site}/{equipment}/{point}` | **Canonical messages**, one reading each | Ingestion gateway only | Twin, detection, historian, API | 1 | No |
 | `dt/v1/quarantine/{source}` | Readings the gateway couldn't process, plus the reason (shape: `quarantine_message.schema.json`) | Ingestion gateway only | Historian (to log them), engineer for debugging | 1 | No |
 | `dt/v1/status/{client_id}` | `online` / `offline` for each service and device | Each client (`offline` is sent automatically by the broker, see below) | API, detection | 1 | **Yes** |
+| `dt/v1/health/{client_id}` | Heartbeat every 30 s: is it *working*, not just connected (see "Health heartbeat") | Gateway, historian (nodes next) | Dashboard, engineer | 1 | **Yes** |
 
 ### Reserved for later steps (names only, not built yet)
 
@@ -130,6 +131,23 @@ When a client connects, it can register a **Last Will** message with the broker:
 2. publish `online` to the same topic (retained) once connected.
 
 So anyone can see at a glance what's up and what's down, even after a crash. This feeds the LIVE / COASTING / STALE data state later.
+
+---
+
+## Health heartbeat (v0.2 step D2)
+
+`online` stays retained while a service is stuck, or while its whole machine is asleep. So every 30 s each service also publishes how it is, on `dt/v1/health/{client_id}` (QoS 1, retained):
+
+```json
+{"v": 1, "client": "historian", "time": "2026-11-20T15:40:00.000Z", "ok": false,
+ "problems": ["database unavailable for 40s"], "uptime_s": 3600, "stored": 51234, "waiting": 12}
+```
+
+- `ok: false`: the service knows what's wrong; `problems` says what.
+- `time` more than 90 s old: the service, its machine or the network stopped, so it can't say.
+- The other fields are counters, different for each service.
+
+Code: `dtteo_common/health.py`. The same message is written to a file that Docker's health check reads.
 
 ---
 

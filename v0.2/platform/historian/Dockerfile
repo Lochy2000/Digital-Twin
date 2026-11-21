@@ -13,4 +13,8 @@ COPY platform/historian/historian/ historian/
 ENV MODEL_DIR=/model
 RUN useradd --system --no-create-home historian
 USER historian
+# Healthy = heartbeat file under 90 s old and "ok" (dtteo_common/health.py, v0.2 step D2).
+# Docker only reports it (docker compose ps); it doesn't restart an unhealthy container.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=2 \
+    CMD ["python", "-m", "dtteo_common.health", "/tmp/health.json", "90"]
 CMD ["python", "-u", "-m", "historian.service"]

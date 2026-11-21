@@ -16,6 +16,8 @@ Settings (environment variables, as set in gateway/compose.yml):
     GATEWAY_ENABLED   optional on/off overrides for bindings, e.g. "acme_hvac_0001=off,site4_hvac_01=on"
     LOG_LEVEL         default INFO  (DEBUG also logs every GOOD reading)
     MQTT_USERNAME     default ingestion_gateway;  MQTT_PASSWORD its password (none = anonymous)
+    HEALTH_FILE       default /tmp/health.json: where the heartbeat is written for Docker's
+                      health check (dtteo_common/health.py); "off" = don't write one
 
 Pattern: configuration from the environment ("Twelve-Factor App", III. Config,
 https://12factor.net/config), checked at start-up so the service fails fast.
@@ -59,6 +61,7 @@ class Settings:
     log_level: str = "INFO"
     mqtt_username: str = "ingestion_gateway"
     mqtt_password: str | None = field(default=None, repr=False)     # never printed
+    health_file: str | None = "/tmp/health.json"
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] = os.environ) -> "Settings":
@@ -103,12 +106,15 @@ class Settings:
             raise SettingsError("gateway settings: " + "; ".join(problems))
         return cls(broker_host=get("BROKER_HOST") or cls.broker_host, broker_port=port, site=site,
                    model_dir=model_dir, plugins=plugins, enabled=enabled, log_level=level,
-                   mqtt_username=get("MQTT_USERNAME") or cls.mqtt_username, mqtt_password=get("MQTT_PASSWORD"))
+                   mqtt_username=get("MQTT_USERNAME") or cls.mqtt_username, mqtt_password=get("MQTT_PASSWORD"),
+                   health_file=None if (get("HEALTH_FILE") or "").lower() == "off"
+                   else get("HEALTH_FILE") or cls.health_file)
 
     def for_log(self) -> dict:
         """The settings as they will be logged at start-up: everything except the password."""
         return {"broker": f"{self.broker_host}:{self.broker_port}", "site": self.site,
                 "model_dir": str(self.model_dir), "plugins": str(self.plugins) if self.plugins else None,
                 "enabled_overrides": self.enabled or None, "log_level": self.log_level,
-                "mqtt_username": self.mqtt_username, "mqtt_password_set": self.mqtt_password is not None}
+                "mqtt_username": self.mqtt_username, "mqtt_password_set": self.mqtt_password is not None,
+                "health_file": self.health_file}
 

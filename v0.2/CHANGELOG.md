@@ -136,6 +136,32 @@ One "after" run re-counted: 102 re-sent copies, proving the kills landed mid-mes
 Copies of readings are skipped by the historian; a re-sent message that was quarantined is stored twice in
 `quarantine` (no unique key there; acceptable for now).
 
+### Step D2: health heartbeat for the gateway and historian (20 Nov 2026)
+
+| What | Why | Files |
+|---|---|---|
+| Heartbeat every 30 s on `dt/v1/health/{name}` (retained): `ok`, `problems`, counters | `online` stays retained while a service is stuck or its machine is asleep | new `common/dtteo_common/health.py`, `topics.md` |
+| Same message written to `/tmp/health.json`; Docker `HEALTHCHECK` runs `python -m dtteo_common.health` (healthy = under 90 s old and ok) | Docker shows `(healthy)` / `(unhealthy)` without a web server or extra port | both `Dockerfile`s |
+| Gateway unhealthy when: not connected, broker confirmed nothing for 75 s, or a raw message waited over 60 s for its ack | Running but stuck looked the same as working | `gateway/service.py`, `acks.py` |
+| Historian unhealthy when: not connected, broker silent 75 s, database unavailable, or messages waiting with nothing stored for 60 s | Database outages only showed in the log | `historian/service.py` |
+| Broker: every login may write its own `dt/v1/health/%u` | Needed to publish heartbeats | `broker/acl.conf` |
+| Gateway reconnect wait capped at 5 s (was paho's default, up to 120 s) | Found in the D2 test: 31 s to reconnect after the broker returned. Same fix as the node | `gateway/service.py` |
+| Gateway stop (SIGTERM) runs in its own thread | Found in the D2 test: stopping under load crashed (`OrderedDict mutated during iteration`), because the signal interrupted paho's own loop. Nothing was lost (unacked messages are re-sent) | `gateway/service.py` |
+| `HEALTH_FILE` setting (`off` = no file) | Running outside Docker, e.g. on Windows, where there's no `/tmp` | `gateway/settings.py`, historian |
+| dtteo-common 0.2.2 | New module | `common/pyproject.toml` |
+
+**Checked:** common 17 passed (5 new) · gateway 148 passed (2 new) · historian 10 passed, 9 skipped (3 new).
+Live gateway test (local Mosquitto, simulated node at 50 polls/s): healthy at the first full beat ·
+broker stopped → unhealthy "not connected" at the next beat · broker back → reconnected in 4 s, healthy at
+the next beat · gateway frozen (`SIGSTOP`) → Docker check fails "last heartbeat 103s ago"; on resume it
+reports "95 raw messages waiting for an ack" · stop under load → clean exit 0. Historian with no database:
+"database unavailable for 30s" at the second beat. Database-down test with the real stack: on the lab PC.
+
+**Notes**
+- Docker only *reports* unhealthy; `restart: unless-stopped` doesn't act on it. Restarting automatically
+  (e.g. an autoheal container or systemd) is a later decision.
+- Heartbeats aren't queued while disconnected, so an old one can't arrive later looking current.
+
 ## Quick fixes (made in v0.1 on 5 Nov, before the restructure)
 
 ### Quick wins (5 Nov 2026)

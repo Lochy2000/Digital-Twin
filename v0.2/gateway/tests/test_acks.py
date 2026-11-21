@@ -60,3 +60,15 @@ def test_qos0_raw_message_needs_no_ack_but_keeps_its_place():
     assert acked == []
     t.published(101)
     assert acked == [2]                # 1 was QoS 0: nothing to send for it
+
+
+def test_oldest_wait_and_ack_count_for_the_health_check():
+    now = [100.0]
+    acked = []
+    t = AckTracker(lambda mid, qos: acked.append(mid), clock=lambda: now[0])
+    assert t.oldest_wait() == 0.0
+    t.received(1, 1, [101])
+    now[0] += 70
+    assert t.oldest_wait() == 70                       # stuck: the health check reports this
+    t.published(101)
+    assert t.oldest_wait() == 0.0 and t.acked == 1

@@ -15,4 +15,8 @@ ENV MODEL_DIR=/model
 # https://docs.docker.com/build/building/best-practices/#user).
 RUN useradd --system --no-create-home gateway
 USER gateway
+# Healthy = heartbeat file under 90 s old and "ok" (dtteo_common/health.py, v0.2 step D2).
+# Docker only reports it (docker compose ps); it doesn't restart an unhealthy container.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=2 \
+    CMD ["python", "-m", "dtteo_common.health", "/tmp/health.json", "90"]
 CMD ["python", "-u", "-m", "gateway.service"]

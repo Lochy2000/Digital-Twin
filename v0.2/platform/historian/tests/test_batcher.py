@@ -45,3 +45,30 @@ def test_stopping_while_the_database_is_down_acks_nothing(monkeypatch):
     b, acks = make(FakeStore(failures=99))
     assert b.flush([received(1)], stop=lambda: True) is False
     assert acks == []                                 # the broker keeps it for next time
+
+
+# --- v0.2 step D2: health ------------------------------------------------------------------
+
+def test_healthy_when_writes_succeed():
+    b, _ = make(FakeStore())
+    b.flush([received(1), received(2)], stop=lambda: False)
+    problems, counters = b.health()
+    assert problems == [] and counters == {"stored": 2, "waiting": 0}
+
+
+def test_database_down_is_unhealthy_until_a_write_succeeds(monkeypatch):
+    monkeypatch.setattr(service.time, "sleep", lambda s: None)
+    b, _ = make(FakeStore(failures=99))
+    b.flush([received(1)], stop=lambda: True)          # gave up while the database was down
+    assert b.health()[0][0].startswith("database unavailable")
+    b.store = FakeStore()
+    b.flush([received(1)], stop=lambda: False)
+    assert b.health()[0] == []
+
+
+def test_waiting_messages_with_nothing_stored_for_a_minute_is_stuck():
+    b, _ = make(FakeStore())
+    b.inbox.put(received(1))
+    assert b.health()[0] == []                         # just arrived: fine
+    b.last_stored -= service.STUCK_AFTER + 1
+    assert "nothing stored" in b.health()[0][0]

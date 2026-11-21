@@ -28,3 +28,9 @@ def test_password_is_never_printed_or_logged():
     s = Settings.from_env({"MQTT_PASSWORD": "secret123"})
     assert "secret123" not in repr(s) and "secret123" not in str(s.for_log())
     assert s.for_log()["mqtt_password_set"] is True
+
+
+def test_health_file_default_path_and_off():
+    assert Settings.from_env({}).health_file == "/tmp/health.json"
+    assert Settings.from_env({"HEALTH_FILE": "/run/gw.json"}).health_file == "/run/gw.json"
+    assert Settings.from_env({"HEALTH_FILE": "off"}).health_file is None

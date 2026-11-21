@@ -33,7 +33,14 @@ Settings (environment variables):
                                 0.21-0.27 s with nothing lost (experiments E2/E2b, v0.2 fix 5).
                                 Cost: more, smaller transactions (historian CPU 0.8% -> 1.3% at 10/s).
     LOG_LEVEL                   default INFO (DEBUG logs every batch)
+    HEALTH_FILE                 default /tmp/health.json, for Docker's health check; "off" = none
     MQTT_USERNAME / MQTT_PASSWORD   broker login (default username: historian; read-only, broker/acl.conf)
+
+Health (v0.2 step D2): a heartbeat every 30 s on dt/v1/health/historian and in HEALTH_FILE,
+read by Docker's HEALTHCHECK (dtteo_common/health.py). Unhealthy when:
+  - not connected, or the broker has confirmed nothing for 75 s;
+  - the database is unavailable (from the first failed write until one succeeds);
+  - messages are waiting but nothing has been stored for STUCK_AFTER seconds.
 
 Sources:
   - MQTT 5 session (clean start + expiry), as the gateway: https://www.hivemq.com/blog/mqtt5-session-message-expiry/
@@ -56,6 +63,7 @@ from paho.mqtt.packettypes import PacketTypes
 from paho.mqtt.properties import Properties
 
 from dtteo_common.contracts import HERE as DEFAULT_CONTRACTS   # the installed JSON Schemas
+from dtteo_common.health import BrokerLink, Heartbeat
 from dtteo_common.logfmt import kv         # same logfmt log lines as the gateway
 from dtteo_common.mapper import Mapper     # same asset-model reader as the gateway (one source of truth)
 
@@ -67,6 +75,7 @@ SUBSCRIPTIONS = [("dt/v1/telemetry/#", 1), ("dt/v1/quarantine/#", 1)]
 SESSION_EXPIRY = 7 * 24 * 3600     # seconds the broker keeps our session while we're away
 RECEIVE_MAX = 1000                 # most unacknowledged messages the broker may send us at once
 MAX_WAIT = 30                      # longest wait between database retries, seconds
+STUCK_AFTER = 60                   # seconds with messages waiting and nothing stored = stuck
 
 log = logging.getLogger("historian")
 # Source tree default: platform/ (holds the copy of dtteo_asset_model.ttl). The container sets MODEL_DIR.
@@ -99,6 +108,18 @@ class Batcher:
         self.size, self.seconds = size, seconds
         self.inbox: queue.Queue[Received] = queue.Queue()
         self.totals = {"readings": 0, "duplicates": 0, "quarantined": 0}
+        self.stored_total = 0                    # messages stored since start (health counter)
+        self.db_down_since: float | None = None  # monotonic time of the first failure in a row
+        self.last_stored = time.monotonic()
+
+    def health(self) -> tuple[list[str], dict]:
+        """Problems and counters for the heartbeat (called from the heartbeat thread)."""
+        problems, now, waiting = [], time.monotonic(), self.inbox.qsize()
+        if self.db_down_since is not None:
+            problems.append(f"database unavailable for {now - self.db_down_since:.0f}s")
+        elif waiting and now - self.last_stored > STUCK_AFTER:
+            problems.append(f"{waiting} messages waiting, nothing stored for {now - self.last_stored:.0f}s")
+        return problems, {"stored": self.stored_total, "waiting": waiting}
 
     def collect(self, stop) -> list[Received]:
         """Wait for the first message, then gather more until the batch is full or time is up."""
@@ -121,6 +142,8 @@ class Batcher:
                 result = self.store.write([r.message for r in batch])
                 break
             except StoreUnavailable as e:
+                if self.db_down_since is None:
+                    self.db_down_since = time.monotonic()
                 log.warning(kv("database_unavailable", held=len(batch), waiting=self.inbox.qsize(),
                                retry_in=f"{wait}s", error=e))
                 for _ in range(wait * 10):
@@ -128,6 +151,9 @@ class Batcher:
                         return False
                     time.sleep(0.1)
                 wait = min(wait * 2, MAX_WAIT)
+        self.db_down_since = None
+        self.last_stored = time.monotonic()
+        self.stored_total += len(batch)
         current = self.current_connection()
         stale = 0
         for r in batch:                                   # in arrival order
@@ -153,20 +179,6 @@ def main() -> None:
     contracts_dir = Path(os.getenv("CONTRACTS_DIR") or DEFAULT_CONTRACTS)
     store = PostgresHistorian(os.environ["DATABASE_URL"], site, validate=contract_validator(contracts_dir))
 
-    # 1. Copy the asset model's points into the series table (waits for the database).
-    points = Mapper.from_folder(model_dir).points()
-    wait = 1
-    while True:
-        try:
-            n = store.sync_series(site, points)
-            log.info(kv("series_synced", site=site, points=n))
-            break
-        except StoreUnavailable as e:
-            log.warning(kv("database_unavailable", retry_in=f"{wait}s", error=e))
-            time.sleep(wait)
-            wait = min(wait * 2, MAX_WAIT)
-
-    # 2. Broker: MQTT 5, persistent session, manual acknowledgements.
     connection = {"n": 0}
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, protocol=mqtt.MQTTv5)
     client.manual_ack_set(True)
@@ -176,16 +188,51 @@ def main() -> None:
     batcher = Batcher(store, client.ack, lambda: connection["n"],
                       int(os.getenv("BATCH_SIZE", "500")), float(os.getenv("BATCH_SECONDS", "0.2")))
 
+    # Heartbeat from the start, so "waiting for the database" shows as unhealthy too.
+    link = BrokerLink()
+
+    def publish_health(topic, text):
+        if link.is_connected:           # not queued while away: an old heartbeat later would mislead
+            client.publish(topic, text, qos=1, retain=True)
+
+    def status():
+        problems, counters = batcher.health()
+        return link.problems() + problems, counters
+
+    health_file = os.getenv("HEALTH_FILE", "/tmp/health.json")
+    heartbeat = Heartbeat(CLIENT_ID, status, publish_health,
+                          path=None if health_file.lower() == "off" else health_file).start()
+
+    # 1. Copy the asset model's points into the series table (waits for the database).
+    points = Mapper.from_folder(model_dir).points()
+    wait = 1
+    while True:
+        try:
+            n = store.sync_series(site, points)
+            batcher.db_down_since = None
+            log.info(kv("series_synced", site=site, points=n))
+            break
+        except StoreUnavailable as e:
+            if batcher.db_down_since is None:
+                batcher.db_down_since = time.monotonic()
+            log.warning(kv("database_unavailable", retry_in=f"{wait}s", error=e))
+            time.sleep(wait)
+            wait = min(wait * 2, MAX_WAIT)
+
+    # 2. Broker: MQTT 5, persistent session, manual acknowledgements.
+
     def on_connect(client, userdata, flags, reason_code, properties):
         if reason_code.is_failure:
             log.error(kv("connect_failed", reason=str(reason_code)))
             return
         connection["n"] += 1
+        link.connected()
         client.subscribe(SUBSCRIPTIONS)
         client.publish(STATUS_TOPIC, "online", qos=1, retain=True)
         log.info(kv("connected", session_present=flags.session_present, connection=connection["n"]))
 
     def on_disconnect(client, userdata, flags, reason_code, properties):
+        link.disconnected()
         log.warning(kv("disconnected", reason=str(reason_code)))
 
     def on_message(client, userdata, msg):
@@ -193,6 +240,7 @@ def main() -> None:
         batcher.inbox.put(Received(Message(msg.topic, msg.payload), msg.mid, msg.qos, connection["n"]))
 
     client.on_connect, client.on_disconnect, client.on_message = on_connect, on_disconnect, on_message
+    client.on_publish = lambda *args: link.confirmed()      # the broker is answering (heartbeat, status)
     props = Properties(PacketTypes.CONNECT)
     props.SessionExpiryInterval = SESSION_EXPIRY
     props.ReceiveMaximum = RECEIVE_MAX
@@ -216,6 +264,7 @@ def main() -> None:
     except KeyboardInterrupt:
         pass
     # Unacknowledged messages stay with the broker and come back next time.
+    heartbeat.stop()
     client.publish(STATUS_TOPIC, "offline", qos=1, retain=True).wait_for_publish(timeout=2)
     client.disconnect()
     client.loop_stop()
